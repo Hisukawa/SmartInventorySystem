@@ -1,0 +1,342 @@
+import { useState } from "react";
+import { useForm, router, Link } from "@inertiajs/react";
+import QRCode from "react-qr-code";
+
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+
+import { AppSidebar } from "@/components/app-sidebar";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+    SidebarInset,
+    SidebarProvider,
+    SidebarTrigger,
+} from "@/components/ui/sidebar";
+
+export default function RoomPage({ rooms, search }) {
+    const [searchTerm, setSearchTerm] = useState(search || "");
+    const [addRoomModalOpen, setAddRoomModalOpen] = useState(false);
+    const [selectedQR, setSelectedQR] = useState("");
+    const [selectedRoomNumber, setSelectedRoomNumber] = useState("");
+    const [copied, setCopied] = useState(false);
+
+    // ✅ CHANGE: Success message state
+    const [successMessage, setSuccessMessage] = useState("");
+
+    const { data, setData, post, reset, processing, errors } = useForm({
+        room_number: "",
+    });
+
+    const submit = (e) => {
+        e.preventDefault();
+        post("/admin/rooms", {
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                setAddRoomModalOpen(false);
+
+                // ✅ CHANGE: Show success message
+                setSuccessMessage("Room added successfully!");
+                setTimeout(() => setSuccessMessage(""), 5000);
+            },
+        });
+    };
+
+    const handleSearch = (e) => {
+        if (e.key === "Enter") {
+            router.get("/admin/rooms", { search: searchTerm });
+        }
+    };
+
+    const handleQRCodeClick = (qrValue, roomNumber) => {
+        if (qrValue) {
+            setSelectedQR(qrValue);
+            setSelectedRoomNumber(roomNumber);
+        }
+    };
+
+    const handleDownload = () => {
+        const svg = document.getElementById("qr-download");
+        const serializer = new XMLSerializer();
+        const svgData = serializer.serializeToString(svg);
+        const svgBlob = new Blob([svgData], {
+            type: "image/svg+xml;charset=utf-8",
+        });
+        const url = URL.createObjectURL(svgBlob);
+
+        const img = new Image();
+        img.onload = () => {
+            const qrSize = 200;
+            const padding = 10;
+            const textHeight = 30;
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            canvas.width = qrSize + padding * 2;
+            canvas.height = qrSize + textHeight + padding * 3;
+
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.drawImage(img, padding, padding, qrSize, qrSize);
+
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 16px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(
+                `ROOM ${selectedRoomNumber}`,
+                canvas.width / 2,
+                qrSize + padding * 2 + 15
+            );
+
+            const finalImage = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.href = finalImage;
+            link.download = `room-${selectedRoomNumber}-qr.png`;
+            link.click();
+        };
+
+        img.src = url;
+    };
+
+    const handleCopy = async () => {
+        await navigator.clipboard.writeText(selectedQR);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+                <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
+                    <SidebarTrigger />
+                    <Separator orientation="vertical" className="h-6 mx-3" />
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/admin/rooms">
+                                    Room Lists
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </header>
+
+                <main className="w-full px-6 py-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <h1 className="text-xl font-bold">Room Management</h1>
+                        <Button onClick={() => setAddRoomModalOpen(true)}>
+                            Add Room
+                        </Button>
+                    </div>
+
+                    {/* ✅ CHANGE: Success message display */}
+                    {successMessage && (
+                        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded shadow text-sm">
+                            {successMessage}
+                        </div>
+                    )}
+
+                    {/* Add Room Modal */}
+                    <Dialog
+                        open={addRoomModalOpen}
+                        onOpenChange={setAddRoomModalOpen}
+                    >
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Add New Room</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={submit} className="space-y-4">
+                                <Input
+                                    placeholder="e.g. 101"
+                                    value={data.room_number}
+                                    onChange={(e) =>
+                                        setData("room_number", e.target.value)
+                                    }
+                                />
+                                {errors.room_number && (
+                                    <p className="text-sm text-red-500">
+                                        {errors.room_number}
+                                    </p>
+                                )}
+                                <Button type="submit" disabled={processing}>
+                                    Submit
+                                </Button>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Search */}
+                    <Input
+                        placeholder="Search rooms..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={handleSearch}
+                        className="mb-4 w-full sm:w-1/3"
+                    />
+
+                    {/* Table */}
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>#</TableHead>
+                                    <TableHead>Room Name</TableHead>
+                                    <TableHead>Room Code</TableHead>
+                                    <TableHead>QR Code</TableHead>
+                                    <TableHead>Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {rooms.data.map((room, index) => {
+                                    const qrValue =
+                                        typeof room.room_path === "string"
+                                            ? `${window.location.origin}/room/${room.room_path}`
+                                            : null;
+
+                                    return (
+                                        <TableRow key={room.id}>
+                                            <TableCell>
+                                                {(rooms.current_page - 1) *
+                                                    rooms.per_page +
+                                                    index +
+                                                    1}
+                                            </TableCell>
+                                            <TableCell>
+                                                ROOM {room.room_number}
+                                            </TableCell>
+                                            <TableCell>
+                                                {room.room_path}
+                                            </TableCell>
+                                            <TableCell>
+                                                {qrValue ? (
+                                                    <div
+                                                        className="w-16 h-16 bg-white p-1 rounded cursor-pointer"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleQRCodeClick(
+                                                                qrValue,
+                                                                room.room_number
+                                                            );
+                                                        }}
+                                                    >
+                                                        <QRCode
+                                                            value={qrValue}
+                                                            size={64}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-sm text-gray-500">
+                                                        No QR
+                                                    </span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                >
+                                                    Edit
+                                                </Button>{" "}
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+
+                        {/* Pagination */}
+                        <div className="mt-4 flex justify-center gap-1">
+                            {rooms.links.map((link, i) => (
+                                <Button
+                                    key={i}
+                                    variant={link.active ? "default" : "ghost"}
+                                    dangerouslySetInnerHTML={{
+                                        __html: link.label,
+                                    }}
+                                    onClick={() =>
+                                        link.url && router.visit(link.url)
+                                    }
+                                    disabled={!link.url}
+                                    size="sm"
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* QR Code Modal */}
+                    <Dialog
+                        open={!!selectedQR}
+                        onOpenChange={() => {
+                            setSelectedQR("");
+                            setSelectedRoomNumber("");
+                        }}
+                    >
+                        <DialogContent className="max-w-sm text-center">
+                            <DialogTitle>ROOM {selectedRoomNumber}</DialogTitle>
+
+                            <div className="flex flex-col items-center justify-center">
+                                <div
+                                    className="inline-block p-4 bg-white rounded cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCopy();
+                                    }}
+                                >
+                                    <QRCode
+                                        id="qr-download"
+                                        value={selectedQR}
+                                        size={200}
+                                    />
+                                    <p className="text-xs mt-2 text-muted-foreground">
+                                        Click QR to copy link
+                                    </p>
+                                </div>
+
+                                {copied && (
+                                    <p className="text-green-600 text-sm text-center mt-1">
+                                        Copied to clipboard!
+                                    </p>
+                                )}
+
+                                <Button
+                                    className="mt-4"
+                                    onClick={handleDownload}
+                                >
+                                    Download QR
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
+    );
+}
