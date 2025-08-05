@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SystemUnitController;
 use Inertia\Inertia;
 
 // Public Welcome Page
@@ -29,10 +30,23 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// units
+Route::middleware(['auth'])->group(function () {
+    Route::get('/units', [SystemUnitController::class, 'index'])->name('units.index');
+    Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
+});
+
 // Admin Only Routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/rooms', [RoomController::class, 'index']);
-    Route::post('/admin/rooms', [RoomController::class, 'store']);
+    // Rooms
+    Route::get('/admin/rooms', [RoomController::class, 'index'])->name('rooms.index');
+    Route::post('/admin/rooms', [RoomController::class, 'store'])->name('rooms.store');
+    Route::get('/admin/rooms/{room}/edit', [RoomController::class, 'edit'])->name('rooms.edit');
+    Route::put('/admin/rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
+    Route::delete('/admin/rooms/{room}', [RoomController::class, 'destroy'])->name('rooms.destroy');
+
+
+    // Admin Dashboard
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 });
 

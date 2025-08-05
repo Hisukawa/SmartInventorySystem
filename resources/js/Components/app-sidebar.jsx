@@ -54,7 +54,7 @@ const data = {
             items: [
                 {
                     title: "Units",
-                    url: "#",
+                    url: "/units",
                 },
                 {
                     title: "Peripherals",

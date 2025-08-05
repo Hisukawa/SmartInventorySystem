@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
 import QRCode from "react-qr-code";
+import Swal from "sweetalert2";
 
 import {
     Table,
@@ -36,30 +37,81 @@ import {
 export default function RoomPage({ rooms, search }) {
     const [searchTerm, setSearchTerm] = useState(search || "");
     const [addRoomModalOpen, setAddRoomModalOpen] = useState(false);
+    const [editRoomModalOpen, setEditRoomModalOpen] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
     const [selectedQR, setSelectedQR] = useState("");
     const [selectedRoomNumber, setSelectedRoomNumber] = useState("");
     const [copied, setCopied] = useState(false);
-
-    // ✅ CHANGE: Success message state
     const [successMessage, setSuccessMessage] = useState("");
 
+    // CREATE FORM
     const { data, setData, post, reset, processing, errors } = useForm({
         room_number: "",
     });
 
+    // EDIT FORM
+    const {
+        data: editData,
+        setData: setEditData,
+        put,
+        processing: editProcessing,
+        errors: editErrors,
+        reset: resetEdit,
+    } = useForm({ room_number: "" });
+
     const submit = (e) => {
         e.preventDefault();
+
         post("/admin/rooms", {
             preserveScroll: true,
             onSuccess: () => {
                 reset();
                 setAddRoomModalOpen(false);
-
-                // ✅ CHANGE: Show success message
                 setSuccessMessage("Room added successfully!");
                 setTimeout(() => setSuccessMessage(""), 5000);
             },
+            // onError: (errors) => {
+            //     if (errors.room_number) {
+            //         Swal.fire({
+            //             icon: "error",
+            //             title: "Room already exists!",
+            //             text: errors.room_number,
+            //         });
+            //     }
+            // },
         });
+    };
+
+    const submitEdit = (e) => {
+        e.preventDefault();
+
+        put(`/admin/rooms/${selectedRoom.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEditRoomModalOpen(false);
+                resetEdit();
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Room updated!",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+            },
+            onError: () => {
+                Swal.fire({
+                    icon: "error",
+                    title: "Update failed!",
+                    text: "Please check your input.",
+                });
+            },
+        });
+    };
+
+    const openEditModal = (room) => {
+        setSelectedRoom(room);
+        setEditData("room_number", room.room_number);
+        setEditRoomModalOpen(true);
     };
 
     const handleSearch = (e) => {
@@ -125,6 +177,33 @@ export default function RoomPage({ rooms, search }) {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleDelete = (id) => {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This room will be permanently deleted.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.delete(`/admin/rooms/${id}`, {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Deleted!",
+                            text: "The room has been deleted.",
+                            timer: 1500,
+                            showConfirmButton: false,
+                        });
+                    },
+                });
+            }
+        });
+    };
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -151,7 +230,6 @@ export default function RoomPage({ rooms, search }) {
                         </Button>
                     </div>
 
-                    {/* ✅ CHANGE: Success message display */}
                     {successMessage && (
                         <div className="mb-4 p-3 bg-green-100 text-green-800 rounded shadow text-sm">
                             {successMessage}
@@ -187,6 +265,52 @@ export default function RoomPage({ rooms, search }) {
                         </DialogContent>
                     </Dialog>
 
+                    {/* Edit Room Modal */}
+                    <Dialog
+                        open={editRoomModalOpen}
+                        onOpenChange={setEditRoomModalOpen}
+                    >
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Edit Room</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={submitEdit} className="space-y-4">
+                                <Input
+                                    placeholder="e.g. 101"
+                                    value={editData.room_number}
+                                    onChange={(e) =>
+                                        setEditData(
+                                            "room_number",
+                                            e.target.value
+                                        )
+                                    }
+                                />
+                                {editErrors.room_number && (
+                                    <p className="text-sm text-red-500">
+                                        {editErrors.room_number}
+                                    </p>
+                                )}
+                                <div className="flex justify-end gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() =>
+                                            setEditRoomModalOpen(false)
+                                        }
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={editProcessing}
+                                    >
+                                        Update
+                                    </Button>
+                                </div>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
                     {/* Search */}
                     <Input
                         placeholder="Search rooms..."
@@ -218,6 +342,13 @@ export default function RoomPage({ rooms, search }) {
                                     return (
                                         <TableRow key={room.id}>
                                             <TableCell>
+                                                {/* {(rooms.current_page - 1) *
+                                                    rooms.per_page +
+                                                    index +
+                                                    1} */}
+                                                {/* THIS IS FROM DATABASE */}
+
+                                                {/* STATIC */}
                                                 {(rooms.current_page - 1) *
                                                     rooms.per_page +
                                                     index +
@@ -256,12 +387,19 @@ export default function RoomPage({ rooms, search }) {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
+                                                    onClick={() =>
+                                                        openEditModal(room)
+                                                    }
+                                                    className="mr-2"
                                                 >
                                                     Edit
-                                                </Button>{" "}
+                                                </Button>
                                                 <Button
                                                     variant="destructive"
                                                     size="sm"
+                                                    onClick={() =>
+                                                        handleDelete(room.id)
+                                                    }
                                                 >
                                                     Delete
                                                 </Button>
@@ -301,7 +439,6 @@ export default function RoomPage({ rooms, search }) {
                     >
                         <DialogContent className="max-w-sm text-center">
                             <DialogTitle>ROOM {selectedRoomNumber}</DialogTitle>
-
                             <div className="flex flex-col items-center justify-center">
                                 <div
                                     className="inline-block p-4 bg-white rounded cursor-pointer"
@@ -319,13 +456,11 @@ export default function RoomPage({ rooms, search }) {
                                         Click QR to copy link
                                     </p>
                                 </div>
-
                                 {copied && (
                                     <p className="text-green-600 text-sm text-center mt-1">
                                         Copied to clipboard!
                                     </p>
                                 )}
-
                                 <Button
                                     className="mt-4"
                                     onClick={handleDownload}

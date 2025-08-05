@@ -13,4 +13,9 @@ class Room extends Model
         'room_number',
         'room_path',
     ];
+
+    public function units()
+    {
+        return $this->hasMany(SystemUnit::class);
+    }
 }
