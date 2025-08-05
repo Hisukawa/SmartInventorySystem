@@ -53,4 +53,20 @@ class SystemUnitController extends Controller
 
         return redirect()->back()->with('message', 'System unit added successfully!');
     }
+
+    // Update System Unit
+    public function update(Request $request, $id)
+    {
+        $unit = SystemUnit::findOrFail($id);
+        $unit->update($request->all());
+        return back()->with('success', 'Unit updated successfully.');
+    }
+
+    // Delete System Unit
+    public function destroy($id)
+    {
+        $unit = SystemUnit::findOrFail($id);
+        $unit->delete();
+        return back()->with('success', 'Unit deleted successfully.');
+    }
 }

@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { useForm } from "@inertiajs/react";
-
 import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
-
 import { cn } from "@/lib/utils";
-
 import AddUnitModal from "@/Pages/SystemUnits/Modal/AddUnitModal";
+import EditUnitModal from "@/Pages/SystemUnits/Modal/EditUnitModal";
+import { useForm as useInertiaForm } from "@inertiajs/react";
+import Swal from "sweetalert2";
 
 import {
     Table,
@@ -18,27 +17,17 @@ import {
     TableCell,
 } from "@/components/ui/table";
 import QRCode from "react-qr-code";
-
 import {
     SidebarProvider,
     SidebarInset,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
-
 import {
     Breadcrumb,
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,
 } from "@/components/ui/breadcrumb";
-
-import {
-    Dialog,
-    DialogTrigger,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
 
 const CONDITION_OPTIONS = [
     { label: "Functional", color: "bg-green-500" },
@@ -49,30 +38,25 @@ const CONDITION_OPTIONS = [
 ];
 
 export default function UnitsPage({ units, rooms }) {
-    const [open, setOpen] = useState(false);
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedUnit, setSelectedUnit] = useState(null); // 👈 for modal
+    const itemsPerPage = 10;
 
-    console.log(rooms);
+    const { delete: destroy } = useInertiaForm(); // ✅ correct usage
 
-    const { data, setData, reset, post, processing, errors } = useForm({
-        unit_number: "",
-        processor: "",
-        ram: "",
-        storage: "",
-        gpu: "",
-        motherboard: "",
-        condition: "",
-        room: "",
-    });
+    // Filtered and paginated data
+    const filteredUnits = useMemo(() => {
+        return units.filter((unit) =>
+            unit.unit_code.toLowerCase().includes(search.toLowerCase())
+        );
+    }, [units, search]);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        post("/units", {
-            onSuccess: () => {
-                reset();
-                setOpen(false);
-            },
-        });
-    };
+    const totalPages = Math.ceil(filteredUnits.length / itemsPerPage);
+    const paginatedUnits = filteredUnits.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     const getConditionColor = (value) => {
         const match = CONDITION_OPTIONS.find(
@@ -103,15 +87,28 @@ export default function UnitsPage({ units, rooms }) {
                     <h1 className="text-2xl font-semibold mb-4">
                         System Units
                     </h1>
-                    {/* ✅ Modal Trigger Button */}
-                    <div className="flex justify-end mb-4">
+
+                    {/* Search and Add Button */}
+                    <div className="flex justify-between items-center mb-4">
+                        <input
+                            type="text"
+                            placeholder="Search Unit Code..."
+                            className="border rounded px-3 py-2 w-64"
+                            value={search}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        />
                         <AddUnitModal rooms={rooms} />
                     </div>
+
+                    {/* Table */}
                     <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>ID</TableHead>
+                                    <TableHead>#</TableHead>
                                     <TableHead>Unit Code</TableHead>
                                     <TableHead>Processor</TableHead>
                                     <TableHead>RAM</TableHead>
@@ -124,70 +121,157 @@ export default function UnitsPage({ units, rooms }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {units.map((unit, index) => (
-                                    <TableRow key={unit.id}>
-                                        <TableCell>
-                                            {/* DYNAMIC */}
-                                            {/* {unit.id} */}
-
-                                            {/* STATIC */}
-                                            {index + 1}
-                                        </TableCell>
-                                        <TableCell>{unit.unit_code}</TableCell>
-                                        <TableCell>{unit.processor}</TableCell>
-                                        <TableCell>{unit.ram}</TableCell>
-                                        <TableCell>{unit.storage}</TableCell>
-                                        <TableCell>{unit.gpu}</TableCell>
-                                        <TableCell>
-                                            {unit.motherboard}
-                                        </TableCell>
-                                        <TableCell>
-                                            {unit.condition && (
-                                                <div className="mt-1 text-sm flex items-center gap-2">
-                                                    <span
-                                                        className={cn(
-                                                            "inline-block w-3 h-3 rounded-full",
-                                                            getConditionColor(
-                                                                unit.condition
-                                                            )
-                                                        )}
+                                {paginatedUnits.length > 0 ? (
+                                    paginatedUnits.map((unit, index) => (
+                                        <TableRow key={unit.id}>
+                                            <TableCell>
+                                                {(currentPage - 1) *
+                                                    itemsPerPage +
+                                                    index +
+                                                    1}
+                                            </TableCell>
+                                            <TableCell>
+                                                {unit.unit_code}
+                                            </TableCell>
+                                            <TableCell>
+                                                {unit.processor}
+                                            </TableCell>
+                                            <TableCell>{unit.ram}</TableCell>
+                                            <TableCell>
+                                                {unit.storage}
+                                            </TableCell>
+                                            <TableCell>{unit.gpu}</TableCell>
+                                            <TableCell>
+                                                {unit.motherboard}
+                                            </TableCell>
+                                            <TableCell>
+                                                {unit.condition && (
+                                                    <div className="mt-1 text-sm flex items-center gap-2">
+                                                        <span
+                                                            className={cn(
+                                                                "inline-block w-3 h-3 rounded-full",
+                                                                getConditionColor(
+                                                                    unit.condition
+                                                                )
+                                                            )}
+                                                        />
+                                                        <span className="capitalize">
+                                                            {unit.condition}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="w-20 h-20">
+                                                    <QRCode
+                                                        value={`${window.location.origin}/equipment/${unit.unit_code}`}
+                                                        size={64}
                                                     />
-                                                    <span className="capitalize">
-                                                        {unit.condition}
-                                                    </span>
                                                 </div>
-                                            )}
-                                        </TableCell>
-
-                                        <TableCell>
-                                            <div className="w-20 h-20">
-                                                <QRCode
-                                                    value={`${window.location.origin}/equipment/${unit.unit_code}`}
-                                                    size={64}
-                                                />
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                >
-                                                    Edit
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="destructive"
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() =>
+                                                            setSelectedUnit(
+                                                                unit
+                                                            )
+                                                        }
+                                                    >
+                                                        Edit
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        onClick={() => {
+                                                            Swal.fire({
+                                                                title: `Delete ${unit.unit_code}?`,
+                                                                text: "This action cannot be undone!",
+                                                                icon: "warning",
+                                                                showCancelButton: true,
+                                                                confirmButtonColor:
+                                                                    "#d33",
+                                                                cancelButtonColor:
+                                                                    "#3085d6",
+                                                                confirmButtonText:
+                                                                    "Yes, delete it!",
+                                                            }).then(
+                                                                (result) => {
+                                                                    if (
+                                                                        result.isConfirmed
+                                                                    ) {
+                                                                        destroy(
+                                                                            `/system-units/${unit.id}`
+                                                                        );
+                                                                        Swal.fire(
+                                                                            "Deleted!",
+                                                                            `Unit ${unit.unit_code} has been deleted.`,
+                                                                            "success"
+                                                                        );
+                                                                    }
+                                                                }
+                                                            );
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={10}
+                                            className="text-center py-4"
+                                        >
+                                            No matching units found.
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )}
                             </TableBody>
                         </Table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    <div className="flex justify-between items-center mt-4">
+                        <span className="text-sm text-muted-foreground">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <div className="flex gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={currentPage === 1}
+                                onClick={() =>
+                                    setCurrentPage((prev) => prev - 1)
+                                }
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={currentPage === totalPages}
+                                onClick={() =>
+                                    setCurrentPage((prev) => prev + 1)
+                                }
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Edit Modal Rendered Outside Table */}
+                    {selectedUnit && (
+                        <EditUnitModal
+                            unit={selectedUnit}
+                            rooms={rooms}
+                            onClose={() => setSelectedUnit(null)}
+                        />
+                    )}
                 </main>
             </SidebarInset>
         </SidebarProvider>

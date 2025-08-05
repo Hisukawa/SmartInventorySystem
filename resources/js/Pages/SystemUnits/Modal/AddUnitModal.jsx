@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -53,6 +53,23 @@ export default function AddUnitModal() {
         });
     };
 
+    const [typedRoom, setTypedRoom] = useState(""); // what user types
+
+    useEffect(() => {
+        // Match user input to room number and save its ID
+        const selectedRoom = rooms.find(
+            (room) =>
+                `ROOM ${room.room_number}`.toLowerCase() ===
+                typedRoom.toLowerCase()
+        );
+
+        if (selectedRoom) {
+            setData("room_id", selectedRoom.id); // save id to DB
+        } else {
+            setData("room_id", ""); // clear if unmatched
+        }
+    }, [typedRoom]);
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -65,19 +82,20 @@ export default function AddUnitModal() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <Label htmlFor="room_id">Room</Label>
+                        <Label htmlFor="room_number">Room</Label>
                         <Input
-                            id="room_id"
+                            id="room_number"
                             list="room-options"
-                            value={data.room_id}
-                            onChange={(e) => setData("room_id", e.target.value)}
+                            value={typedRoom}
+                            onChange={(e) => setTypedRoom(e.target.value)}
                             placeholder="Search or select room"
                         />
                         <datalist id="room-options">
                             {rooms.map((room) => (
-                                <option key={room.id} value={room.id}>
-                                    ROOM {room.room_number}
-                                </option>
+                                <option
+                                    key={room.id}
+                                    value={`ROOM ${room.room_number}`}
+                                />
                             ))}
                         </datalist>
                         {errors.room_id && (

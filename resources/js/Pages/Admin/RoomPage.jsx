@@ -225,9 +225,6 @@ export default function RoomPage({ rooms, search }) {
                 <main className="w-full px-6 py-4">
                     <div className="flex items-center justify-between mb-4">
                         <h1 className="text-xl font-bold">Room Management</h1>
-                        <Button onClick={() => setAddRoomModalOpen(true)}>
-                            Add Room
-                        </Button>
                     </div>
 
                     {successMessage && (
@@ -312,13 +309,19 @@ export default function RoomPage({ rooms, search }) {
                     </Dialog>
 
                     {/* Search */}
-                    <Input
-                        placeholder="Search rooms..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={handleSearch}
-                        className="mb-4 w-full sm:w-1/3"
-                    />
+                    <div className="flex justify-between items-center mb-4">
+                        <Input
+                            placeholder="Search rooms..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyDown={handleSearch}
+                            className="mb-4 w-full sm:w-1/3"
+                        />
+
+                        <Button onClick={() => setAddRoomModalOpen(true)}>
+                            Add Room
+                        </Button>
+                    </div>
 
                     {/* Table */}
                     <div className="rounded-md border">
@@ -363,7 +366,7 @@ export default function RoomPage({ rooms, search }) {
                                             <TableCell>
                                                 {qrValue ? (
                                                     <div
-                                                        className="w-16 h-16 bg-white p-1 rounded cursor-pointer"
+                                                        className="w-16 h-16 bg-white p-1 rounded cursor-pointer m-1"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             handleQRCodeClick(
@@ -410,22 +413,42 @@ export default function RoomPage({ rooms, search }) {
                             </TableBody>
                         </Table>
 
-                        {/* Pagination */}
-                        <div className="mt-4 flex justify-center gap-1">
-                            {rooms.links.map((link, i) => (
-                                <Button
-                                    key={i}
-                                    variant={link.active ? "default" : "ghost"}
-                                    dangerouslySetInnerHTML={{
-                                        __html: link.label,
-                                    }}
-                                    onClick={() =>
-                                        link.url && router.visit(link.url)
-                                    }
-                                    disabled={!link.url}
-                                    size="sm"
-                                />
-                            ))}
+                        {/* Pagination with page info */}
+                        <div className="mt-2 flex flex-col sm:flex-row justify-between items-center gap-2">
+                            {/* Page Info */}
+                            <span className="text-sm text-muted-foreground m-2">
+                                Page {rooms.current_page} of {rooms.last_page}
+                            </span>
+
+                            {/* Pagination Buttons */}
+                            <div className="flex flex-wrap justify-center items-center gap-2">
+                                {rooms.links.map((link, index) => {
+                                    const label = link.label
+                                        .replace("&laquo;", "«")
+                                        .replace("&raquo;", "»");
+
+                                    return (
+                                        <Button
+                                            key={index}
+                                            variant={
+                                                link.active
+                                                    ? "default"
+                                                    : "ghost"
+                                            }
+                                            size="sm"
+                                            className="min-w-[36px] px-3 py-1"
+                                            onClick={() =>
+                                                link.url &&
+                                                router.visit(link.url)
+                                            }
+                                            disabled={!link.url}
+                                            dangerouslySetInnerHTML={{
+                                                __html: label,
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
 

@@ -45,6 +45,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/admin/rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
     Route::delete('/admin/rooms/{room}', [RoomController::class, 'destroy'])->name('rooms.destroy');
 
+    // System Unit
+    Route::put('/system-units/{id}', [SystemUnitController::class, 'update']);
+    Route::delete('/system-units/{id}', [SystemUnitController::class, 'destroy']);
+
 
     // Admin Dashboard
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
