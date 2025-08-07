@@ -214,7 +214,11 @@ export default function RoomPage({ rooms, search }) {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/admin/rooms">
+                                <BreadcrumbLink
+                                    href="/admin/rooms"
+                                    aria-current="page"
+                                    className="font-semibold text-foreground"
+                                >
                                     Room Lists
                                 </BreadcrumbLink>
                             </BreadcrumbItem>

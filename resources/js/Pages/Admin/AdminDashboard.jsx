@@ -30,7 +30,11 @@ export default function AdminDashboard({ children }) {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/admin/rooms">
+                                <BreadcrumbLink
+                                    href="/admin/rooms"
+                                    aria-current="page"
+                                    className="font-semibold text-foreground"
+                                >
                                     Dashboard
                                 </BreadcrumbLink>
                             </BreadcrumbItem>

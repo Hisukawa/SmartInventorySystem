@@ -45,6 +45,7 @@ Route::middleware(['auth'])->group(function () {
         // System Units
         Route::put('/system-units/{id}', [SystemUnitController::class, 'update']);
         Route::delete('/system-units/{id}', [SystemUnitController::class, 'destroy']);
+        Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
 
         // Admin Dashboard
         Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');

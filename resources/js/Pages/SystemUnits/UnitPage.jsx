@@ -7,6 +7,7 @@ import AddUnitModal from "@/Pages/SystemUnits/Modal/AddUnitModal";
 import EditUnitModal from "@/Pages/SystemUnits/Modal/EditUnitModal";
 import { useForm as useInertiaForm } from "@inertiajs/react";
 import Swal from "sweetalert2";
+import { router } from "@inertiajs/react";
 
 import {
     Table,
@@ -75,8 +76,12 @@ export default function UnitsPage({ units, rooms }) {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="/admin/rooms">
-                                    Room Lists
+                                <BreadcrumbLink
+                                    href="/units"
+                                    aria-current="page"
+                                    className="font-semibold text-foreground"
+                                >
+                                    System Unit Lists
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
                         </BreadcrumbList>
@@ -106,15 +111,15 @@ export default function UnitsPage({ units, rooms }) {
                     {/* Table */}
                     <div className="overflow-x-auto">
                         <Table>
-                            <TableHeader>
+                            <TableHeader className="">
                                 <TableRow>
                                     <TableHead>#</TableHead>
                                     <TableHead>Unit Code</TableHead>
-                                    <TableHead>Processor</TableHead>
+                                    {/* <TableHead>Processor</TableHead>
                                     <TableHead>RAM</TableHead>
                                     <TableHead>Storage</TableHead>
                                     <TableHead>GPU</TableHead>
-                                    <TableHead>Motherboard</TableHead>
+                                    <TableHead>Motherboard</TableHead> */}
                                     <TableHead>Condition</TableHead>
                                     <TableHead>QR Code</TableHead>
                                     <TableHead>Actions</TableHead>
@@ -133,7 +138,7 @@ export default function UnitsPage({ units, rooms }) {
                                             <TableCell>
                                                 {unit.unit_code}
                                             </TableCell>
-                                            <TableCell>
+                                            {/* <TableCell>
                                                 {unit.processor}
                                             </TableCell>
                                             <TableCell>{unit.ram}</TableCell>
@@ -143,7 +148,7 @@ export default function UnitsPage({ units, rooms }) {
                                             <TableCell>{unit.gpu}</TableCell>
                                             <TableCell>
                                                 {unit.motherboard}
-                                            </TableCell>
+                                            </TableCell> */}
                                             <TableCell>
                                                 {unit.condition && (
                                                     <div className="mt-1 text-sm flex items-center gap-2">
@@ -171,6 +176,17 @@ export default function UnitsPage({ units, rooms }) {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() =>
+                                                            router.visit(
+                                                                `/system-units/view/${unit.unit_code}`
+                                                            )
+                                                        }
+                                                    >
+                                                        View
+                                                    </Button>
                                                     <Button
                                                         size="sm"
                                                         variant="secondary"

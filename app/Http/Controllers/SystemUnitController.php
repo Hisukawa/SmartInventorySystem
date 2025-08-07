@@ -69,4 +69,12 @@ class SystemUnitController extends Controller
         $unit->delete();
         return back()->with('success', 'Unit deleted successfully.');
     }
+
+    public function show($unit_code)
+    {
+        $unit = SystemUnit::where('unit_code', $unit_code)->firstOrFail();
+        return Inertia::render('SystemUnits/ViewUnit', [
+            'unit' => $unit
+        ]);
+    }
 }
