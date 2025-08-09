@@ -1,17 +1,13 @@
 import {
-    Card,
-    CardContent,
-    CardFooter,
     CardHeader,
     CardTitle,
-    CardDescription,
+    CardDescription
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Head, Link, useForm } from "@inertiajs/react";
-import { FaApple, FaGoogle, FaFacebookF } from "react-icons/fa";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -30,15 +26,44 @@ export default function Login({ status, canResetPassword }) {
     return (
         <>
             <Head title="Log in" />
-            <div className="min-h-screen flex items-center justify-center bg-muted">
-                <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 bg-white shadow-lg rounded-lg overflow-hidden">
-                    {/* LEFT COLUMN - FORM */}
-                    <div className="p-8">
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+                <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 bg-white shadow-lg rounded-lg overflow-hidden">
+
+                    {/* LEFT PANEL - IMAGE & TITLE */}
+                    <div className="hidden md:flex flex-col items-center justify-center bg-green-500 text-white p-8 relative">
+                        <div className="flex space-x-4 mb-6">
+                            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white bg-white shadow-md">
+                                <img
+                                    src="logo.png"
+                                    alt="Logo 1"
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white bg-white shadow-md">
+                                <img
+                                    src="/ict.png"
+                                    alt="Logo 2"
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                        </div>
+                        <h2 className="text-2xl font-bold text-center">
+                            ICT INVENTORY SYSTEM MANAGEMENT
+                        </h2>
+                        <p className="mt-3 text-sm opacity-90 text-center">
+                            Secure • Fast • Organized
+                        </p>
+                    </div>
+
+                    {/* RIGHT PANEL - LOGIN FORM */}
+                    <div className="p-8 flex flex-col justify-center">
                         <CardHeader className="p-0 mb-6">
                             <CardTitle className="text-2xl font-bold">
-                                Welcome
+                                Login Account
                             </CardTitle>
-                            <CardDescription>Login</CardDescription>
+                            <CardDescription>
+                                Please enter your details to log in
+                            </CardDescription>
                         </CardHeader>
 
                         {status && (
@@ -49,7 +74,7 @@ export default function Login({ status, canResetPassword }) {
 
                         <form onSubmit={submit} className="space-y-4">
                             <div className="space-y-1">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">Email Address</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -114,52 +139,22 @@ export default function Login({ status, canResetPassword }) {
 
                             <Button
                                 type="submit"
-                                className="w-full mt-2"
+                                className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white"
                                 disabled={processing}
                             >
                                 Login
                             </Button>
 
-                            <div className="relative mt-6 mb-2">
-                                <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t"></span>
-                                </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-white px-2 text-muted-foreground">
-                                        Or continue with
-                                    </span>
-                                </div>
-                            </div>
-
                             <div className="text-center text-sm mt-6">
                                 Don’t have an account?{" "}
                                 <Link
                                     href={route("register")}
-                                    className="font-medium text-primary hover:underline"
+                                    className="font-medium text-green-600 hover:underline"
                                 >
                                     Sign up
                                 </Link>
                             </div>
                         </form>
-                    </div>
-
-                    {/* RIGHT COLUMN - LOGO SECTION */}
-                    <div className="hidden md:flex items-center justify-center bg-green-700 text-white">
-                        <div className="flex flex-col items-center justify-center text-center px-6">
-                            <div className="w-28 h-28 rounded-full mb-4 overflow-hidden shadow-lg border-4 border-white bg-white">
-                                <img
-                                    src="/logo.png" // Update path if needed
-                                    alt="Logo"
-                                    className="w-full h-full object-contain"
-                                />
-                            </div>
-                            <h2 className="text-xl font-bold">
-                                Inventory Management System
-                            </h2>
-                            <p className="text-sm mt-2 text-white">
-                                Secure. Fast. Organized.
-                            </p>
-                        </div>
                     </div>
                 </div>
             </div>
