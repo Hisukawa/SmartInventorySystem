@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Peripheral;
+use App\Models\Room;
+use App\Models\SystemUnit;
+use Illuminate\Http\Request;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
+class PeripheralController extends Controller
+{
+    public function index()
+    {
+        $peripherals = Peripheral::with('room')->get();
+        return inertia('Admin/PeripheralsPage', [
+            'peripherals' => $peripherals
+        ]);
+    }
+
+    public function create()
+    {
+        $existingRooms = Room::select('id', 'room_number')->get();
+        $existingUnits = SystemUnit::select('id', 'unit_code', 'room_id')->get();
+
+        // For simplicity, brands and models can come from Peripheral distinct columns
+        $existingBrands = Peripheral::distinct()->pluck('brand')->filter()->values()->all();
+        $existingModels = Peripheral::distinct()->pluck('model')->filter()->values()->all();
+
+        return inertia('Admin/Peripherals/AddPeripheral', [
+            'existingRooms' => $existingRooms,
+            'existingUnits' => $existingUnits,
+            'existingBrands' => $existingBrands,
+            'existingModels' => $existingModels,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'model' => 'nullable|string|max:255',
+            'serial_number' => 'nullable|string|max:255',
+            'condition' => 'required|string|max:255',
+            'room_number' => 'required|string|max:255',
+            'unit_code' => 'required|string|max:255',
+        ]);
+
+        // Find the room by room_number (assumes room exists)
+        $room = Room::where('room_number', $validated['room_number'])->first();
+
+        if (!$room) {
+            // Optionally create the room if not found
+            $room = Room::create(['room_number' => $validated['room_number']]);
+        }
+
+        // Generate auto-incremented peripheral code (PRF-001, PRF-002, ...)
+        $lastPeripheral = Peripheral::orderBy('id', 'desc')->first();
+
+        if ($lastPeripheral && preg_match('/PRF-(\d+)/', $lastPeripheral->peripheral_code, $matches)) {
+            $lastNumber = (int)$matches[1];
+            $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        } else {
+            $newNumber = '001';
+        }
+
+        $peripheralCode = 'PRF-' . $newNumber;
+
+        Peripheral::create([
+            'type' => $validated['type'],
+            'brand' => $validated['brand'] ?? null,
+            'model' => $validated['model'] ?? null,
+            'serial_number' => $validated['serial_number'] ?? null,
+            'condition' => $validated['condition'],
+            'room_id' => $room->id,
+            'room_number' => $validated['room_number'],
+            'unit_code' => $validated['unit_code'],
+            'peripheral_code' => $peripheralCode,
+            'qr_code_path' => $peripheralCode,  // Just store the code for React QR generation
+        ]);
+
+        return redirect()->route('peripherals.index')->with('success', 'Peripheral added successfully.');
+    }
+
+
+
+
+    public function update(Request $request, $id)
+    {
+        $peripheral = Peripheral::findOrFail($id);
+        $peripheral->update($request->all());
+        return response()->json($peripheral);
+    }
+
+    public function destroy($id)
+    {
+        Peripheral::destroy($id);
+
+        return response()->json(['message' => 'Deleted successfully']);
+    }
+}

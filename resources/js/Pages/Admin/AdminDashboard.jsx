@@ -1,19 +1,20 @@
 import React, { useState, useRef } from "react";
-
+import { Separator } from "@/components/ui/separator";
+import { Head } from "@inertiajs/react";
 import { AppSidebar } from "@/components/app-sidebar";
+
 import {
     Breadcrumb,
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,
 } from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
+
 import {
     SidebarInset,
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Head } from "@inertiajs/react";
 
 export default function AdminDashboard({ children }) {
     return (

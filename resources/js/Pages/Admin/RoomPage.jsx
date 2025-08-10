@@ -237,35 +237,6 @@ export default function RoomPage({ rooms, search }) {
                         </div>
                     )}
 
-                    {/* Add Room Modal */}
-                    <Dialog
-                        open={addRoomModalOpen}
-                        onOpenChange={setAddRoomModalOpen}
-                    >
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Add New Room</DialogTitle>
-                            </DialogHeader>
-                            <form onSubmit={submit} className="space-y-4">
-                                <Input
-                                    placeholder="e.g. 101"
-                                    value={data.room_number}
-                                    onChange={(e) =>
-                                        setData("room_number", e.target.value)
-                                    }
-                                />
-                                {errors.room_number && (
-                                    <p className="text-sm text-red-500">
-                                        {errors.room_number}
-                                    </p>
-                                )}
-                                <Button type="submit" disabled={processing}>
-                                    Submit
-                                </Button>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
-
                     {/* Edit Room Modal */}
                     <Dialog
                         open={editRoomModalOpen}
@@ -322,7 +293,9 @@ export default function RoomPage({ rooms, search }) {
                             className="mb-4 w-full sm:w-1/3"
                         />
 
-                        <Button onClick={() => setAddRoomModalOpen(true)}>
+                        <Button
+                            onClick={() => router.visit("/admin/rooms/create")}
+                        >
                             Add Room
                         </Button>
                     </div>

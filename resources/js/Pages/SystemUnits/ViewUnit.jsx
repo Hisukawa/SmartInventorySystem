@@ -14,6 +14,7 @@ import {
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,
+    BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
 export default function ViewUnit({ unit }) {
@@ -32,7 +33,8 @@ export default function ViewUnit({ unit }) {
                                     System Unit Lists
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
-                            /
+
+                            <BreadcrumbSeparator />
                             <BreadcrumbItem>
                                 <BreadcrumbLink
                                     href={`/system-units/view/${unit.unit_code}`}

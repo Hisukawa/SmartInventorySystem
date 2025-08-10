@@ -41,7 +41,7 @@ class RoomController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Admin/Rooms/AddRoomPage');
     }
 
     /**

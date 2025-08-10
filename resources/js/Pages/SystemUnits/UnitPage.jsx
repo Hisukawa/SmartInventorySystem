@@ -28,6 +28,7 @@ import {
     BreadcrumbItem,
     BreadcrumbLink,
     BreadcrumbList,
+    BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
 const CONDITION_OPTIONS = [
@@ -76,6 +77,11 @@ export default function UnitsPage({ units, rooms }) {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
+                                <BreadcrumbLink href="#" aria-current="page">
+                                    Assets
+                                </BreadcrumbLink>
+
+                                <BreadcrumbSeparator />
                                 <BreadcrumbLink
                                     href="/units"
                                     aria-current="page"
@@ -115,11 +121,11 @@ export default function UnitsPage({ units, rooms }) {
                                 <TableRow>
                                     <TableHead>#</TableHead>
                                     <TableHead>Unit Code</TableHead>
-                                    {/* <TableHead>Processor</TableHead>
+                                    <TableHead>Processor</TableHead>
                                     <TableHead>RAM</TableHead>
                                     <TableHead>Storage</TableHead>
                                     <TableHead>GPU</TableHead>
-                                    <TableHead>Motherboard</TableHead> */}
+                                    <TableHead>Motherboard</TableHead>
                                     <TableHead>Condition</TableHead>
                                     <TableHead>QR Code</TableHead>
                                     <TableHead>Actions</TableHead>
@@ -138,7 +144,7 @@ export default function UnitsPage({ units, rooms }) {
                                             <TableCell>
                                                 {unit.unit_code}
                                             </TableCell>
-                                            {/* <TableCell>
+                                            <TableCell>
                                                 {unit.processor}
                                             </TableCell>
                                             <TableCell>{unit.ram}</TableCell>
@@ -148,7 +154,7 @@ export default function UnitsPage({ units, rooms }) {
                                             <TableCell>{unit.gpu}</TableCell>
                                             <TableCell>
                                                 {unit.motherboard}
-                                            </TableCell> */}
+                                            </TableCell>
                                             <TableCell>
                                                 {unit.condition && (
                                                     <div className="mt-1 text-sm flex items-center gap-2">

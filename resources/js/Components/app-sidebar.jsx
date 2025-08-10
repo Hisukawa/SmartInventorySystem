@@ -12,6 +12,7 @@ import {
     Activity,
     LayoutDashboard,
     Grid,
+    Command,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -53,12 +54,12 @@ const data = {
             isActive: true,
             items: [
                 {
-                    title: "Units",
+                    title: "System Unit Lists",
                     url: "/units",
                 },
                 {
                     title: "Peripherals",
-                    url: "#",
+                    url: "/admin/peripherals",
                 },
                 {
                     title: "Room Equipments",
@@ -94,7 +95,7 @@ const data = {
     navSecondary: [
         {
             title: "User Lists",
-            url: "#",
+            url: "/admin/users",
             icon: User,
         },
         {
@@ -131,12 +132,17 @@ export function AppSidebar({ ...props }) {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <a href="#">
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                    {/* <Command className="size-4" /> */}
+                                <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-black overflow-hidden">
+                                    <img
+                                        src="/ict.png"
+                                        alt="Logo"
+                                        className="w-full h-full object-contain"
+                                    />
                                 </div>
+
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-semibold">
-                                        Intentory Management
+                                        Inventory Management
                                     </span>
                                     <span className="truncate text-xs">
                                         System
@@ -147,6 +153,7 @@ export function AppSidebar({ ...props }) {
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
+
             <SidebarContent>
                 <NavMain items={data.navMain} />
                 {/* <NavProjects projects={data.projects} /> */}

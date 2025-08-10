@@ -1,8 +1,4 @@
-import {
-    CardHeader,
-    CardTitle,
-    CardDescription
-} from "@/components/ui/card";
+import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -28,7 +24,6 @@ export default function Login({ status, canResetPassword }) {
             <Head title="Log in" />
             <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
                 <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 bg-white shadow-lg rounded-lg overflow-hidden">
-
                     {/* LEFT PANEL - IMAGE & TITLE */}
                     <div className="hidden md:flex flex-col items-center justify-center bg-green-500 text-white p-8 relative">
                         <div className="flex space-x-4 mb-6">
@@ -147,13 +142,21 @@ export default function Login({ status, canResetPassword }) {
 
                             <div className="text-center text-sm mt-6">
                                 Don’t have an account?{" "}
+                                <span className="text-gray-600">
+                                    Please contact the ICT Department
+                                    Chairperson to request one.
+                                </span>
+                            </div>
+
+                            {/* <div className="text-center text-sm mt-6">
+                                Don’t have an account?{" "}
                                 <Link
                                     href={route("register")}
                                     className="font-medium text-green-600 hover:underline"
                                 >
                                     Sign up
                                 </Link>
-                            </div>
+                            </div> */}
                         </form>
                     </div>
                 </div>

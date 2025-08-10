@@ -48,6 +48,7 @@ class RegisteredUserController extends Controller
 
         // Auth::login($user);
 
-        return redirect()->route('login')->with('status', 'Registration successful. Please login.');
+        // return redirect()->route('login')->with('status', 'Registration successful. Please login.');
+        return redirect()->route('admin.users.index');
     }
 }
