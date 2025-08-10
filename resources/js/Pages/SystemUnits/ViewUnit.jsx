@@ -29,6 +29,12 @@ export default function ViewUnit({ unit }) {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
+                                <BreadcrumbLink href="#" aria-current="page">
+                                    Assets
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
                                 <BreadcrumbLink href="/units">
                                     System Unit Lists
                                 </BreadcrumbLink>
