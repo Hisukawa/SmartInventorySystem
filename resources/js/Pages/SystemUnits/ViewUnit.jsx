@@ -1,6 +1,6 @@
 import React from "react";
 import { Head } from "@inertiajs/react";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import {
     SidebarProvider,
     SidebarInset,
@@ -32,16 +32,12 @@ export default function ViewUnit({ unit }) {
                                 <BreadcrumbLink href="#" aria-current="page">
                                     Assets
                                 </BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
+                                <BreadcrumbSeparator />
                                 <BreadcrumbLink href="/units">
                                     System Unit Lists
                                 </BreadcrumbLink>
-                            </BreadcrumbItem>
 
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
+                                <BreadcrumbSeparator />
                                 <BreadcrumbLink
                                     href={`/system-units/view/${unit.unit_code}`}
                                     aria-current="page"

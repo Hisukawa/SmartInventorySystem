@@ -28,7 +28,7 @@ import {
 import { usePage } from "@inertiajs/react";
 import { router } from "@inertiajs/react";
 
-export function NavUser() {
+export function FacultyNavUser() {
     const { isMobile } = useSidebar();
     const { props } = usePage();
     const user = props?.auth?.user;

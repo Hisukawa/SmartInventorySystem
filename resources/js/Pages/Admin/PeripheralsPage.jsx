@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "@inertiajs/react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, router, Head } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Head } from "@inertiajs/react";
-import { AppSidebar } from "@/components/app-sidebar";
 import Swal from "sweetalert2";
-import { router } from "@inertiajs/react";
-
 import QRCode from "react-qr-code";
 
 import {
@@ -32,10 +28,48 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 
-export default function PeripheralsIndex({ peripherals }) {
+import { Input } from "@/components/ui/input";
+
+export default function PeripheralsIndex({ peripherals, search }) {
     const [data, setData] = useState(peripherals || []);
+    const [searchTerm, setSearchTerm] = useState(search || "");
 
+    // Filters
+    const [typeFilter, setTypeFilter] = useState("All Types");
+    const [serialFilter, setSerialFilter] = useState("All Serials");
+    const [conditionFilter, setConditionFilter] = useState("All Conditions");
+    const [roomFilter, setRoomFilter] = useState("All Rooms");
+    const [unitCodeFilter, setUnitCodeFilter] = useState("All Unit Codes");
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    // Unique dropdown values
+    const uniqueTypes = [
+        "All Types",
+        ...new Set(peripherals.map((p) => p.type || "N/A")),
+    ];
+    const uniqueSerials = [
+        "All Serials",
+        ...new Set(peripherals.map((p) => p.serial_number || "N/A")),
+    ];
+    const uniqueConditions = [
+        "All Conditions",
+        ...new Set(peripherals.map((p) => p.condition || "N/A")),
+    ];
+    const uniqueRooms = [
+        "All Rooms",
+        ...new Set(peripherals.map((p) => p.room?.room_number || "N/A")),
+    ];
+    const uniqueUnitCodes = [
+        "All Unit Codes",
+        ...new Set(peripherals.map((p) => p.unit_code || "N/A")),
+    ];
+
+    // Delete handler
     function handleDelete(id) {
         Swal.fire({
             title: "Are you sure?",
@@ -52,24 +86,72 @@ export default function PeripheralsIndex({ peripherals }) {
         });
     }
 
+    // Search handler
+    const handleSearch = (e) => {
+        if (e.key === "Enter") {
+            router.get("/admin/peripherals", { search: searchTerm });
+        }
+    };
+
+    // Filtering logic
+    const filteredData = useMemo(() => {
+        return peripherals.filter((p) => {
+            const matchesSearch =
+                searchTerm === "" ||
+                p.peripheral_code
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                p.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.serial_number
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                p.condition?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (p.room?.room_number || "N/A")
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                p.unit_code?.toLowerCase().includes(searchTerm.toLowerCase());
+
+            const matchesFilters =
+                (typeFilter === "All Types" || p.type === typeFilter) &&
+                (serialFilter === "All Serials" ||
+                    p.serial_number === serialFilter) &&
+                (conditionFilter === "All Conditions" ||
+                    p.condition === conditionFilter) &&
+                (roomFilter === "All Rooms" ||
+                    (p.room?.room_number || "N/A") === roomFilter) &&
+                (unitCodeFilter === "All Unit Codes" ||
+                    p.unit_code === unitCodeFilter);
+
+            return matchesSearch && matchesFilters;
+        });
+    }, [
+        peripherals,
+        searchTerm,
+        typeFilter,
+        serialFilter,
+        conditionFilter,
+        roomFilter,
+        unitCodeFilter,
+    ]);
+
+    // Pagination logic
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const paginatedData = filteredData.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     return (
         <SidebarProvider>
-            <Head>
-                <title>Dashboard</title>
-            </Head>
             <AppSidebar />
             <SidebarInset>
-                {/* Header */}
                 <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
                     <SidebarTrigger />
                     <Separator orientation="vertical" className="h-6 mx-3" />
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="#" aria-current="page">
-                                    Assets
-                                </BreadcrumbLink>
-
+                                <BreadcrumbLink href="#">Assets</BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
                                     href="/admin/peripherals"
@@ -82,13 +164,24 @@ export default function PeripheralsIndex({ peripherals }) {
                         </BreadcrumbList>
                     </Breadcrumb>
                 </header>
+
                 <main>
                     <div className="p-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <h1 className="text-2xl font-bold">Peripherals</h1>
-                            <Link href="/admin/peripherals/create">
-                                <Button>Add Peripheral</Button>
-                            </Link>
+                        <h1 className="text-2xl font-bold mb-5">Peripherals</h1>
+                        {/* Search bar + title/actions */}
+                        <div className="flex justify-between items-center mb-4">
+                            <Input
+                                placeholder="Search peripherals..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={handleSearch}
+                                className="w-full sm:w-1/3"
+                            />
+                            <div className="flex items-center space-x-4">
+                                <Link href="/admin/peripherals/create">
+                                    <Button>Add Peripheral</Button>
+                                </Link>
+                            </div>
                         </div>
 
                         <Card>
@@ -96,87 +189,182 @@ export default function PeripheralsIndex({ peripherals }) {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>ID</TableHead>
+                                            <TableHead>#</TableHead>
                                             <TableHead>
                                                 Peripheral Code
                                             </TableHead>
-                                            <TableHead>Type</TableHead>
-                                            <TableHead>Serial Number</TableHead>
-                                            <TableHead>Condition</TableHead>
-                                            <TableHead>Room Number</TableHead>
-                                            <TableHead>Unit Code</TableHead>
+                                            <TableHead>
+                                                <select
+                                                    className="border rounded px-1 pr-7 py-0.5 text-xs"
+                                                    value={typeFilter}
+                                                    onChange={(e) =>
+                                                        setTypeFilter(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                >
+                                                    {uniqueTypes.map((type) => (
+                                                        <option
+                                                            key={type}
+                                                            value={type}
+                                                        >
+                                                            {type}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </TableHead>
+                                            <TableHead>
+                                                <select
+                                                    className="border rounded px-1 pr-7 py-0.5 text-xs"
+                                                    value={serialFilter}
+                                                    onChange={(e) =>
+                                                        setSerialFilter(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                >
+                                                    {uniqueSerials.map(
+                                                        (serial) => (
+                                                            <option
+                                                                key={serial}
+                                                                value={serial}
+                                                            >
+                                                                {serial}
+                                                            </option>
+                                                        )
+                                                    )}
+                                                </select>
+                                            </TableHead>
+                                            <TableHead>
+                                                <select
+                                                    className="border rounded px-1 pr-7 py-0.5 text-xs"
+                                                    value={conditionFilter}
+                                                    onChange={(e) =>
+                                                        setConditionFilter(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                >
+                                                    {uniqueConditions.map(
+                                                        (cond) => (
+                                                            <option
+                                                                key={cond}
+                                                                value={cond}
+                                                            >
+                                                                {cond}
+                                                            </option>
+                                                        )
+                                                    )}
+                                                </select>
+                                            </TableHead>
+                                            <TableHead>
+                                                <select
+                                                    className="border rounded px-1 pr-7 py-0.5 text-xs"
+                                                    value={roomFilter}
+                                                    onChange={(e) =>
+                                                        setRoomFilter(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                >
+                                                    {uniqueRooms.map((room) => (
+                                                        <option
+                                                            key={room}
+                                                            value={room}
+                                                        >
+                                                            {room}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </TableHead>
+                                            <TableHead>
+                                                <select
+                                                    className="border rounded px-1 pr-7 py-0.5 text-xs"
+                                                    value={unitCodeFilter}
+                                                    onChange={(e) =>
+                                                        setUnitCodeFilter(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                >
+                                                    {uniqueUnitCodes.map(
+                                                        (unit) => (
+                                                            <option
+                                                                key={unit}
+                                                                value={unit}
+                                                            >
+                                                                {unit}
+                                                            </option>
+                                                        )
+                                                    )}
+                                                </select>
+                                            </TableHead>
                                             <TableHead>QR Code</TableHead>
                                             <TableHead>Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {data.length > 0 ? (
-                                            data.map((peripheral) => (
-                                                <TableRow key={peripheral.id}>
+                                        {paginatedData.length > 0 ? (
+                                            paginatedData.map((p, index) => (
+                                                <TableRow key={p.id}>
                                                     <TableCell>
-                                                        {peripheral.id}
+                                                        {(currentPage - 1) *
+                                                            itemsPerPage +
+                                                            index +
+                                                            1}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {
-                                                            peripheral.peripheral_code
-                                                        }
+                                                        {p.peripheral_code}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {peripheral.type}
+                                                        {p.type}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {
-                                                            peripheral.serial_number
-                                                        }
+                                                        {p.serial_number}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {peripheral.condition}
+                                                        {p.condition}
                                                     </TableCell>
                                                     <TableCell>
                                                         ROOM{" "}
-                                                        {peripheral.room
-                                                            ? peripheral.room
-                                                                  .room_number
+                                                        {p.room
+                                                            ? p.room.room_number
                                                             : "N/A"}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {peripheral.unit_code}
+                                                        {p.unit_code}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {peripheral.qr_code_path && (
+                                                        {p.qr_code_path && (
                                                             <QRCode
                                                                 value={
-                                                                    peripheral.qr_code_path
-                                                                } // this is your code like "PRF-001"
-                                                                size={48} // 48px = 12 * 4, adjust as needed
+                                                                    p.qr_code_path
+                                                                }
+                                                                size={48}
                                                             />
                                                         )}
-                                                        {/* CHANGE THE VALUE OF THIS QR CODE */}
                                                     </TableCell>
                                                     <TableCell className="space-x-2">
                                                         <Link
-                                                            href={`/admin/peripherals/${peripheral.id}/edit`}
+                                                            href={`/admin/peripherals/${p.id}/edit`}
                                                         >
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
                                                             >
                                                                 Edit
-                                                                {/* ITS STILL NOT WORKING */}
                                                             </Button>
                                                         </Link>
-
                                                         <Button
                                                             variant="destructive"
                                                             size="sm"
                                                             onClick={() =>
                                                                 handleDelete(
-                                                                    peripheral.id
+                                                                    p.id
                                                                 )
                                                             }
                                                         >
                                                             Delete
-                                                            {/* WORKING BUT DONT HAVE SWEET ALERT WHEN THE DATA IS DELETED */}
                                                         </Button>
                                                     </TableCell>
                                                 </TableRow>
@@ -193,6 +381,46 @@ export default function PeripheralsIndex({ peripherals }) {
                                         )}
                                     </TableBody>
                                 </Table>
+
+                                {/* Pagination */}
+                                <div className="flex justify-center mt-4 space-x-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={currentPage === 1}
+                                        onClick={() =>
+                                            setCurrentPage(currentPage - 1)
+                                        }
+                                    >
+                                        Previous
+                                    </Button>
+                                    {[...Array(totalPages)].map((_, idx) => (
+                                        <Button
+                                            key={idx}
+                                            variant={
+                                                currentPage === idx + 1
+                                                    ? "default"
+                                                    : "outline"
+                                            }
+                                            size="sm"
+                                            onClick={() =>
+                                                setCurrentPage(idx + 1)
+                                            }
+                                        >
+                                            {idx + 1}
+                                        </Button>
+                                    ))}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() =>
+                                            setCurrentPage(currentPage + 1)
+                                        }
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>

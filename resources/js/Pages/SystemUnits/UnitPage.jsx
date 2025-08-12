@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import AddUnitModal from "@/Pages/SystemUnits/Modal/AddUnitModal";
@@ -8,6 +8,7 @@ import EditUnitModal from "@/Pages/SystemUnits/Modal/EditUnitModal";
 import { useForm as useInertiaForm } from "@inertiajs/react";
 import Swal from "sweetalert2";
 import { router } from "@inertiajs/react";
+import { Input } from "@/components/ui/input";
 
 import {
     Table,
@@ -47,12 +48,80 @@ export default function UnitsPage({ units, rooms }) {
 
     const { delete: destroy } = useInertiaForm(); // ✅ correct usage
 
-    // Filtered and paginated data
+    const [roomFilter, setRoomFilter] = useState("All Rooms");
+    const [processorFilter, setProcessorFilter] = useState("All Processors");
+    const [ramFilter, setRamFilter] = useState("All RAM");
+    const [storageFilter, setStorageFilter] = useState("All Storage");
+    const [gpuFilter, setGpuFilter] = useState("All GPU");
+    const [motherboardFilter, setMotherboardFilter] =
+        useState("All Motherboards");
+    const [conditionFilter, setConditionFilter] = useState("All Conditions");
+
+    const uniqueRooms = [
+        "All Rooms",
+        ...new Set(units.map((u) => u.room?.room_number || "N/A")),
+    ];
+    const uniqueProcessors = [
+        "All Processors",
+        ...new Set(units.map((u) => u.processor || "N/A")),
+    ];
+    const uniqueRAM = ["All RAM", ...new Set(units.map((u) => u.ram || "N/A"))];
+    const uniqueStorage = [
+        "All Storage",
+        ...new Set(units.map((u) => u.storage || "N/A")),
+    ];
+    const uniqueGPU = ["All GPU", ...new Set(units.map((u) => u.gpu || "N/A"))];
+    const uniqueMotherboards = [
+        "All Motherboards",
+        ...new Set(units.map((u) => u.motherboard || "N/A")),
+    ];
+    const uniqueConditions = [
+        "All Conditions",
+        ...new Set(units.map((u) => u.condition || "N/A")),
+    ];
+
+    // Get unique dropdown options
+    const uniqueValues = (key) => {
+        return [...new Set(units.map((u) => u[key]).filter(Boolean))];
+    };
+
+    // Filter logic
     const filteredUnits = useMemo(() => {
-        return units.filter((unit) =>
-            unit.unit_code.toLowerCase().includes(search.toLowerCase())
-        );
-    }, [units, search]);
+        return units.filter((unit) => {
+            const codeMatch = unit.unit_code
+                .toLowerCase()
+                .includes(search.toLowerCase());
+            const roomMatch = unit.room?.room_number
+                ?.toLowerCase()
+                .includes(search.toLowerCase());
+
+            const matchesFilters =
+                (roomFilter === "All Rooms" ||
+                    unit.room?.room_number === roomFilter) &&
+                (processorFilter === "All Processors" ||
+                    unit.processor === processorFilter) &&
+                (ramFilter === "All RAM" || unit.ram === ramFilter) &&
+                (storageFilter === "All Storage" ||
+                    unit.storage === storageFilter) &&
+                (gpuFilter === "All GPU" || unit.gpu === gpuFilter) &&
+                (motherboardFilter === "All Motherboards" ||
+                    unit.motherboard === motherboardFilter) &&
+                (conditionFilter === "All Conditions" ||
+                    unit.condition === conditionFilter);
+
+            return (codeMatch || roomMatch) && matchesFilters;
+        });
+    }, [
+        units,
+        search,
+        roomFilter,
+        processorFilter,
+        ramFilter,
+        storageFilter,
+        gpuFilter,
+        motherboardFilter,
+        conditionFilter,
+    ]);
 
     const totalPages = Math.ceil(filteredUnits.length / itemsPerPage);
     const paginatedUnits = filteredUnits.slice(
@@ -99,38 +168,160 @@ export default function UnitsPage({ units, rooms }) {
                         System Units
                     </h1>
 
-                    {/* Search and Add Button */}
+                    {/* Search and Add Unit */}
                     <div className="flex justify-between items-center mb-4">
-                        <input
-                            type="text"
+                        <Input
                             placeholder="Search Unit Code..."
-                            className="border rounded px-3 py-2 w-64"
                             value={search}
                             onChange={(e) => {
                                 setSearch(e.target.value);
                                 setCurrentPage(1);
                             }}
+                            className="mb-4 w-full sm:w-1/3"
                         />
+
                         <AddUnitModal rooms={rooms} />
                     </div>
 
                     {/* Table */}
                     <div className="overflow-x-auto">
                         <Table>
-                            <TableHeader className="">
-                                <TableRow>
-                                    <TableHead>#</TableHead>
-                                    <TableHead>Unit Code</TableHead>
-                                    <TableHead>Processor</TableHead>
-                                    <TableHead>RAM</TableHead>
-                                    <TableHead>Storage</TableHead>
-                                    <TableHead>GPU</TableHead>
-                                    <TableHead>Motherboard</TableHead>
-                                    <TableHead>Condition</TableHead>
-                                    <TableHead>QR Code</TableHead>
-                                    <TableHead>Actions</TableHead>
+                            <TableHeader>
+                                <TableRow className="h-10">
+                                    <TableHead className="px-2 py-1">
+                                        #
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        Unit Code
+                                    </TableHead>
+
+                                    <TableHead className="px-2 py-1">
+                                        <select
+                                            className="border rounded px-1 pr-7 py-0.5 text-xs"
+                                            value={roomFilter}
+                                            onChange={(e) =>
+                                                setRoomFilter(e.target.value)
+                                            }
+                                        >
+                                            {uniqueRooms.map((room) => (
+                                                <option key={room} value={room}>
+                                                    {room}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </TableHead>
+
+                                    <TableHead className="px-2 py-1">
+                                        <select
+                                            className="border rounded px-1 py-0.5 text-xs"
+                                            value={processorFilter}
+                                            onChange={(e) =>
+                                                setProcessorFilter(
+                                                    e.target.value
+                                                )
+                                            }
+                                        >
+                                            {uniqueProcessors.map((proc) => (
+                                                <option key={proc} value={proc}>
+                                                    {proc}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </TableHead>
+
+                                    <TableHead className="px-2 py-1">
+                                        <select
+                                            className="border rounded px-1 py-0.5 text-xs"
+                                            value={ramFilter}
+                                            onChange={(e) =>
+                                                setRamFilter(e.target.value)
+                                            }
+                                        >
+                                            {uniqueRAM.map((ram) => (
+                                                <option key={ram} value={ram}>
+                                                    {ram}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </TableHead>
+
+                                    <TableHead className="px-2 py-1">
+                                        <select
+                                            className="border rounded px-1 py-0.5 text-xs"
+                                            value={storageFilter}
+                                            onChange={(e) =>
+                                                setStorageFilter(e.target.value)
+                                            }
+                                        >
+                                            {uniqueStorage.map((store) => (
+                                                <option
+                                                    key={store}
+                                                    value={store}
+                                                >
+                                                    {store}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </TableHead>
+
+                                    <TableHead className="px-2 py-1">
+                                        <select
+                                            className="border rounded px-1 py-0.5 text-xs"
+                                            value={gpuFilter}
+                                            onChange={(e) =>
+                                                setGpuFilter(e.target.value)
+                                            }
+                                        >
+                                            {uniqueGPU.map((gpu) => (
+                                                <option key={gpu} value={gpu}>
+                                                    {gpu}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </TableHead>
+
+                                    <TableHead className="px-2 py-1">
+                                        <select
+                                            className="border rounded px-1 py-0.5 text-xs"
+                                            value={motherboardFilter}
+                                            onChange={(e) =>
+                                                setMotherboardFilter(
+                                                    e.target.value
+                                                )
+                                            }
+                                        >
+                                            {uniqueMotherboards.map((mb) => (
+                                                <option key={mb} value={mb}>
+                                                    {mb}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </TableHead>
+
+                                    <TableHead className="px-2 py-1">
+                                        <select
+                                            className="border rounded px-1 py-0.5 text-xs"
+                                            value={conditionFilter}
+                                            onChange={(e) =>
+                                                setConditionFilter(
+                                                    e.target.value
+                                                )
+                                            }
+                                        >
+                                            {uniqueConditions.map((cond) => (
+                                                <option key={cond} value={cond}>
+                                                    {cond}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </TableHead>
+
+                                    <TableHead className="px-2 py-1 text-center">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
+
                             <TableBody>
                                 {paginatedUnits.length > 0 ? (
                                     paginatedUnits.map((unit, index) => (
@@ -143,6 +334,11 @@ export default function UnitsPage({ units, rooms }) {
                                             </TableCell>
                                             <TableCell>
                                                 {unit.unit_code}
+                                            </TableCell>
+                                            <TableCell>
+                                                ROOM{" "}
+                                                {unit.room?.room_number ||
+                                                    "N/A"}
                                             </TableCell>
                                             <TableCell>
                                                 {unit.processor}
@@ -172,14 +368,14 @@ export default function UnitsPage({ units, rooms }) {
                                                     </div>
                                                 )}
                                             </TableCell>
-                                            <TableCell>
+                                            {/* <TableCell>
                                                 <div className="w-20 h-20">
                                                     <QRCode
                                                         value={`${window.location.origin}/equipment/${unit.unit_code}`}
                                                         size={64}
                                                     />
                                                 </div>
-                                            </TableCell>
+                                            </TableCell> */}
                                             <TableCell>
                                                 <div className="flex gap-2">
                                                     <Button

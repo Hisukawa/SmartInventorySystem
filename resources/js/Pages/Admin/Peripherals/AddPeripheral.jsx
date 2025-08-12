@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 
 import {
     SidebarProvider,
@@ -113,6 +113,9 @@ export default function AddPeripheral({
                     </Breadcrumb>
                 </header>
                 <main className="p-6">
+                    <h1 className="text-2xl font-bold mb-5 text-center">
+                        Add Peripherals
+                    </h1>
                     <Card className="max-w-xl mx-auto">
                         <CardContent>
                             <form
@@ -138,6 +141,67 @@ export default function AddPeripheral({
                                     {errors.type && (
                                         <div className="text-red-500 text-sm">
                                             {errors.type}
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Room */}
+                                <div>
+                                    <Label htmlFor="room_number">Room</Label>
+                                    <input
+                                        id="room_number"
+                                        list="roomOptions"
+                                        value={
+                                            data.room_number
+                                                ? `ROOM ${data.room_number}`
+                                                : ""
+                                        }
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            const roomNum = val.startsWith(
+                                                "ROOM "
+                                            )
+                                                ? val.slice(5)
+                                                : val;
+                                            setData("room_number", roomNum);
+                                        }}
+                                        placeholder="Select or type room"
+                                        className="w-full border rounded px-2 py-1"
+                                    />
+                                    <datalist id="roomOptions">
+                                        {existingRooms.map((room) => (
+                                            <option
+                                                key={room.id}
+                                                value={`ROOM ${room.room_number}`}
+                                            />
+                                        ))}
+                                    </datalist>
+                                    {errors.room_number && (
+                                        <div className="text-red-500 text-sm">
+                                            {errors.room_number}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Unit Code */}
+                                <div>
+                                    <Label>Unit Code</Label>
+                                    <input
+                                        list="unitOptions"
+                                        value={data.unit_code}
+                                        onChange={(e) =>
+                                            setData("unit_code", e.target.value)
+                                        }
+                                        placeholder="Select or type unit code"
+                                        className="w-full border rounded px-2 py-1"
+                                    />
+                                    <datalist id="unitOptions">
+                                        {filteredUnits.map((unit) => (
+                                            <option key={unit} value={unit} />
+                                        ))}
+                                    </datalist>
+                                    {errors.unit_code && (
+                                        <div className="text-red-500 text-sm">
+                                            {errors.unit_code}
                                         </div>
                                     )}
                                 </div>
@@ -229,68 +293,6 @@ export default function AddPeripheral({
                                     {errors.condition && (
                                         <div className="text-red-500 text-sm">
                                             {errors.condition}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Room */}
-                                <div>
-                                    <Label htmlFor="room_number">Room</Label>
-                                    <input
-                                        id="room_number"
-                                        list="roomOptions"
-                                        value={
-                                            data.room_number
-                                                ? `ROOM ${data.room_number}`
-                                                : ""
-                                        }
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            const roomNum = val.startsWith(
-                                                "ROOM "
-                                            )
-                                                ? val.slice(5)
-                                                : val;
-                                            setData("room_number", roomNum);
-                                        }}
-                                        placeholder="Select or type room"
-                                        className="w-full border rounded px-2 py-1"
-                                    />
-                                    <datalist id="roomOptions">
-                                        {existingRooms.map((room) => (
-                                            <option
-                                                key={room.id}
-                                                value={`ROOM ${room.room_number}`}
-                                            />
-                                        ))}
-                                    </datalist>
-                                    {errors.room_number && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.room_number}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Unit Code */}
-                                <div>
-                                    <Label>Unit Code</Label>
-                                    <input
-                                        list="unitOptions"
-                                        value={data.unit_code}
-                                        onChange={(e) =>
-                                            setData("unit_code", e.target.value)
-                                        }
-                                        placeholder="Select or type unit code"
-                                        className="w-full border rounded px-2 py-1"
-                                    />
-                                    <datalist id="unitOptions">
-                                        {filteredUnits.map((unit) => (
-                                            <option key={unit} value={unit} />
-                                        ))}
-                                    </datalist>
-                                    {errors.unit_code && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.unit_code}
                                         </div>
                                     )}
                                 </div>

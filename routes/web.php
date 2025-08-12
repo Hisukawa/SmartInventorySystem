@@ -8,6 +8,8 @@ use Inertia\Inertia;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Faculty\FacultyController;
+use App\Http\Controllers\Faculty\FacultyRoomController;
 use App\Http\Controllers\PeripheralController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SystemUnitController;
@@ -85,10 +87,14 @@ Route::middleware(['auth'])->group(function () {
 
     // Faculty-only routes
     Route::middleware('role:faculty')->group(function () {
-        Route::get('/faculty/dashboard', function () {
-            return Inertia::render('FacultyDashboard');
-        });
-    })->name('faculty.dashboard');
+        Route::get('/faculty/dashboard', [FacultyController::class, 'dashboard'])
+            ->name('faculty.dashboard');
+
+        Route::get('/faculty/room/{room_path}', [FacultyRoomController::class, 'show'])
+            ->where('room_path', '.*')
+            ->name('faculty.room.show');
+    });
+
 
     // Technician-only routes
     Route::middleware('role:technician')->group(function () {

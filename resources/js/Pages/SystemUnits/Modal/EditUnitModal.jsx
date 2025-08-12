@@ -52,7 +52,12 @@ export default function EditUnitModal({ unit, rooms, onClose }) {
         <Dialog open onOpenChange={(v) => !v && onClose()}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Edit Unit - {unit.unit_code}</DialogTitle>
+                    <DialogTitle>
+                        Edit ROOM -{" "}
+                        {rooms.find((r) => r.id === unit.room_id)
+                            ?.room_number || "N/A"}{" "}
+                        - {unit.unit_code}
+                    </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4">
                     <Input

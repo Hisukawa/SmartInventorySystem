@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import Swal from "sweetalert2";
 import { Separator } from "@/components/ui/separator";
 import { Head } from "@inertiajs/react";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 
 import {
     Breadcrumb,

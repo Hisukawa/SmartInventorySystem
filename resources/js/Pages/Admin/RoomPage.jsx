@@ -20,7 +20,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import {
     Breadcrumb,
     BreadcrumbItem,

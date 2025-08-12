@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { Separator } from "@/components/ui/separator";
 import React, { useState, useRef } from "react";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 
 import {
     Breadcrumb,

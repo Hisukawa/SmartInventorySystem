@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Head } from "@inertiajs/react";
-import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
+import { FacultyAppSidebar } from "@/Components/FacultyComponents/faculty-app-sidebar";
 
 import {
     Breadcrumb,
@@ -16,13 +16,13 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-export default function AdminDashboard({ children }) {
+export default function FacultyDashboard({ children }) {
     return (
         <SidebarProvider>
             <Head>
-                <title>Dashboard</title>
+                <title>Faculty Dashboard</title>
             </Head>
-            <AppSidebar />
+            <FacultyAppSidebar />
             <SidebarInset>
                 {/* Header */}
                 <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">

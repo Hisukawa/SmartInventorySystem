@@ -47,17 +47,23 @@ class PeripheralController extends Controller
             'unit_code' => 'required|string|max:255',
         ]);
 
-        // Find the room by room_number (assumes room exists)
-        $room = Room::where('room_number', $validated['room_number'])->first();
+        // Find or create the room by room_number
+        $room = Room::firstOrCreate(['room_number' => $validated['room_number']]);
 
-        if (!$room) {
-            // Optionally create the room if not found
-            $room = Room::create(['room_number' => $validated['room_number']]);
+        // Restriction: No duplicate peripheral type in the same unit of the same room
+        $existingPeripheral = Peripheral::where('room_id', $room->id)
+            ->where('unit_code', $validated['unit_code'])
+            ->where('type', $validated['type'])
+            ->first();
+
+        if ($existingPeripheral) {
+            return redirect()->back()->withErrors([
+                'type' => "A {$validated['type']} already exists in Room {$validated['room_number']} Unit {$validated['unit_code']}."
+            ])->withInput();
         }
 
         // Generate auto-incremented peripheral code (PRF-001, PRF-002, ...)
         $lastPeripheral = Peripheral::orderBy('id', 'desc')->first();
-
         if ($lastPeripheral && preg_match('/PRF-(\d+)/', $lastPeripheral->peripheral_code, $matches)) {
             $lastNumber = (int)$matches[1];
             $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
@@ -67,6 +73,7 @@ class PeripheralController extends Controller
 
         $peripheralCode = 'PRF-' . $newNumber;
 
+        // Create the peripheral
         Peripheral::create([
             'type' => $validated['type'],
             'brand' => $validated['brand'] ?? null,
@@ -74,14 +81,17 @@ class PeripheralController extends Controller
             'serial_number' => $validated['serial_number'] ?? null,
             'condition' => $validated['condition'],
             'room_id' => $room->id,
-            'room_number' => $validated['room_number'],
+            'room_number' => $validated['room_number'], // Optional: Only if you have this column
             'unit_code' => $validated['unit_code'],
             'peripheral_code' => $peripheralCode,
-            'qr_code_path' => $peripheralCode,  // Just store the code for React QR generation
+            'qr_code_path' => $peripheralCode, // Store code for QR generation
         ]);
 
         return redirect()->route('peripherals.index')->with('success', 'Peripheral added successfully.');
     }
+
+
+
 
 
 
