@@ -63,7 +63,7 @@ const data = {
                 },
                 {
                     title: "Room Equipments",
-                    url: "#",
+                    url: "/equipments",
                 },
             ],
         },

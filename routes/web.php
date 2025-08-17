@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\Faculty\FacultyController;
 use App\Http\Controllers\Faculty\FacultyRoomController;
 use App\Http\Controllers\PeripheralController;
@@ -24,6 +25,10 @@ require __DIR__ . '/auth.php';
 
 // All protected routes go here
 Route::middleware(['auth'])->group(function () {
+
+    // API endpoint to fetch rooms with status for Admin Dashboard
+    Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
+
     // Shared Dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
@@ -37,9 +42,16 @@ Route::middleware(['auth'])->group(function () {
     // System Units (all users)
     Route::get('/units', [SystemUnitController::class, 'index'])->name('units.index');
     Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
+    Route::get('/room/{roomPath}', [RoomController::class, 'show'])->where('roomPath', '.*') // <-- this allows slashes in parameter
+                                                                    ->name('room.show');
 
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
+
+        // Admin Dashboard
+        Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+
+
         // Rooms
         Route::get('/admin/rooms', [RoomController::class, 'index'])->name('rooms.index');
         Route::get('/admin/rooms/create', [RoomController::class, 'create'])->name('rooms.create'); // <- new page
@@ -54,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/system-units/{id}', [SystemUnitController::class, 'destroy']);
         Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
 
+
         // Peripherals
         Route::get('/admin/peripherals', [PeripheralController::class, 'index'])->name('peripherals.index');
         Route::get('/admin/peripherals/create', [PeripheralController::class, 'create'])->name('peripherals.create');
@@ -64,9 +77,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/peripherals/{peripheral}', [PeripheralController::class, 'show'])->name('peripherals.show');
 
 
-
-        // Admin Dashboard
-        Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+        // Room Equipments
+        Route::get('/equipments', [EquipmentController::class, 'index'])->name('equipments.index'); // List all
+        Route::get('/equipments/addequipment', [EquipmentController::class, 'create'])->name('equipments.create'); // Create form
+        Route::post('/equipments', [EquipmentController::class, 'store'])->name('equipments.store'); // Store
+        Route::get('/equipments/{equipment}', [EquipmentController::class, 'show'])->name('equipments.show'); // View single
+        Route::get('/equipments/{equipment}/edit', [EquipmentController::class, 'edit'])->name('equipments.edit'); // Edit form
+        Route::put('/equipments/{equipment}', [EquipmentController::class, 'update'])->name('equipments.update'); // Update
+        Route::delete('/equipments/{equipment}', [EquipmentController::class, 'destroy'])->name('equipments.destroy'); // Delete
 
 
         // User Management
