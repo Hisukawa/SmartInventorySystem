@@ -7,6 +7,7 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\Faculty\FacultyController;
@@ -14,18 +15,58 @@ use App\Http\Controllers\Faculty\FacultyRoomController;
 use App\Http\Controllers\PeripheralController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SystemUnitController;
+use Illuminate\Support\Facades\Auth;
 
 // Redirect root to login page
+// Route::get('/', function () {
+//     return redirect()->route('login');
+// });
+
+// ✅ LOGIN PAGE
+// Route::get('/loginpage', function () {
+//     return Inertia::render('login');
+// })->name('loginpage');
+
+// ✅ HOME PAGE - CHECK IF USER IS LOGGED IN
+// Route::get('/', function () {
+//     if (Auth::check()) {
+//         return redirect()->route('dashboard');
+//     }
+
+//     return Inertia::render('Auth/Login', [
+//         'canLogin' => Route::has('loginpage'),
+//         'canRegister' => Route::has('register'),
+//         'laravelVersion' => Application::VERSION,
+//         'phpVersion' => PHP_VERSION,
+//     ]);
+// });
+
+
+// ✅ Public routes (only login/register/etc.)
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Auth routes (login, register, password reset, etc.)
+// Login page
+Route::get('/login', function () {
+    return Inertia::render('Auth/Login', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
+})->name('login');
+
+// ✅ Login POST (handles form submit)
+// Route::post('/login', [LoginController::class, 'login'])->name('login.attempt');
+
+// Auth routes (Laravel Breeze/Fortify/etc.)
 require __DIR__ . '/auth.php';
+
+
 
 // All protected routes go here
 Route::middleware(['auth'])->group(function () {
-
     // API endpoint to fetch rooms with status for Admin Dashboard
     Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
 
@@ -128,7 +169,6 @@ Route::middleware(['auth'])->group(function () {
         });
     })->name('guest.dashboard');
 });
-
 
 
 

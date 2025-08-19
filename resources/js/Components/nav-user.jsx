@@ -25,13 +25,24 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
-import { usePage } from "@inertiajs/react";
-import { router } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 
 export function NavUser() {
     const { isMobile } = useSidebar();
     const { props } = usePage();
     const user = props?.auth?.user;
+
+    if (!user) {
+        // If no user is logged in, show a fallback guest display
+        return (
+            <div className="flex items-center gap-2 px-3 py-2">
+                <Avatar>
+                    <AvatarFallback>?</AvatarFallback>
+                </Avatar>
+                <div className="text-sm text-muted-foreground">Guest</div>
+            </div>
+        );
+    }
 
     return (
         <SidebarMenu>
@@ -44,11 +55,11 @@ export function NavUser() {
                         >
                             <Avatar className="h-8 w-8 rounded-lg">
                                 <AvatarImage
-                                    src={user.avatar}
+                                    src={user.avatar || "/default-avatar.png"} // ✅ fallback image
                                     alt={user.name}
                                 />
                                 <AvatarFallback className="rounded-lg">
-                                    DP
+                                    {user.name?.charAt(0).toUpperCase() || "?"}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
@@ -72,11 +83,14 @@ export function NavUser() {
                             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     <AvatarImage
-                                        src={user.avatar}
+                                        src={
+                                            user.avatar || "/default-avatar.png"
+                                        } // ✅ fallback image
                                         alt={user.name}
                                     />
                                     <AvatarFallback className="rounded-lg">
-                                        CN
+                                        {user.name?.charAt(0).toUpperCase() ||
+                                            "?"}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
