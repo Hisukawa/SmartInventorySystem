@@ -17,30 +17,6 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SystemUnitController;
 use Illuminate\Support\Facades\Auth;
 
-// Redirect root to login page
-// Route::get('/', function () {
-//     return redirect()->route('login');
-// });
-
-// ✅ LOGIN PAGE
-// Route::get('/loginpage', function () {
-//     return Inertia::render('login');
-// })->name('loginpage');
-
-// ✅ HOME PAGE - CHECK IF USER IS LOGGED IN
-// Route::get('/', function () {
-//     if (Auth::check()) {
-//         return redirect()->route('dashboard');
-//     }
-
-//     return Inertia::render('Auth/Login', [
-//         'canLogin' => Route::has('loginpage'),
-//         'canRegister' => Route::has('register'),
-//         'laravelVersion' => Application::VERSION,
-//         'phpVersion' => PHP_VERSION,
-//     ]);
-// });
-
 
 // ✅ Public routes (only login/register/etc.)
 Route::get('/', function () {
@@ -57,12 +33,9 @@ Route::get('/login', function () {
     ]);
 })->name('login');
 
-// ✅ Login POST (handles form submit)
-// Route::post('/login', [LoginController::class, 'login'])->name('login.attempt');
 
 // Auth routes (Laravel Breeze/Fortify/etc.)
 require __DIR__ . '/auth.php';
-
 
 
 // All protected routes go here
