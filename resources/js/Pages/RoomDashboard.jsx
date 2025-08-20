@@ -83,7 +83,8 @@ export default function RoomDashboard({
                     ? "system-units"
                     : "peripherals";
 
-            await axios.put(`/${endpoint}/${selectedItem.id}`, { condition });
+            // ✅ fixed line (backticks for template literal)
+            await axios.put(`${endpoint}/${selectedItem.id}`, { condition });
 
             selectedItem.condition = condition;
             closeModal();
@@ -252,7 +253,9 @@ export default function RoomDashboard({
                                         setCondition(e.target.value)
                                     }
                                 >
-                                    <option value="Functional">Functional</option>
+                                    <option value="Functional">
+                                        Functional
+                                    </option>
                                     <option value="Working">Working</option>
                                     <option value="Under Maintenance">
                                         Under Maintenance
