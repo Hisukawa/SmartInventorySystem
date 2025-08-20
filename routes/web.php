@@ -64,7 +64,7 @@ Route::middleware(['auth'])->group(function () {
         // System Units
         Route::put('/system-units/{id}', [SystemUnitController::class, 'update']);
         Route::delete('/system-units/{id}', [SystemUnitController::class, 'destroy']);
-        Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
+        Route::get('/system-units/vi ew/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
 
 
         // Peripherals
