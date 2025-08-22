@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
+
     // Profile management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -56,8 +57,8 @@ Route::middleware(['auth'])->group(function () {
     // System Units (all users)
     Route::get('/units', [SystemUnitController::class, 'index'])->name('units.index');
     Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
-    Route::get('/room/{roomPath}', [RoomController::class, 'show'])->where('roomPath', '.*') // <-- this allows slashes in parameter
-                                                                    ->name('room.show');
+    //Route::get('/room/{roomPath}', [RoomController::class, 'show'])->where('roomPath', '.*') // <-- this allows slashes in parameter
+                                                                    //->name('room.show');
 
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
@@ -78,7 +79,7 @@ Route::middleware(['auth'])->group(function () {
         // System Units
         Route::put('/system-units/{id}', [SystemUnitController::class, 'update']);
         Route::delete('/system-units/{id}', [SystemUnitController::class, 'destroy']);
-        Route::get('/system-units/vi ew/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
+        Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
 
 
         // Peripherals
@@ -117,15 +118,24 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
+
+
     // Faculty-only routes
-    Route::middleware('role:faculty')->group(function () {
+    Route::middleware(['auth', 'role:faculty'])->group(function () {
+        // Faculty dashboard
         Route::get('/faculty/dashboard', [FacultyController::class, 'dashboard'])
             ->name('faculty.dashboard');
 
-        Route::get('/faculty/room/{room_path}', [FacultyRoomController::class, 'show'])
-            ->where('room_path', '.*')
-            ->name('faculty.room.show');
+        // Faculty room view (QR scan)
+        Route::get('/room/{roomPath}', [RoomController::class, 'show'])
+            ->where('roomPath', '.*')
+            ->name('room.show');
+
+        Route::get('/rooms/{room}/units/{unit}', [FacultyRoomController::class, 'showUnit'])
+        ->name('faculty.units.show');
     });
+
+
 
 
     // Technician-only routes
@@ -141,8 +151,9 @@ Route::middleware(['auth'])->group(function () {
             return Inertia::render('GuestDashboard');
         });
     })->name('guest.dashboard');
-});
 
+    
+});
 
 
 

@@ -124,11 +124,14 @@ class RoomController extends Controller
                 'room_path' => $room->room_path,
             ]);
 
-        return Inertia::render('RoomDashboard', [
+        return Inertia::render('Faculty/FacultyRoomView', [
             'room' => $room,
             'equipments' => $equipments,
             'systemUnits' => $systemUnits,
             'peripherals' => $peripherals,
+            'auth' => [
+                'user' => auth()->user(),
+            ],
         ]);
     }
 

@@ -16,11 +16,16 @@ class Authenticate
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() && !$request->is('login') && !$request->is('register')) {
-            return redirect('/login');
+        if (!Auth::check()) {
+            // Prevent infinite loop if already on login or register
+            if ($request->is('login') || $request->is('register')) {
+                return $next($request);
+            }
+
+            // Store intended URL (e.g. /room/101) before sending to login
+            return redirect()->guest(route('login'));
         }
 
         return $next($request);
-
     }
 }
