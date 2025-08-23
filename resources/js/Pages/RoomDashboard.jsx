@@ -83,7 +83,8 @@ export default function RoomDashboard({
                     ? "system-units"
                     : "peripherals";
 
-            await axios.put(`/${endpoint}/${selectedItem.id}`, { condition });
+            // ✅ fixed line (backticks for template literal)
+            await axios.put(`${endpoint}/${selectedItem.id}`, { condition });
 
             selectedItem.condition = condition;
             closeModal();
