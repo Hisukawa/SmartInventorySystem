@@ -1,6 +1,6 @@
 import { Monitor, Mouse, Package, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Link, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -21,16 +21,38 @@ export default function FacultyRoomSidebar({ room, user, active, onSelect }) {
   };
 
   return (
-    <div className="w-64 bg-white border-r p-4 flex flex-col justify-between">
+    <div className="w-64 bg-white border-r flex flex-col justify-between">
       {/* Top Section */}
       <div>
-        <div className="mb-6">
+        {/* Logo + System Title */}
+        <div className="p-4 border-b">
+          <div className="flex items-center gap-3">
+            <div className="flex aspect-square size-10 items-center justify-center rounded-full bg-black overflow-hidden">
+              <img
+                src="/ict.png"
+                alt="Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="grid flex-1 text-left leading-tight">
+              <span className="truncate font-semibold text-sm">
+                Inventory Management
+              </span>
+              <span className="truncate text-xs text-muted-foreground">
+                System
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Room Info */}
+        <div className="p-4">
           <h2 className="text-lg font-semibold">{room.room_name}</h2>
           <p className="text-sm text-muted-foreground">{room.department}</p>
         </div>
 
         {/* Navigation */}
-        <nav className="space-y-2">
+        <nav className="space-y-1 px-2">
           {links.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -48,7 +70,7 @@ export default function FacultyRoomSidebar({ room, user, active, onSelect }) {
       </div>
 
       {/* Bottom Section - Faculty Account with Dropdown */}
-      <div className="border-t pt-4 mt-6">
+      <div className="border-t p-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

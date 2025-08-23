@@ -1,32 +1,74 @@
+import React, { useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link, usePage } from "@inertiajs/react";
 import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view-sidebar";
 
-export default function FacultyUnitView({ room, unit, user }) {
+
+export default function FacultyUnitView({ room, unit, user, equipments, systemUnits, peripherals }) {
+  console.log("FacultyUnitView props:", { room, unit, equipments, systemUnits, peripherals });    
+  const [activeSection, setActiveSection] = useState("system-units");
+
   return (
-    <div className="flex">
+    <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <FacultyRoomSidebar
         room={room}
         user={user}
-        active="system-units"
-        onSelect={() => {}}
+        equipments={equipments}
+        systemUnits={systemUnits}
+        peripherals={peripherals}
+        active={activeSection}
+        onSelect={setActiveSection}
       />
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
-        <h2 className="text-xl font-semibold mb-4">Unit Details</h2>
+      <div className="flex-1 p-6 flex justify-start items-start">
+        <Card className="w-full max-w-md md:max-w-lg lg:max-w-2xl shadow-lg rounded-2xl border border-gray-200 ml-4">
+          <CardHeader className="flex flex-col gap-2">
+            <CardTitle className="text-xl md:text-2xl font-semibold text-gray-800">
+              {activeSection === "system-units"
+                ? "Unit Details"
+                : activeSection === "peripherals"
+                ? "Peripheral Details"
+                : "Equipment Details"}
+            </CardTitle>
+          </CardHeader>
 
-        <div className="grid grid-cols-2 gap-4 bg-white shadow rounded-lg p-4">
-          <p><span className="font-medium">Unit Code:</span> {unit.unit_code}</p>
-          <p><span className="font-medium">Processor:</span> {unit.processor}</p>
-          <p><span className="font-medium">RAM:</span> {unit.ram}</p>
-          <p><span className="font-medium">Storage:</span> {unit.storage}</p>
-          <p><span className="font-medium">GPU:</span> {unit.gpu ?? "N/A"}</p>
-          <p><span className="font-medium">Motherboard:</span> {unit.motherboard}</p>
-          <p><span className="font-medium">Condition:</span> {unit.condition}</p>
-          <p><span className="font-medium">Created At:</span> {unit.created_at}</p>
-          <p><span className="font-medium">Updated At:</span> {unit.updated_at}</p>
-        </div>
+          <CardContent>
+            {activeSection === "system-units" ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailItem label="Unit Code" value={unit.unit_code} />
+                <DetailItem label="Processor" value={unit.processor} />
+                <DetailItem label="RAM" value={unit.ram} />
+                <DetailItem label="Storage" value={unit.storage} />
+                <DetailItem label="GPU" value={unit.gpu ?? "N/A"} />
+                <DetailItem label="Motherboard" value={unit.motherboard} />
+                <DetailItem label="Condition" value={unit.condition} />
+              </div>
+            ) : (
+              <div className="text-gray-600 text-sm md:text-base">
+                No detailed view implemented yet for{" "}
+                <span className="font-medium">{activeSection}</span>.
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+    </div>
+  );
+}
+
+// Reusable detail item
+function DetailItem({ label, value }) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-xs md:text-sm font-medium text-gray-500">
+        {label}
+      </span>
+      <span className="text-sm md:text-base font-semibold text-gray-800">
+        {value}
+      </span>
     </div>
   );
 }
