@@ -46,9 +46,10 @@ export default function FacultyRoomView({
   equipments,
   systemUnits,
   peripherals,
+section,
 }) {
   const { auth } = usePage().props;
-  const [activeSection, setActiveSection] = useState("system-units");
+  const [activeSection, setActiveSection] = useState(section || "system-units");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // search + pagination
@@ -87,7 +88,7 @@ export default function FacultyRoomView({
             room={room}
             active={activeSection}
             user={auth.user}
-            onSelect={setActiveSection}
+            onSelect={(section) => setActiveSection(section)}
           />
         </div>
 
@@ -212,11 +213,18 @@ export default function FacultyRoomView({
                             </Link>
                           )}
                           {activeSection === "peripherals" && (
-                            
-                            <Button size="sm" variant="outline" className="flex items-center gap-1">
+                            <Link
+                            href={route("faculty.peripherals.show", {
+                              room: room.id,
+                              peripheral: item.id,
+                            })}>
+                    
+                             <Button size="sm" variant="outline" className="flex items-center gap-1">
                                   <Eye className="h-4 w-4" />
                                       View
                             </Button>
+                            </Link>
+                           
                             
                           )}
 
@@ -267,4 +275,8 @@ export default function FacultyRoomView({
       </div>
     </>
   );
+
+
+
 }
+

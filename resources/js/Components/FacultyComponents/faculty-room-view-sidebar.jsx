@@ -54,17 +54,22 @@ export default function FacultyRoomSidebar({ room, user, active, onSelect }) {
         {/* Navigation */}
         <nav className="space-y-1 px-2">
           {links.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => onSelect(key)}
-              className={cn(
-                "flex items-center w-full px-3 py-2 rounded-lg text-sm font-medium hover:bg-muted transition",
-                active === key ? "bg-muted text-primary" : "text-muted-foreground"
-              )}
-            >
-              <Icon className="mr-2 h-4 w-4" />
-              {label}
-            </button>
+           <button
+           key={key}
+            onClick={() => {
+             window.location.href = route("room.show", {
+                roomPath: room.room_path,
+               section: key, // ✅ pass clicked section in URL
+              });
+            }}
+            className={cn(
+              "flex items-center w-full px-3 py-2 rounded-lg text-sm font-medium hover:bg-muted transition",
+              active === key ? "bg-muted text-primary" : "text-muted-foreground"
+            )}
+          >
+            <Icon className="mr-2 h-4 w-4" />
+            {label}
+         </button>
           ))}
         </nav>
       </div>

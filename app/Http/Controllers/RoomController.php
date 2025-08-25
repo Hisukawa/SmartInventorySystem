@@ -132,6 +132,8 @@ class RoomController extends Controller
             'auth' => [
                 'user' => auth()->user(),
             ],
+
+            'section' => request()->query('section', 'system-units')
         ]);
     }
 
