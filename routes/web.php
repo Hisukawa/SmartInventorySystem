@@ -15,6 +15,8 @@ use App\Http\Controllers\Faculty\FacultyRoomController;
 use App\Http\Controllers\PeripheralController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SystemUnitController;
+
+use App\Http\Controllers\Reports;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -135,8 +137,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('faculty.units.show');
 
 
-
+        //Showing Peripherals if the faculty Click The View Action
         Route::get('/rooms/{room}/peripherals/{peripheral}', [PeripheralController::class, 'showPeripherals'])->name('faculty.peripherals.show');
+
+
+        Route::get('/rooms/{room}/RoomEquipments/{equipment}', [EquipmentController::class, 'showRoomEquipments'])->name('faculty.equipments.show');
+
+        Route::resource('reports', Reports::class);
+
     });
 
 

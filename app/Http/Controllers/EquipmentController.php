@@ -5,7 +5,7 @@ use App\Models\Equipment;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-
+use Illuminate\Support\Facades\Auth;
 class EquipmentController extends Controller
 {
     public function index()
@@ -82,5 +82,24 @@ class EquipmentController extends Controller
         $equipment->delete();
 
         return redirect()->route('equipments.index')->with('success', 'Equipment deleted successfully.');
+    }
+
+
+    public function showRoomEquipments(Room $room, Equipment $equipment){
+
+        $room->load(['equipments', 'systemUnits', 'peripherals']);
+
+
+        return Inertia::render('Faculty/FacultyEquipmentView', [
+            'room' =>$room,
+            'equipment' =>$equipment,
+            'user' => Auth::user(),
+            'equipments' => $room->equipments,
+            'systemUnits' => $room->systemUnits,
+            'peripherals' => $room->peripherals,
+        ]);
+            
+
+        
     }
 }
