@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { usePage, Link, Head } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
+import { Menu, Pencil, Eye } from "lucide-react"; // icons
+
 import {
   Table,
   TableBody,
@@ -13,10 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view-sidebar";
 
-// Pagination Component
 function Pagination({ page, pageCount, onPageChange }) {
   return (
-    <div className="flex justify-between items-center mt-4">
+    <div className="flex justify-end items-center gap-2">
       <Button
         variant="outline"
         size="sm"
@@ -45,14 +46,16 @@ export default function FacultyRoomView({
   equipments,
   systemUnits,
   peripherals,
+section,
 }) {
   const { auth } = usePage().props;
-  const [activeSection, setActiveSection] = useState("system-units");
+  const [activeSection, setActiveSection] = useState(section || "system-units");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // search + pagination
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const pageSize = 5;
+  const pageSize = 10;
 
   const data = useMemo(() => {
     if (activeSection === "system-units") return systemUnits;
@@ -78,54 +81,110 @@ export default function FacultyRoomView({
   return (
     <>
       <Head title={`Room - ${room.room_number}`} />
-      <div className="flex h-screen">
-        {/* Sidebar */}
-        <FacultyRoomSidebar
-          room={room}
-          active={activeSection}
-          user={auth.user}
-          onSelect={setActiveSection}
-        />
+      <div className="flex h-screen overflow-hidden">
+        {/* Sidebar - Desktop */}
+        <div className="hidden md:flex">
+          <FacultyRoomSidebar
+            room={room}
+            active={activeSection}
+            user={auth.user}
+            onSelect={(section) => setActiveSection(section)}
+          />
+        </div>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">
-                {activeSection === "system-units"
-                  ? "System Units"
-                  : activeSection === "peripherals"
-                  ? "Peripherals"
-                  : "Equipments"}
-              </h2>
-              <Input
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="max-w-xs"
+        {/* Sidebar - Mobile (drawer) */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-40 flex md:hidden">
+            <div
+              className="fixed inset-0 bg-black/50"
+              onClick={() => setSidebarOpen(false)}
+            />
+            <div className="relative z-50 w-64 bg-white shadow-lg">
+              <FacultyRoomSidebar
+                room={room}
+                active={activeSection}
+                user={auth.user}
+                onSelect={(key) => {
+                  setActiveSection(key);
+                  setSidebarOpen(false);
+                }}
               />
             </div>
+          </div>
+        )}
 
-            {/* Table aligned left */}
+        {/* Main Content */}
+       <div className="flex-1 overflow-y-auto p-5 max-w-full md:max-w-5xl lg:max-w-7xl">
+
+          <div className="space-y-6">
+            {/* Top bar with toggle button (mobile only) */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="md:hidden"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+                <h2 className="text-xl font-semibold">
+                  {activeSection === "system-units"
+                    ? "System Units"
+                    : activeSection === "peripherals"
+                    ? "Peripherals"
+                    : "Equipments"}
+                </h2>
+              </div>
+            </div>
+
+            {/* Table with search + pagination */}
             <div className="rounded-md border overflow-hidden w-full">
-              <Table>
+              {/* Search bar inside table container */}
+              <div className="flex justify-between items-center p-2 border-b">
+                <h2 className="text-lg font-semibold">
+                  {activeSection === "system-units"
+                    ? "System Units"
+                    : activeSection === "peripherals"
+                    ? "Peripherals"
+                    : activeSection == "equipments"
+                    ? "Equipments"
+                    :" "}
+                </h2>
+                <Input
+                  placeholder="Search..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="max-w-xs"
+                />
+              </div>
+
+              {/* Table */}
+              <Table className="border-collapse border border-gray-300 w-full">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-1/3">
+                  <TableRow className="divide-x divide-gray-300">
+                    <TableHead className="w-20 text-center">No</TableHead>
+                    <TableHead className="w-auto">
                       {activeSection === "system-units"
                         ? "Unit Code"
                         : activeSection === "peripherals"
                         ? "Peripheral Code"
                         : "Equipment Code"}
                     </TableHead>
-                    <TableHead className="w-1/3">Condition</TableHead>
-                    <TableHead className="w-1/3 text-right">Actions</TableHead>
+                    <TableHead className="w-auto">Condition</TableHead>
+                    <TableHead className="w-1/6 text-left">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginated.length > 0 ? (
-                    paginated.map((item) => (
-                      <TableRow key={item.id}>
+                    paginated.map((item, index) => (
+                      <TableRow
+                        key={item.id}
+                        className="divide-x divide-gray-300"
+                      >
+                        <TableCell className="text-center">
+                          {(page - 1) * pageSize + index + 1}
+                        </TableCell>
                         <TableCell>{item.name}</TableCell>
                         <TableCell>
                           <Badge
@@ -138,7 +197,8 @@ export default function FacultyRoomView({
                             {item.condition}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="flex gap-2 text-left">
+                          {/* View button for system-units */}
                           {activeSection === "system-units" && (
                             <Link
                               href={route("faculty.units.show", {
@@ -146,23 +206,50 @@ export default function FacultyRoomView({
                                 unit: item.id,
                               })}
                             >
-                              <Button size="sm" variant="outline">
-                                View
-                              </Button>
+                            <Button size="sm" variant="outline" className="flex items-center gap-1">
+                                  <Eye className="h-4 w-4" />
+                                      View
+                            </Button>
                             </Link>
                           )}
-                          {activeSection === "equipments" && (
-                            <Button size="sm" variant="outline">
-                              Report Issue
+                          {activeSection === "peripherals" && (
+                            <Link
+                            href={route("faculty.peripherals.show", {
+                              room: room.id,
+                              peripheral: item.id,
+                            })}>
+                    
+                             <Button size="sm" variant="outline" className="flex items-center gap-1">
+                                  <Eye className="h-4 w-4" />
+                                      View
                             </Button>
+                            </Link>
+                           
+                            
                           )}
+
+                           {activeSection === "equipments" && (
+                            
+                            <Button size="sm" variant="outline" className="flex items-center gap-1">
+                                  <Eye className="h-4 w-4" />
+                                      View
+                            </Button>
+                            
+                          )}
+                        
+
+                          {/* Edit button for all */}
+                          <Button size="sm" variant="outline">
+                            <Pencil className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
-                    <TableRow>
+                    <TableRow className="divide-x divide-gray-300">
                       <TableCell
-                        colSpan={3}
+                        colSpan={4}
                         className="text-center text-muted-foreground"
                       >
                         No data found.
@@ -171,18 +258,25 @@ export default function FacultyRoomView({
                   )}
                 </TableBody>
               </Table>
-            </div>
 
-            {pageCount > 1 && (
-              <Pagination
-                page={page}
-                pageCount={pageCount}
-                onPageChange={setPage}
-              />
-            )}
+              {/* Pagination inside table container, bottom-right */}
+              {pageCount > 1 && (
+                <div className="flex justify-end p-2">
+                  <Pagination
+                    page={page}
+                    pageCount={pageCount}
+                    onPageChange={setPage}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
     </>
   );
+
+
+
 }
+

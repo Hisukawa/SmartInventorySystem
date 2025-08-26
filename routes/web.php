@@ -133,6 +133,10 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/rooms/{room}/units/{unit}', [FacultyRoomController::class, 'showUnit'])
         ->name('faculty.units.show');
+
+
+
+        Route::get('/rooms/{room}/peripherals/{peripheral}', [PeripheralController::class, 'showPeripherals'])->name('faculty.peripherals.show');
     });
 
 

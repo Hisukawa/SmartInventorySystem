@@ -1,12 +1,15 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\Peripheral;
 use App\Models\Room;
 use App\Models\SystemUnit;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
+use Inertia\Inertia;
 
 class PeripheralController extends Controller
 {
@@ -109,4 +112,25 @@ class PeripheralController extends Controller
 
         return response()->json(['message' => 'Deleted successfully']);
     }
+    public function showPeripherals(Room $room, Peripheral $peripheral){
+                
+        $room->load(['equipments', 'systemUnits', 'peripherals']);
+
+
+        return Inertia::render('Faculty/FacultyPeripheralsView', [
+
+            'room' => $room,
+            'peripheral' => $peripheral,
+            'user' => Auth::user(),
+            'equipments' => $room->equipments,
+            'systemUnits' => $room->systemUnits,
+            'peripherals' => $room->peripherals, 
+        ]);
+
+    }
+
+
+   
 }
+
+
