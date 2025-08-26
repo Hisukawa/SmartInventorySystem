@@ -89,7 +89,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/peripherals/{peripheral}/edit', [PeripheralController::class, 'edit'])->name('peripherals.edit');
         Route::put('/admin/peripherals/{peripheral}', [PeripheralController::class, 'update'])->name('peripherals.update');
         Route::delete('/admin/peripherals/{peripheral}', [PeripheralController::class, 'destroy'])->name('peripherals.destroy');
-        Route::get('/admin/peripherals/{peripheral}', [PeripheralController::class, 'show'])->name('peripherals.show');
+        Route::get('/admin/peripherals/{id}', [PeripheralController::class, 'show'])->name('peripherals.show');
 
 
         // Room Equipments
@@ -156,7 +156,7 @@ Route::middleware(['auth'])->group(function () {
         });
     })->name('guest.dashboard');
 
-    
+
 });
 
 

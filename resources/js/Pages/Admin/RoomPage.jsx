@@ -98,13 +98,6 @@ export default function RoomPage({ rooms, search }) {
                     timer: 1500,
                 });
             },
-            onError: () => {
-                Swal.fire({
-                    icon: "error",
-                    title: "Update failed!",
-                    text: "Please check your input.",
-                });
-            },
         });
     };
 

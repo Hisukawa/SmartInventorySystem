@@ -1,14 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Auth;
 
+use Illuminate\Support\Facades\Auth;
 use App\Models\Peripheral;
 use App\Models\Room;
 use App\Models\SystemUnit;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-
 use Inertia\Inertia;
 
 class PeripheralController extends Controller
@@ -41,13 +40,13 @@ class PeripheralController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'type' => 'required|string|max:255',
-            'brand' => 'nullable|string|max:255',
-            'model' => 'nullable|string|max:255',
+            'type'          => 'required|string|max:255',
+            'brand'         => 'nullable|string|max:255',
+            'model'         => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
-            'condition' => 'required|string|max:255',
-            'room_number' => 'required|string|max:255',
-            'unit_code' => 'required|string|max:255',
+            'condition'     => 'required|string|max:255',
+            'room_number'   => 'required|string|max:255',
+            'unit_code'     => 'required|string|max:255',
         ]);
 
         // Find or create the room by room_number
@@ -78,59 +77,82 @@ class PeripheralController extends Controller
 
         // Create the peripheral
         Peripheral::create([
-            'type' => $validated['type'],
-            'brand' => $validated['brand'] ?? null,
-            'model' => $validated['model'] ?? null,
-            'serial_number' => $validated['serial_number'] ?? null,
-            'condition' => $validated['condition'],
-            'room_id' => $room->id,
-            'room_number' => $validated['room_number'], // Optional: Only if you have this column
-            'unit_code' => $validated['unit_code'],
-            'peripheral_code' => $peripheralCode,
-            'qr_code_path' => $peripheralCode, // Store code for QR generation
+            'type'           => $validated['type'],
+            'brand'          => $validated['brand'] ?? null,
+            'model'          => $validated['model'] ?? null,
+            'serial_number'  => $validated['serial_number'] ?? null,
+            'condition'      => $validated['condition'],
+            'room_id'        => $room->id,
+            'room_number'    => $validated['room_number'], // Optional: Only if you have this column
+            'unit_code'      => $validated['unit_code'],
+            'peripheral_code'=> $peripheralCode,
+            'qr_code_path'   => $peripheralCode, // Store code for QR generation
         ]);
 
         return redirect()->route('peripherals.index')->with('success', 'Peripheral added successfully.');
     }
 
+    public function edit($id)
+    {
+        $peripheral = Peripheral::with('room')->findOrFail($id);
 
+        $existingRooms = Room::select('id', 'room_number')->get();
+        $existingUnits = SystemUnit::select('id', 'unit_code', 'room_id')->get();
 
-
-
-
+        return Inertia::render('Admin/Peripherals/EditPeripheral', [
+            'peripheral'     => $peripheral,
+            'existingRooms'  => $existingRooms,
+            'existingUnits'  => $existingUnits,
+        ]);
+    }
 
     public function update(Request $request, $id)
     {
         $peripheral = Peripheral::findOrFail($id);
-        $peripheral->update($request->all());
-        return response()->json($peripheral);
+
+        $validated = $request->validate([
+            'type'          => 'required|string|max:255',
+            'brand'         => 'nullable|string|max:255',
+            'model'         => 'nullable|string|max:255',
+            'serial_number' => 'nullable|string|max:255',
+            'condition'     => 'required|string|max:255',
+            'room_id'       => 'required|exists:rooms,id',
+            'unit_code'     => 'required|string|max:255',
+        ]);
+
+        $peripheral->update($validated);
+
+        return redirect()->route('peripherals.index')->with('success', 'Peripheral updated successfully.');
     }
 
     public function destroy($id)
     {
         Peripheral::destroy($id);
-
-        return response()->json(['message' => 'Deleted successfully']);
+        return redirect()->route('peripherals.index')->with('success', 'Peripheral deleted successfully.');
     }
-    public function showPeripherals(Room $room, Peripheral $peripheral){
-                
+
+    // ✅ New show() method for Admin view
+    public function show($id)
+    {
+        $peripheral = Peripheral::with('room')->findOrFail($id);
+
+        return Inertia::render('Admin/Peripherals/ViewPeripheral', [
+            'peripheral' => $peripheral
+        ]);
+    }
+
+    // Existing Faculty view
+    public function showPeripherals(Room $room, Peripheral $peripheral)
+    {
         $room->load(['equipments', 'systemUnits', 'peripherals']);
 
-
         return Inertia::render('Faculty/FacultyPeripheralsView', [
-
-            'room' => $room,
-            'peripheral' => $peripheral,
-            'user' => Auth::user(),
-            'equipments' => $room->equipments,
+            'room'        => $room,
+            'peripheral'  => $peripheral,
+            'user'        => Auth::user(),
+            'equipments'  => $room->equipments,
             'systemUnits' => $room->systemUnits,
-            'peripherals' => $room->peripherals, 
+            'peripherals' => $room->peripherals,
         ]);
-
     }
-
-
-   
 }
-
-

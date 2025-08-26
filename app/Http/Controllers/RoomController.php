@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Database\QueryException;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class RoomController extends Controller
 {
@@ -22,7 +23,7 @@ class RoomController extends Controller
 
         $rooms = Room::when($search, function ($query, $search) {
                 $query->where('room_number', 'like', "%$search%")
-                      ->orWhere('room_path', 'like', "%$search%");
+                        ->orWhere('room_path', 'like', "%$search%");
             })
             ->orderBy('id')
             ->paginate(10)
@@ -130,7 +131,7 @@ class RoomController extends Controller
             'systemUnits' => $systemUnits,
             'peripherals' => $peripherals,
             'auth' => [
-                'user' => auth()->user(),
+                'user' => Auth::user(),
             ],
 
             'section' => request()->query('section', 'system-units')
@@ -155,6 +156,8 @@ class RoomController extends Controller
     {
         $validated = $request->validate([
             'room_number' => 'required|integer|unique:rooms,room_number,' . $room->id,
+        ], [
+            'room_number.unique' => 'This room number is already taken.',
         ]);
 
         $roomNumber = $validated['room_number'];

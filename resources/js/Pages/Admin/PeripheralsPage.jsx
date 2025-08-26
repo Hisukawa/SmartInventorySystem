@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link, router, Head } from "@inertiajs/react";
+import React, { useMemo, useState } from "react";
+import { Link, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Swal from "sweetalert2";
-import QRCode from "react-qr-code";
 
 import {
     Table,
@@ -32,9 +31,17 @@ import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 
 import { Input } from "@/components/ui/input";
 
-export default function PeripheralsIndex({ peripherals, search }) {
-    const [data, setData] = useState(peripherals || []);
+// Import the new modal
+import EditPeripheralModal from "./Peripherals/EditPeripheralModal";
+
+export default function PeripheralsIndex({
+    peripherals,
+    search,
+    existingRooms,
+    existingUnits,
+}) {
     const [searchTerm, setSearchTerm] = useState(search || "");
+    const [editPeripheral, setEditPeripheral] = useState(null);
 
     // Filters
     const [typeFilter, setTypeFilter] = useState("All Types");
@@ -299,7 +306,6 @@ export default function PeripheralsIndex({ peripherals, search }) {
                                                     )}
                                                 </select>
                                             </TableHead>
-                                            <TableHead>QR Code</TableHead>
                                             <TableHead>Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -334,27 +340,28 @@ export default function PeripheralsIndex({ peripherals, search }) {
                                                     <TableCell>
                                                         {p.unit_code}
                                                     </TableCell>
-                                                    <TableCell>
-                                                        {p.qr_code_path && (
-                                                            <QRCode
-                                                                value={
-                                                                    p.qr_code_path
-                                                                }
-                                                                size={48}
-                                                            />
-                                                        )}
-                                                    </TableCell>
                                                     <TableCell className="space-x-2">
                                                         <Link
-                                                            href={`/admin/peripherals/${p.id}/edit`}
+                                                            href={`/admin/peripherals/${p.id}`}
                                                         >
                                                             <Button
-                                                                variant="outline"
+                                                                variant="secondary"
                                                                 size="sm"
                                                             >
-                                                                Edit
+                                                                View
                                                             </Button>
                                                         </Link>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                setEditPeripheral(
+                                                                    p
+                                                                )
+                                                            }
+                                                        >
+                                                            Edit
+                                                        </Button>
                                                         <Button
                                                             variant="destructive"
                                                             size="sm"
@@ -372,7 +379,7 @@ export default function PeripheralsIndex({ peripherals, search }) {
                                         ) : (
                                             <TableRow>
                                                 <TableCell
-                                                    colSpan="9"
+                                                    colSpan="8"
                                                     className="text-center"
                                                 >
                                                     No peripherals found.
@@ -425,6 +432,18 @@ export default function PeripheralsIndex({ peripherals, search }) {
                         </Card>
                     </div>
                 </main>
+
+                {/* Edit Modal */}
+                {editPeripheral && (
+                    <EditPeripheralModal
+                        peripheral={editPeripheral}
+                        rooms={existingRooms}
+                        units={existingUnits}
+                        onClose={() => setEditPeripheral(null)}
+                        existingRooms={existingRooms}
+                        existingUnits={existingUnits}
+                    />
+                )}
             </SidebarInset>
         </SidebarProvider>
     );

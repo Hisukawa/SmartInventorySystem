@@ -1,4 +1,3 @@
-// EditUnitModal.jsx
 import {
     Dialog,
     DialogContent,
@@ -6,7 +5,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 
-import { Label } from "@/components/ui/label"; // ✅ ADD THIS
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@inertiajs/react";
@@ -60,36 +59,93 @@ export default function EditUnitModal({ unit, rooms, onClose }) {
                     </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4">
-                    <Input
-                        value={data.unit_code}
-                        onChange={(e) => setData("unit_code", e.target.value)}
-                        placeholder="Unit Code"
-                    />
-                    <Input
-                        value={data.processor}
-                        onChange={(e) => setData("processor", e.target.value)}
-                        placeholder="Processor"
-                    />
-                    <Input
-                        value={data.ram}
-                        onChange={(e) => setData("ram", e.target.value)}
-                        placeholder="RAM"
-                    />
-                    <Input
-                        value={data.storage}
-                        onChange={(e) => setData("storage", e.target.value)}
-                        placeholder="Storage"
-                    />
-                    <Input
-                        value={data.gpu}
-                        onChange={(e) => setData("gpu", e.target.value)}
-                        placeholder="GPU"
-                    />
-                    <Input
-                        value={data.motherboard}
-                        onChange={(e) => setData("motherboard", e.target.value)}
-                        placeholder="Motherboard"
-                    />
+                    {/* Unit Code */}
+                    <div>
+                        <Input
+                            value={data.unit_code}
+                            onChange={(e) =>
+                                setData("unit_code", e.target.value)
+                            }
+                            placeholder="Unit Code"
+                        />
+                        {errors.unit_code && (
+                            <p className="text-sm text-red-500">
+                                {errors.unit_code}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Processor */}
+                    <div>
+                        <Input
+                            value={data.processor}
+                            onChange={(e) =>
+                                setData("processor", e.target.value)
+                            }
+                            placeholder="Processor"
+                        />
+                        {errors.processor && (
+                            <p className="text-sm text-red-500">
+                                {errors.processor}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* RAM */}
+                    <div>
+                        <Input
+                            value={data.ram}
+                            onChange={(e) => setData("ram", e.target.value)}
+                            placeholder="RAM"
+                        />
+                        {errors.ram && (
+                            <p className="text-sm text-red-500">{errors.ram}</p>
+                        )}
+                    </div>
+
+                    {/* Storage */}
+                    <div>
+                        <Input
+                            value={data.storage}
+                            onChange={(e) => setData("storage", e.target.value)}
+                            placeholder="Storage"
+                        />
+                        {errors.storage && (
+                            <p className="text-sm text-red-500">
+                                {errors.storage}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* GPU */}
+                    <div>
+                        <Input
+                            value={data.gpu}
+                            onChange={(e) => setData("gpu", e.target.value)}
+                            placeholder="GPU"
+                        />
+                        {errors.gpu && (
+                            <p className="text-sm text-red-500">{errors.gpu}</p>
+                        )}
+                    </div>
+
+                    {/* Motherboard */}
+                    <div>
+                        <Input
+                            value={data.motherboard}
+                            onChange={(e) =>
+                                setData("motherboard", e.target.value)
+                            }
+                            placeholder="Motherboard"
+                        />
+                        {errors.motherboard && (
+                            <p className="text-sm text-red-500">
+                                {errors.motherboard}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Condition */}
                     <div>
                         <Label htmlFor="condition">Condition</Label>
                         <Input
