@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { usePage, Link, Head } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
-import { Menu, Pencil, Eye } from "lucide-react"; // icons
+import { Menu, Eye, FileText } from "lucide-react"; // swapped Pencil → FileText
 
 import {
   Table,
@@ -14,6 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view-sidebar";
+import ReportFormModal from "@/Components/FacultyComponents/faculty-report-form-modal"; // ✅ import modal
+import SuccessModal from "@/Components/FacultyComponents/faculty-sucess-modal";
 
 function Pagination({ page, pageCount, onPageChange }) {
   return (
@@ -46,11 +48,20 @@ export default function FacultyRoomView({
   equipments,
   systemUnits,
   peripherals,
-section,
+  section,
 }) {
   const { auth } = usePage().props;
   const [activeSection, setActiveSection] = useState(section || "system-units");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // modal state
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  //success modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [selectedItem, setSelectedItem] = useState(null);
 
   // search + pagination
   const [search, setSearch] = useState("");
@@ -92,7 +103,7 @@ section,
           />
         </div>
 
-        {/* Sidebar - Mobile (drawer) */}
+        {/* Sidebar - Mobile */}
         {sidebarOpen && (
           <div className="fixed inset-0 z-40 flex md:hidden">
             <div
@@ -114,10 +125,9 @@ section,
         )}
 
         {/* Main Content */}
-       <div className="flex-1 overflow-y-auto p-5 max-w-full md:max-w-5xl lg:max-w-7xl">
-
+        <div className="flex-1 overflow-y-auto p-5 max-w-full md:max-w-5xl lg:max-w-7xl">
           <div className="space-y-6">
-            {/* Top bar with toggle button (mobile only) */}
+            {/* Top bar */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Button
@@ -138,28 +148,24 @@ section,
               </div>
             </div>
 
-            {/* Table with search + pagination */}
+            {/* Table */}
             <div className="rounded-md border overflow-hidden w-full">
-              {/* Search bar inside table container */}
-              <div className="flex justify-between items-center p-2 border-b">
+              <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center p-2 border-b">
                 <h2 className="text-lg font-semibold">
                   {activeSection === "system-units"
                     ? "System Units"
                     : activeSection === "peripherals"
                     ? "Peripherals"
-                    : activeSection == "equipments"
-                    ? "Equipments"
-                    :" "}
+                    : "Equipments"}
                 </h2>
                 <Input
                   placeholder="Search..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="max-w-xs"
+                  className="max-w-[200px] sm:max-w-xs w-full"
                 />
               </div>
 
-              {/* Table */}
               <Table className="border-collapse border border-gray-300 w-full">
                 <TableHeader>
                   <TableRow className="divide-x divide-gray-300">
@@ -185,7 +191,9 @@ section,
                         <TableCell className="text-center">
                           {(page - 1) * pageSize + index + 1}
                         </TableCell>
-                        <TableCell>{item.name}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {item.name}
+                        </TableCell>
                         <TableCell>
                           <Badge
                             variant={
@@ -198,7 +206,7 @@ section,
                           </Badge>
                         </TableCell>
                         <TableCell className="flex gap-2 text-left">
-                          {/* View button for system-units */}
+                          {/* View button */}
                           {activeSection === "system-units" && (
                             <Link
                               href={route("faculty.units.show", {
@@ -206,42 +214,63 @@ section,
                                 unit: item.id,
                               })}
                             >
-                            <Button size="sm" variant="outline" className="flex items-center gap-1">
-                                  <Eye className="h-4 w-4" />
-                                      View
-                            </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-1"
+                              >
+                                <Eye className="h-4 w-4" />
+                                View
+                              </Button>
                             </Link>
                           )}
                           {activeSection === "peripherals" && (
                             <Link
-                            href={route("faculty.peripherals.show", {
-                              room: room.id,
-                              peripheral: item.id,
-                            })}>
-                    
-                             <Button size="sm" variant="outline" className="flex items-center gap-1">
-                                  <Eye className="h-4 w-4" />
-                                      View
-                            </Button>
+                              href={route("faculty.peripherals.show", {
+                                room: room.id,
+                                peripheral: item.id,
+                              })}
+                            >
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-1"
+                              >
+                                <Eye className="h-4 w-4" />
+                                View
+                              </Button>
                             </Link>
-                           
-                            
+                          )}
+                          {activeSection === "equipments" && (
+                            <Link
+                              href={route("faculty.equipments.show", {
+                                room: room.id,
+                                equipment: item.id,
+                              })}
+                            >
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-1"
+                              >
+                                <Eye className="h-4 w-4" />
+                                View
+                              </Button>
+                            </Link>
                           )}
 
-                           {activeSection === "equipments" && (
-                            
-                            <Button size="sm" variant="outline" className="flex items-center gap-1">
-                                  <Eye className="h-4 w-4" />
-                                      View
-                            </Button>
-                            
-                          )}
-                        
-
-                          {/* Edit button for all */}
-                          <Button size="sm" variant="outline">
-                            <Pencil className="h-4 w-4 mr-1" />
-                            Edit
+                          {/* Report button */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center gap-1"
+                            onClick={() => {
+                              setSelectedItem(item);
+                              setShowReportModal(true);
+                            }}
+                          >
+                            <FileText className="h-4 w-4" />
+                            Report
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -259,7 +288,6 @@ section,
                 </TableBody>
               </Table>
 
-              {/* Pagination inside table container, bottom-right */}
               {pageCount > 1 && (
                 <div className="flex justify-end p-2">
                   <Pagination
@@ -273,10 +301,28 @@ section,
           </div>
         </div>
       </div>
-    </>
+
+    {showReportModal && (
+     <ReportFormModal
+      open={showReportModal}
+      onOpenChange={setShowReportModal}
+      item={selectedItem}
+      section={activeSection}
+      room={room}
+      onSuccess={() => setShowSuccessModal(true)} // ✅ supposed to trigger success modal
+    />
+
+    )}
+
+    {/* Success Modal */}
+   <SuccessModal
+      open={showSuccessModal}
+      onClose={() => setShowSuccessModal(false)} // ✅ close modal properly
+      message="Report submitted successfully!"
+    />
+      </>
   );
 
-
-
+ 
 }
 

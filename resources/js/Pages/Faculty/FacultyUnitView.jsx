@@ -91,7 +91,7 @@ export default function FacultyUnitView({ room, unit, user }) {
               {/* Back button */}
               <div className="mt-6">
                 <Link href={route("room.show", { roomPath: room.room_path })}>
-                  <Button variant="outline">← Back to Room</Button>
+                  <Button variant="outline">← Back to Units</Button>
                 </Link>
               </div>
             </CardContent>
