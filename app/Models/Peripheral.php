@@ -23,5 +23,10 @@ class Peripheral extends Model
     {
         return $this->belongsTo(Room::class);
     }
+    
+     public static function availableConditions(){
+
+        return static::select('condition')->distinct()->pluck('condition');
+    }
 }
 

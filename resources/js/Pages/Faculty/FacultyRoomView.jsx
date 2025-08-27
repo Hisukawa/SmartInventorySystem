@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { usePage, Link, Head } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
-import { Menu, Eye, FileText } from "lucide-react"; // swapped Pencil → FileText
-
+import { Menu, Eye, FileText, Filter as FilterIcon, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,10 +12,24 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view-sidebar";
-import ReportFormModal from "@/Components/FacultyComponents/faculty-report-form-modal"; // ✅ import modal
+import ReportFormModal from "@/Components/FacultyComponents/faculty-report-form-modal";
 import SuccessModal from "@/Components/FacultyComponents/faculty-sucess-modal";
 
+// Pagination Component
 function Pagination({ page, pageCount, onPageChange }) {
   return (
     <div className="flex justify-end items-center gap-2">
@@ -28,9 +41,11 @@ function Pagination({ page, pageCount, onPageChange }) {
       >
         Previous
       </Button>
+
       <span className="text-sm text-muted-foreground">
         Page {page} of {pageCount}
       </span>
+
       <Button
         variant="outline"
         size="sm"
@@ -43,57 +58,188 @@ function Pagination({ page, pageCount, onPageChange }) {
   );
 }
 
+// ✅ Adjusted Filter Component for responsiveness and "All" option
+function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
+  const [selectedField, setSelectedField] = useState("");
+  const [selectedValue, setSelectedValue] = useState("");
+
+  useEffect(() => {
+    // load default filters from backend
+    if (filters.condition) {
+      setSelectedField("condition");
+      setSelectedValue(filters.condition);
+    } else if (filters.unit_code && activeSection === "peripherals") {
+      setSelectedField("unit_code");
+      setSelectedValue(filters.unit_code);
+    } else {
+      setSelectedField("");
+      setSelectedValue("");
+    }
+  }, [filters, activeSection]);
+
+  // Trigger filter immediately on change
+  const handleValueChange = (value) => {
+    // If 'All' is selected, set the value to an empty string to remove the filter
+    const newValue = value === "all" ? "" : value;
+    setSelectedValue(newValue);
+
+    if (selectedField === "condition") {
+      onApplyFilters(newValue, filters.unit_code, filters.search);
+    } else if (selectedField === "unit_code") {
+      onApplyFilters(filters.condition, newValue, filters.search);
+    }
+  };
+
+  const getAvailableFields = () => {
+    const fields = [{ value: "condition", label: "Condition" }];
+    if (activeSection === "peripherals") {
+      fields.push({ value: "unit_code", label: "Unit Code" });
+    }
+    return fields;
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="flex items-center gap-2">
+          <FilterIcon className="h-4 w-4" />
+          Filter
+          {(filters.condition || (activeSection === "peripherals" && filters.unit_code)) && (
+            <X className="h-4 w-4 ml-1" onClick={(e) => {
+              e.stopPropagation(); // Prevent popover from opening when clearing
+              setSelectedField("");
+              setSelectedValue("");
+              onApplyFilters("", "", filters.search); // Clear all filters except search
+            }} />
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[400px] p-4" align="start" sideOffset={10}>
+        <h4 className="font-medium mb-3 text-lg">Filter Options</h4>
+        <div className="flex flex-col gap-4">
+          {/* Field Dropdown */}
+          <Select
+            value={selectedField}
+            onValueChange={(val) => {
+              setSelectedField(val);
+              setSelectedValue(""); // Reset value when field changes
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Field" />
+            </SelectTrigger>
+            <SelectContent>
+              {getAvailableFields().map((field) => (
+                <SelectItem key={field.value} value={field.value}>
+                  {field.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Value Dropdown */}
+          {selectedField === "condition" && (
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Condition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {filterOptions.conditions.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {selectedField === "unit_code" && activeSection === "peripherals" && (
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Unit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {filterOptions.unit_codes.map((u) => (
+                  <SelectItem key={u} value={u}>
+                    {u}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function FacultyRoomView({
   room,
   equipments,
   systemUnits,
   peripherals,
   section,
+  filters,
+  filterOptions,
 }) {
   const { auth } = usePage().props;
+
   const [activeSection, setActiveSection] = useState(section || "system-units");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // modal state
   const [showReportModal, setShowReportModal] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  //success modal
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // search + pagination
-  const [search, setSearch] = useState("");
+  const [condition, setCondition] = useState(filters.condition || "");
+  const [unitCode, setUnitCode] = useState(filters.unit_code || "");
+  const [search, setSearch] = useState(filters.search || "");
+
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const data = useMemo(() => {
-    if (activeSection === "system-units") return systemUnits;
-    if (activeSection === "peripherals") return peripherals;
-    if (activeSection === "equipments") return equipments;
-    return [];
-  }, [activeSection, systemUnits, peripherals, equipments]);
+  const data =
+    activeSection === "system-units"
+      ? systemUnits
+      : activeSection === "peripherals"
+      ? peripherals
+      : equipments;
 
-  const filtered = useMemo(() => {
-    return data.filter((item) =>
-      (item.name || "").toLowerCase().includes(search.toLowerCase())
-    );
-  }, [data, search]);
+  const pageCount = Math.ceil(data.length / pageSize);
+  const paginated = data.slice((page - 1) * pageSize, page * pageSize);
 
-  const pageCount = Math.ceil(filtered.length / pageSize);
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-  React.useEffect(() => {
+  useEffect(() => {
     setPage(1);
-    setSearch("");
-  }, [activeSection]);
+    setCondition(filters.condition || "");
+    setUnitCode(filters.unit_code || "");
+    setSearch(filters.search || "");
+  }, [activeSection, filters]);
+
+  const applyFilters = (newCondition = condition, newUnitCode = unitCode, newSearch = search) => {
+    const params = new URLSearchParams({
+      section: activeSection,
+    });
+
+    // Only add parameters if they have a non-empty value
+    if (newCondition) {
+      params.append('condition', newCondition);
+    }
+    if (newUnitCode && activeSection === "peripherals") {
+      params.append('unit_code', newUnitCode);
+    }
+    if (newSearch) {
+      params.append('search', newSearch);
+    }
+
+    window.location.href = `${window.location.pathname}?${params.toString()}`;
+  };
 
   return (
     <>
       <Head title={`Room - ${room.room_number}`} />
       <div className="flex h-screen overflow-hidden">
-        {/* Sidebar - Desktop */}
+        {/* Sidebar */}
         <div className="hidden md:flex">
           <FacultyRoomSidebar
             room={room}
@@ -103,13 +249,10 @@ export default function FacultyRoomView({
           />
         </div>
 
-        {/* Sidebar - Mobile */}
+        {/* Sidebar Mobile */}
         {sidebarOpen && (
           <div className="fixed inset-0 z-40 flex md:hidden">
-            <div
-              className="fixed inset-0 bg-black/50"
-              onClick={() => setSidebarOpen(false)}
-            />
+            <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
             <div className="relative z-50 w-64 bg-white shadow-lg">
               <FacultyRoomSidebar
                 room={room}
@@ -124,10 +267,10 @@ export default function FacultyRoomView({
           </div>
         )}
 
-        {/* Main Content */}
+        {/* Main */}
         <div className="flex-1 overflow-y-auto p-5 max-w-full md:max-w-5xl lg:max-w-7xl">
           <div className="space-y-6">
-            {/* Top bar */}
+            {/* Top Bar */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Button
@@ -150,63 +293,62 @@ export default function FacultyRoomView({
 
             {/* Table */}
             <div className="rounded-md border overflow-hidden w-full">
+              {/* Header with Filter + Search */}
               <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center p-2 border-b">
-                <h2 className="text-lg font-semibold">
-                  {activeSection === "system-units"
-                    ? "System Units"
-                    : activeSection === "peripherals"
-                    ? "Peripherals"
-                    : "Equipments"}
-                </h2>
-                <Input
-                  placeholder="Search..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="max-w-[200px] sm:max-w-xs w-full"
-                />
+                <div className="flex gap-2 items-center w-full sm:w-auto"> {/* Added w-full */}
+                  <Filter
+                    filters={{ condition, unit_code: unitCode, search }}
+                    filterOptions={filterOptions}
+                    activeSection={activeSection}
+                    onApplyFilters={applyFilters}
+                  />
+                  <Input
+                    placeholder="Search..."
+                    value={search}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSearch(value);
+                      applyFilters(condition, unitCode, value);
+                    }}
+                    className="flex-1 min-w-0 sm:max-w-xs w-full" 
+                  />
+                </div>
               </div>
 
               <Table className="border-collapse border border-gray-300 w-full">
                 <TableHeader>
                   <TableRow className="divide-x divide-gray-300">
                     <TableHead className="w-20 text-center">No</TableHead>
-                    <TableHead className="w-auto">
+                    <TableHead>
                       {activeSection === "system-units"
                         ? "Unit Code"
                         : activeSection === "peripherals"
                         ? "Peripheral Code"
                         : "Equipment Code"}
                     </TableHead>
-                    <TableHead className="w-auto">Condition</TableHead>
+                    {activeSection !== "system-units" && <TableHead>Type</TableHead>}
+                    <TableHead>Condition</TableHead>
                     <TableHead className="w-1/6 text-left">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {paginated.length > 0 ? (
                     paginated.map((item, index) => (
-                      <TableRow
-                        key={item.id}
-                        className="divide-x divide-gray-300"
-                      >
+                      <TableRow key={item.id} className="divide-x divide-gray-300">
                         <TableCell className="text-center">
                           {(page - 1) * pageSize + index + 1}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {item.name}
-                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{item.name}</TableCell>
+                        {activeSection !== "system-units" && <TableCell>{item.type}</TableCell>}
                         <TableCell>
                           <Badge
-                            variant={
-                              item.condition === "Good"
-                                ? "success"
-                                : "destructive"
-                            }
+                            variant={item.condition === "Good" ? "success" : "destructive"}
                           >
                             {item.condition}
                           </Badge>
                         </TableCell>
                         <TableCell className="flex gap-2 text-left">
-                          {/* View button */}
                           {activeSection === "system-units" && (
                             <Link
                               href={route("faculty.units.show", {
@@ -214,13 +356,8 @@ export default function FacultyRoomView({
                                 unit: item.id,
                               })}
                             >
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="flex items-center gap-1"
-                              >
-                                <Eye className="h-4 w-4" />
-                                View
+                              <Button size="sm" variant="outline" className="flex items-center gap-1">
+                                <Eye className="h-4 w-4" /> View
                               </Button>
                             </Link>
                           )}
@@ -231,13 +368,8 @@ export default function FacultyRoomView({
                                 peripheral: item.id,
                               })}
                             >
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="flex items-center gap-1"
-                              >
-                                <Eye className="h-4 w-4" />
-                                View
+                              <Button size="sm" variant="outline" className="flex items-center gap-1">
+                                <Eye className="h-4 w-4" /> View
                               </Button>
                             </Link>
                           )}
@@ -248,18 +380,11 @@ export default function FacultyRoomView({
                                 equipment: item.id,
                               })}
                             >
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="flex items-center gap-1"
-                              >
-                                <Eye className="h-4 w-4" />
-                                View
+                              <Button size="sm" variant="outline" className="flex items-center gap-1">
+                                <Eye className="h-4 w-4" /> View
                               </Button>
                             </Link>
                           )}
-
-                          {/* Report button */}
                           <Button
                             size="sm"
                             variant="outline"
@@ -269,8 +394,7 @@ export default function FacultyRoomView({
                               setShowReportModal(true);
                             }}
                           >
-                            <FileText className="h-4 w-4" />
-                            Report
+                            <FileText className="h-4 w-4" /> Report
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -278,7 +402,7 @@ export default function FacultyRoomView({
                   ) : (
                     <TableRow className="divide-x divide-gray-300">
                       <TableCell
-                        colSpan={4}
+                        colSpan={activeSection === "system-units" ? 4 : 5}
                         className="text-center text-muted-foreground"
                       >
                         No data found.
@@ -290,11 +414,7 @@ export default function FacultyRoomView({
 
               {pageCount > 1 && (
                 <div className="flex justify-end p-2">
-                  <Pagination
-                    page={page}
-                    pageCount={pageCount}
-                    onPageChange={setPage}
-                  />
+                  <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />
                 </div>
               )}
             </div>
@@ -302,27 +422,22 @@ export default function FacultyRoomView({
         </div>
       </div>
 
-    {showReportModal && (
-     <ReportFormModal
-      open={showReportModal}
-      onOpenChange={setShowReportModal}
-      item={selectedItem}
-      section={activeSection}
-      room={room}
-      onSuccess={() => setShowSuccessModal(true)} // ✅ supposed to trigger success modal
-    />
+      {showReportModal && (
+        <ReportFormModal
+          open={showReportModal}
+          onOpenChange={setShowReportModal}
+          item={selectedItem}
+          section={activeSection}
+          room={room}
+          onSuccess={() => setShowSuccessModal(true)}
+        />
+      )}
 
-    )}
-
-    {/* Success Modal */}
-   <SuccessModal
-      open={showSuccessModal}
-      onClose={() => setShowSuccessModal(false)} // ✅ close modal properly
-      message="Report submitted successfully!"
-    />
-      </>
+      <SuccessModal
+        open={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        message="Report submitted successfully!"
+      />
+    </>
   );
-
- 
 }
-
