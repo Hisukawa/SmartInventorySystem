@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Head } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import {
@@ -16,8 +16,75 @@ import {
     BreadcrumbList,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function ViewUnit({ unit }) {
+    const [selectedQR, setSelectedQR] = useState(null);
+    const [selectedRoomNumber, setSelectedRoomNumber] = useState(null);
+    const [open, setOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const handleQRCodeClick = (qrValue, roomNumber) => {
+        if (qrValue) {
+            setSelectedQR(qrValue);
+            setSelectedRoomNumber(roomNumber);
+            setOpen(true);
+            setCopied(false); // reset copied state when reopening modal
+        }
+    };
+
+    const handleModalQRClick = async () => {
+        if (selectedQR) {
+            try {
+                await navigator.clipboard.writeText(selectedQR);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000); // hide message after 2s
+            } catch (err) {
+                console.error("Failed to copy: ", err);
+            }
+        }
+    };
+
+    const handleDownload = () => {
+        if (!selectedQR) return;
+
+        const canvas = document.createElement("canvas");
+        const svg = document.querySelector("#modal-qr svg");
+        const serializer = new XMLSerializer();
+        const svgStr = serializer.serializeToString(svg);
+        const img = new Image();
+        const blob = new Blob([svgStr], {
+            type: "image/svg+xml;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+
+            // 🔑 Format filename as Sentence Case
+            const formattedRoom = `Room-${unit.room_number}`;
+            const formattedUnit = `Unit-${unit.unit_code
+                .replace(/^unit[-_]?/i, "")
+                .replace(/^0+/, "0")}`;
+
+            const fileName = `ROOM-${unit.room?.room_number}_${unit.unit_code}.png`;
+
+            const link = document.createElement("a");
+            link.download = fileName;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        };
+        img.src = url;
+    };
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -36,7 +103,6 @@ export default function ViewUnit({ unit }) {
                                 <BreadcrumbLink href="/units">
                                     System Unit Lists
                                 </BreadcrumbLink>
-
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
                                     href={`/system-units/view/${unit.unit_code}`}
@@ -80,10 +146,21 @@ export default function ViewUnit({ unit }) {
                             <strong>Condition:</strong> {unit.condition}
                         </div>
                         <div className="col-span-2 flex flex-col items-center mt-4">
-                            <QRCode
-                                value={`${window.location.origin}/equipment/${unit.unit_code}`}
-                                size={128}
-                            />
+                            <div
+                                className="bg-white p-2 rounded cursor-pointer hover:shadow-md transition"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleQRCodeClick(
+                                        `${window.location.origin}/equipment/${unit.unit_path}`,
+                                        unit.room_number || "room" // ensure room_number exists
+                                    );
+                                }}
+                            >
+                                <QRCode
+                                    value={`${window.location.origin}/equipment/${unit.unit_path}`}
+                                    size={128}
+                                />
+                            </div>
                             <span className="mt-2 text-sm text-muted-foreground">
                                 Scan to view public info
                             </span>
@@ -99,6 +176,39 @@ export default function ViewUnit({ unit }) {
                         </Button>
                     </div>
                 </main>
+
+                {/* QR Code Modal */}
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogContent className="flex flex-col items-center">
+                        <DialogHeader>
+                            <DialogTitle>
+                                QR Code for {selectedRoomNumber} -{" "}
+                                {unit.unit_code}
+                            </DialogTitle>
+                        </DialogHeader>
+                        {selectedQR && (
+                            <div
+                                id="modal-qr"
+                                className="cursor-pointer"
+                                onClick={handleModalQRClick}
+                            >
+                                <QRCode value={selectedQR} size={256} />
+                            </div>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                            Click QR to copy link
+                        </span>
+                        {/* Copy message */}
+                        {copied && (
+                            <span className="text-green-600 text-sm">
+                                QR code path copied!
+                            </span>
+                        )}
+                        <div className="mt-1 flex gap-2">
+                            <Button onClick={handleDownload}>Download</Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </SidebarInset>
         </SidebarProvider>
     );

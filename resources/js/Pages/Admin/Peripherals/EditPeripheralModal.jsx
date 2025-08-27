@@ -24,6 +24,10 @@ export default function EditPeripheralModal({
     units = [], // fallback if undefined
     onClose,
 }) {
+    // for debugging
+    // console.log("Rooms from Inertia:", rooms);
+    // console.log("Units from Inertia:", units);
+
     const { data, setData, put, processing, errors } = useForm({
         type: peripheral?.type || "",
         serial_number: peripheral?.serial_number || "",
@@ -141,7 +145,8 @@ export default function EditPeripheralModal({
                             {rooms.length > 0 ? (
                                 rooms.map((room) => (
                                     <option key={room.id} value={room.id}>
-                                        {room.room_number}
+                                        {room.room_number}{" "}
+                                        {/* Display room number */}
                                     </option>
                                 ))
                             ) : (
@@ -173,7 +178,8 @@ export default function EditPeripheralModal({
                                         key={unit.unit_code}
                                         value={unit.unit_code}
                                     >
-                                        {unit.unit_code}
+                                        {unit.unit_code}{" "}
+                                        {/* Display unit code */}
                                     </option>
                                 ))
                             ) : (

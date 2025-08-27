@@ -7,33 +7,47 @@ use App\Models\Peripheral;
 use App\Models\Room;
 use App\Models\SystemUnit;
 use Illuminate\Http\Request;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Inertia\Inertia;
-
 class PeripheralController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $peripherals = Peripheral::with('room')->get();
-        return inertia('Admin/PeripheralsPage', [
-            'peripherals' => $peripherals
+        $peripherals = Peripheral::with('room')
+            ->when($request->search, function ($query, $search) {
+                $query->where('peripheral_code', 'like', "%{$search}%")
+                    ->orWhere('type', 'like', "%{$search}%")
+                    ->orWhere('serial_number', 'like', "%{$search}%")
+                    ->orWhere('condition', 'like', "%{$search}%")
+                    ->orWhereHas('room', fn($q) => $q->where('room_number', 'like', "%{$search}%"))
+                    ->orWhere('unit_code', 'like', "%{$search}%");
+            })
+            ->get();
+
+        $rooms = Room::select('id', 'room_number')->get();
+        $units = SystemUnit::select('id', 'unit_code')->get();
+
+        return Inertia::render('Admin/PeripheralsPage', [
+            'peripherals'    => $peripherals,
+            'search'         => $request->search,
+            'existingRooms'  => $rooms,
+            'existingUnits'  => $units,
         ]);
     }
 
     public function create()
     {
-        $existingRooms = Room::select('id', 'room_number')->get();
-        $existingUnits = SystemUnit::select('id', 'unit_code', 'room_id')->get();
+        $rooms = Room::select('id', 'room_number')->get();
+        $units = SystemUnit::select('id', 'unit_code', 'room_id')->get();
 
         // For simplicity, brands and models can come from Peripheral distinct columns
-        $existingBrands = Peripheral::distinct()->pluck('brand')->filter()->values()->all();
-        $existingModels = Peripheral::distinct()->pluck('model')->filter()->values()->all();
+        $brands = Peripheral::distinct()->pluck('brand')->filter()->values()->all();
+        $models = Peripheral::distinct()->pluck('model')->filter()->values()->all();
 
         return inertia('Admin/Peripherals/AddPeripheral', [
-            'existingRooms' => $existingRooms,
-            'existingUnits' => $existingUnits,
-            'existingBrands' => $existingBrands,
-            'existingModels' => $existingModels,
+            'rooms'  => $rooms,
+            'units'  => $units,
+            'brands' => $brands,
+            'models' => $models,
         ]);
     }
 
@@ -83,7 +97,7 @@ class PeripheralController extends Controller
             'serial_number'  => $validated['serial_number'] ?? null,
             'condition'      => $validated['condition'],
             'room_id'        => $room->id,
-            'room_number'    => $validated['room_number'], // Optional: Only if you have this column
+            'room_number'    => $validated['room_number'], // Optional
             'unit_code'      => $validated['unit_code'],
             'peripheral_code'=> $peripheralCode,
             'qr_code_path'   => $peripheralCode, // Store code for QR generation
@@ -96,13 +110,15 @@ class PeripheralController extends Controller
     {
         $peripheral = Peripheral::with('room')->findOrFail($id);
 
-        $existingRooms = Room::select('id', 'room_number')->get();
-        $existingUnits = SystemUnit::select('id', 'unit_code', 'room_id')->get();
+        $rooms = Room::select('id', 'room_number')->get();
+        $units = SystemUnit::select('id', 'unit_code', 'room_id')->get();
+        // dd($rooms);
+        // dd($units);
 
         return Inertia::render('Admin/Peripherals/EditPeripheral', [
-            'peripheral'     => $peripheral,
-            'existingRooms'  => $existingRooms,
-            'existingUnits'  => $existingUnits,
+            'peripheral' => $peripheral,
+            'rooms'      => $rooms,
+            'units'      => $units,
         ]);
     }
 
@@ -128,10 +144,11 @@ class PeripheralController extends Controller
     public function destroy($id)
     {
         Peripheral::destroy($id);
+
         return redirect()->route('peripherals.index')->with('success', 'Peripheral deleted successfully.');
     }
 
-    // ✅ New show() method for Admin view
+    // ✅ Admin view
     public function show($id)
     {
         $peripheral = Peripheral::with('room')->findOrFail($id);
@@ -141,7 +158,7 @@ class PeripheralController extends Controller
         ]);
     }
 
-    // Existing Faculty view
+    // ✅ Faculty view
     public function showPeripherals(Room $room, Peripheral $peripheral)
     {
         $room->load(['equipments', 'systemUnits', 'peripherals']);

@@ -440,8 +440,6 @@ export default function PeripheralsIndex({
                         rooms={existingRooms}
                         units={existingUnits}
                         onClose={() => setEditPeripheral(null)}
-                        existingRooms={existingRooms}
-                        existingUnits={existingUnits}
                     />
                 )}
             </SidebarInset>

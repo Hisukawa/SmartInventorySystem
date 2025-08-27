@@ -20,6 +20,7 @@ class SystemUnit extends Model
         'motherboard',
         'condition',
         'room_id',
+        'unit_path',
     ];
 
     public function room()
