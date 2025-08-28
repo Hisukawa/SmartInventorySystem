@@ -14,6 +14,7 @@ export default function FacultyRoomEquipmentView({room, equipment, user}){
 
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    
 
 
       return (
@@ -96,7 +97,7 @@ export default function FacultyRoomEquipmentView({room, equipment, user}){
                             </CardHeader>
     
                             <CardContent>
-                                <div className="grid grid-cols-1 sm:grid-cols2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <DetailItem label="Equipment Code" value={equipment.equipment_code}/> 
                                     <DetailItem label="Type" value={equipment.type}/>
                                     <DetailItem label="Brand" value={equipment.brand}/>

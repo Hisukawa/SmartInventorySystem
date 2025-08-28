@@ -11,6 +11,7 @@ import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view
 export default function FacultyPeripheralsView ({ room, peripheral, user}){
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    
 
 
 
@@ -94,15 +95,17 @@ export default function FacultyPeripheralsView ({ room, peripheral, user}){
                         </CardHeader>
 
                         <CardContent>
-                            <div className="grid grid-cols-1 sm:grid-cols2 gap-4">
-                                <DetailItem label="Peripheral Code" value={peripheral.peripheral_code}/> 
-                                <DetailItem label="Type" value={peripheral.type}/>
-                                <DetailItem label="Brand" value={peripheral.brand}/>
-                                <DetailItem label="Model" value={peripheral.model}/>
-                                <DetailItem label="Serial Number"value={peripheral.serial_number}/>
-                                
-                            </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <DetailItem label="Peripheral Code" value={peripheral.peripheral_code}/> 
+                            <DetailItem label="Unit-Code" value={peripheral.unit_code}/> 
+                            <DetailItem label="Type" value={peripheral.type}/> 
+                            <DetailItem label="Brand" value={peripheral.brand}/> 
+                            <DetailItem label="Model" value={peripheral.model}/> 
+                            <DetailItem label="Serial Number" value={peripheral.serial_number}/> 
+                            <DetailItem label="Unit-Code" value={peripheral.unit_code}/> 
 
+                           
+                        </div>
                             <div className="mt-6">
                                             <Link href={route("room.show", 
                                                 {

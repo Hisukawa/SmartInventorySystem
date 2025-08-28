@@ -21,4 +21,9 @@ class Equipment extends Model
     {
         return $this->belongsTo(Room::class, 'room_number', 'room_number');
     }
+
+     public static function availableConditions(){
+
+        return static::select('condition')->distinct()->pluck('condition');
+    }
 }
