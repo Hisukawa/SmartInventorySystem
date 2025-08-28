@@ -232,12 +232,21 @@ export default function FacultyRoomView({
       params.append('search', newSearch);
     }
 
-    window.location.href = `${window.location.pathname}?${params.toString()}`;
+    // This is the crucial part for navigation with filters
+    // Use Inertia's router.get for full page reload with new query params
+    // or you could use window.location.href for simpler but less "Inertia-like" navigation
+    window.location.href = route("room.show", {
+      roomPath: room.room_path,
+      section: activeSection, // Ensure section is passed
+      condition: newCondition || undefined, // Pass undefined to remove if empty
+      unit_code: newUnitCode || undefined, // Pass undefined to remove if empty
+      search: newSearch || undefined, // Pass undefined to remove if empty
+    });
   };
 
   return (
     <>
-      <Head title={`Room - ${room.room_number}`} />
+      <Head title={`Room - ${room.room_name}`} />
       <div className="flex h-screen overflow-hidden">
         {/* Sidebar */}
         <div className="hidden md:flex">
@@ -245,7 +254,13 @@ export default function FacultyRoomView({
             room={room}
             active={activeSection}
             user={auth.user}
-            onSelect={(section) => setActiveSection(section)}
+            // The onSelect prop should navigate to the new section
+            onSelect={(sectionKey) => {
+              window.location.href = route("room.show", {
+                roomPath: room.room_path,
+                section: sectionKey,
+              });
+            }}
           />
         </div>
 
@@ -258,8 +273,12 @@ export default function FacultyRoomView({
                 room={room}
                 active={activeSection}
                 user={auth.user}
-                onSelect={(key) => {
-                  setActiveSection(key);
+                onSelect={(sectionKey) => {
+                  // Navigate and then close sidebar
+                  window.location.href = route("room.show", {
+                    roomPath: room.room_path,
+                    section: sectionKey,
+                  });
                   setSidebarOpen(false);
                 }}
               />
@@ -267,21 +286,29 @@ export default function FacultyRoomView({
           </div>
         )}
 
-        {/* Main */}
-        <div className="flex-1 overflow-y-auto p-5 max-w-full md:max-w-5xl lg:max-w-7xl">
-          <div className="space-y-6">
-            {/* Top Bar */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="md:hidden"
-                  onClick={() => setSidebarOpen(true)}
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
-                <h2 className="text-xl font-semibold">
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col overflow-y-auto bg-gray-50"> {/* Added bg-gray-50 */}
+          {/* Top Bar for Mobile/Tablet */}
+          <div className="bg-white p-4 border-b md:hidden flex items-center justify-between shadow-sm">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <h2 className="text-xl font-semibold text-green-700">
+              {room.room_name}
+            </h2>
+        
+
+          </div>
+
+          <div className="p-5 max-w-full md:max-w-5xl lg:max-w-7xl mx-auto w-full"> {/* Added mx-auto w-full */}
+            <div className="space-y-6">
+              {/* Section Title */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">
                   {activeSection === "system-units"
                     ? "System Units"
                     : activeSection === "peripherals"
@@ -289,134 +316,132 @@ export default function FacultyRoomView({
                     : "Equipments"}
                 </h2>
               </div>
-            </div>
 
-            {/* Table */}
-            <div className="rounded-md border overflow-hidden w-full">
-              {/* Header with Filter + Search */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center p-2 border-b">
-                <div className="flex gap-2 items-center w-full sm:w-auto"> {/* Added w-full */}
-                  <Filter
-                    filters={{ condition, unit_code: unitCode, search }}
-                    filterOptions={filterOptions}
-                    activeSection={activeSection}
-                    onApplyFilters={applyFilters}
-                  />
-                  <Input
-                    placeholder="Search..."
-                    value={search}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setSearch(value);
-                      applyFilters(condition, unitCode, value);
-                    }}
-                    className="flex-1 min-w-0 sm:max-w-xs w-full" 
-                  />
+              {/* Table */}
+              <div className="rounded-lg border overflow-hidden shadow-sm bg-white">
+                {/* Header with Filter + Search */}
+                <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center p-4 border-b">
+                  <div className="flex gap-2 items-center w-full sm:w-auto">
+                    <Filter
+                      filters={{ condition, unit_code: unitCode, search }}
+                      filterOptions={filterOptions}
+                      activeSection={activeSection}
+                      onApplyFilters={applyFilters}
+                    />
+                    <Input
+                      placeholder="Search..."
+                      value={search}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSearch(value);
+                        applyFilters(condition, unitCode, value);
+                      }}
+                      className="flex-1 min-w-0 sm:max-w-xs w-full"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <Table className="border-collapse border border-gray-300 w-full">
-                <TableHeader>
-                  <TableRow className="divide-x divide-gray-300">
-                    <TableHead className="w-20 text-center">No</TableHead>
-                    <TableHead>
-                      {activeSection === "system-units"
-                        ? "Unit Code"
-                        : activeSection === "peripherals"
-                        ? "Peripheral Code"
-                        : "Equipment Code"}
-                    </TableHead>
-                    {activeSection !== "system-units" && <TableHead>Type</TableHead>}
-                    <TableHead>Condition</TableHead>
-                    <TableHead className="w-1/6 text-left">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <Table className="min-w-full divide-y divide-gray-200">
+                  <TableHeader className="bg-gray-50">
+                    <TableRow>
+                      <TableHead className="w-20 text-center text-gray-600">No</TableHead>
+                      <TableHead className="text-gray-600  whitespace-nowrap">
+                        {activeSection === "system-units"
+                          ? "Unit Code"
+                          : activeSection === "peripherals"
+                          ? "Peripheral Code"
+                          : "Equipment Code"}
+                      </TableHead>
+                      {activeSection !== "system-units" && <TableHead className="text-gray-600">Type</TableHead>}
+                      <TableHead className="text-gray-600">Condition</TableHead>
+                      <TableHead className="text-gray-600">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-                <TableBody>
-                  {paginated.length > 0 ? (
-                    paginated.map((item, index) => (
-                      <TableRow key={item.id} className="divide-x divide-gray-300">
-                        <TableCell className="text-center">
-                          {(page - 1) * pageSize + index + 1}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">{item.name}</TableCell>
-                        {activeSection !== "system-units" && <TableCell>{item.type}</TableCell>}
-                        <TableCell>
-                          <Badge
-                            variant={item.condition === "Good" ? "success" : "destructive"}
-                          >
-                            {item.condition}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="flex gap-2 text-left">
-                          {activeSection === "system-units" && (
-                            <Link
-                              href={route("faculty.units.show", {
-                                room: room.id,
-                                unit: item.id,
-                              })}
+                  <TableBody className="divide-y divide-gray-200">
+                    {paginated.length > 0 ? (
+                      paginated.map((item, index) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="text-center">
+                            {(page - 1) * pageSize + index + 1}
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900 whitespace-nowrap">{item.name}</TableCell>
+                          {activeSection !== "system-units" && <TableCell className="text-gray-700">{item.type}</TableCell>}
+                       <TableCell>
+                    <ConditionBadge condition={item.condition} />
+                  </TableCell>
+
+
+                          <TableCell className="flex gap-2 py-3">
+                            {activeSection === "system-units" && (
+                              <Link
+                                href={route("faculty.units.show", {
+                                  room: room.id,
+                                  unit: item.id,
+                                })}
+                              >
+                                <Button size="sm" variant="outline" className="flex items-center gap-1 text-blue-600 hover:bg-blue-50">
+                                  <Eye className="h-4 w-4" /> View
+                                </Button>
+                              </Link>
+                            )}
+                            {activeSection === "peripherals" && (
+                              <Link
+                                href={route("faculty.peripherals.show", {
+                                  room: room.id,
+                                  peripheral: item.id,
+                                })}
+                              >
+                                <Button size="sm" variant="outline" className="flex items-center gap-1 text-blue-600 hover:bg-blue-50">
+                                  <Eye className="h-4 w-4" /> View
+                                </Button>
+                              </Link>
+                            )}
+                            {activeSection === "equipments" && (
+                              <Link
+                                href={route("faculty.equipments.show", {
+                                  room: room.id,
+                                  equipment: item.id,
+                                })}
+                              >
+                                <Button size="sm" variant="outline" className="flex items-center gap-1 text-blue-600 hover:bg-blue-50">
+                                  <Eye className="h-4 w-4" /> View
+                                </Button>
+                              </Link>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex items-center gap-1 text-red-600 hover:bg-red-50"
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setShowReportModal(true);
+                              }}
                             >
-                              <Button size="sm" variant="outline" className="flex items-center gap-1">
-                                <Eye className="h-4 w-4" /> View
-                              </Button>
-                            </Link>
-                          )}
-                          {activeSection === "peripherals" && (
-                            <Link
-                              href={route("faculty.peripherals.show", {
-                                room: room.id,
-                                peripheral: item.id,
-                              })}
-                            >
-                              <Button size="sm" variant="outline" className="flex items-center gap-1">
-                                <Eye className="h-4 w-4" /> View
-                              </Button>
-                            </Link>
-                          )}
-                          {activeSection === "equipments" && (
-                            <Link
-                              href={route("faculty.equipments.show", {
-                                room: room.id,
-                                equipment: item.id,
-                              })}
-                            >
-                              <Button size="sm" variant="outline" className="flex items-center gap-1">
-                                <Eye className="h-4 w-4" /> View
-                              </Button>
-                            </Link>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex items-center gap-1"
-                            onClick={() => {
-                              setSelectedItem(item);
-                              setShowReportModal(true);
-                            }}
-                          >
-                            <FileText className="h-4 w-4" /> Report
-                          </Button>
+                              <FileText className="h-4 w-4" /> Report
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={activeSection === "system-units" ? 4 : 5}
+                          className="text-center text-muted-foreground py-4"
+                        >
+                          No data found.
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow className="divide-x divide-gray-300">
-                      <TableCell
-                        colSpan={activeSection === "system-units" ? 4 : 5}
-                        className="text-center text-muted-foreground"
-                      >
-                        No data found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
 
-              {pageCount > 1 && (
-                <div className="flex justify-end p-2">
-                  <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />
-                </div>
-              )}
+                {pageCount > 1 && (
+                  <div className="flex justify-end p-4 bg-gray-50">
+                    <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -441,3 +466,43 @@ export default function FacultyRoomView({
     </>
   );
 }
+
+function ConditionBadge({ condition }) {
+  if (!condition) return null;
+
+  const normalized = condition.toLowerCase().trim();
+
+  let badgeClass = "bg-gray-100 text-gray-800"; // default
+
+  // 🔴 Check bad conditions first
+  if (
+    normalized.includes("not working") ||
+    normalized.includes("broken") ||
+    normalized.includes("defect")
+  ) {
+    badgeClass = "bg-red-100 text-red-800";
+  }
+  // 🟡 Warning/maintenance
+  else if (
+    normalized.includes("maint") ||
+    normalized.includes("pending") ||
+    normalized.includes("check")
+  ) {
+    badgeClass = "bg-amber-100 text-amber-800";
+  }
+  // 🟢 Good/functional
+  else if (
+    normalized.includes("good") ||
+    normalized.includes("functional") ||
+    normalized === "working" // exact "working"
+  ) {
+    badgeClass = "bg-green-100 text-green-800";
+  }
+
+  return (
+    <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${badgeClass}`}>
+      {condition}
+    </span>
+  );
+}
+

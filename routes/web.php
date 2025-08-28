@@ -16,6 +16,7 @@ use App\Http\Controllers\PeripheralController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SystemUnitController;
 
+
 use App\Http\Controllers\Reports;
 use Illuminate\Support\Facades\Auth;
 
@@ -117,6 +118,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/register', [RegisteredUserController::class, 'create'])
             ->name('register');
         Route::post('/register', [RegisteredUserController::class, 'store']);
+
+
+        // Viewing Faculty Reports
+
+        Route::get('/faculty/reports', [Reports:: class, 'index'])->name('admin.reports.index');
+
+
+
 
     });
 
