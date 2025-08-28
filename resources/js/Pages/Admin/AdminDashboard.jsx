@@ -88,7 +88,7 @@ export default function AdminDashboard({ children }) {
                                 <div
                                     key={room.id}
                                     className={`p-4 rounded-lg shadow-md cursor-pointer transition-colors duration-300 ${
-                                        room.status === "active"
+                                        room.is_active
                                             ? "bg-green-500 text-white"
                                             : "bg-gray-300 text-gray-700"
                                     }`}
@@ -98,9 +98,7 @@ export default function AdminDashboard({ children }) {
                                     </h2>
                                     <p>
                                         Status:{" "}
-                                        {room.status === "active"
-                                            ? "Active"
-                                            : "Inactive"}
+                                        {room.is_active ? "Active" : "Inactive"}
                                     </p>
                                     {room.last_scanned_by && (
                                         <p className="text-sm mt-1">

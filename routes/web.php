@@ -124,11 +124,13 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/faculty/reports', [Reports:: class, 'index'])->name('admin.reports.index');
 
-
-
-
     });
 
+
+    // Shared QR scan route (works for any logged-in role)
+    Route::get('/room/{slug}', [RoomController::class, 'show'])
+        ->where('slug', '.*')
+        ->name('room.show');
 
 
     // Faculty-only routes

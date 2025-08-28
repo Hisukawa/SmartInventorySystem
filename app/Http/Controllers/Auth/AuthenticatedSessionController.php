@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\Room;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -57,6 +58,12 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // If the user has an active room, set it inactive
+        if ($request->user() && $request->user()->active_room_id) {
+            Room::where('id', $request->user()->active_room_id)
+                ->update(['is_active' => 0]);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

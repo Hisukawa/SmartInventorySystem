@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Database\QueryException;
 use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class RoomController extends Controller
@@ -23,7 +24,7 @@ class RoomController extends Controller
 
         $rooms = Room::when($search, function ($query, $search) {
                 $query->where('room_number', 'like', "%$search%")
-                        ->orWhere('room_path', 'like', "%$search%");
+                      ->orWhere('room_path', 'like', "%$search%");
             })
             ->orderBy('id')
             ->paginate(10)
@@ -31,7 +32,7 @@ class RoomController extends Controller
                 'id' => $room->id,
                 'room_number' => $room->room_number,
                 'room_path' => $room->room_path,
-                'status' => $room->status,
+                'is_active' => $room->is_active, // ✅ FIXED
                 'last_scanned_by' => $room->last_scanned_by,
                 'last_scanned_at' => $room->last_scanned_at,
             ])
@@ -67,7 +68,8 @@ class RoomController extends Controller
         try {
             $room = Room::create([
                 'room_number' => $roomNumber,
-                'room_path' => $roomPath,
+                'room_path'   => $roomPath,
+                'is_active'   => 0, // default inactive
             ]);
 
             $qrUrl = url("/room/{$encodedRoomPath}");
@@ -89,87 +91,71 @@ class RoomController extends Controller
     /**
      * Show Room Dashboard when QR code is scanned
      */
-public function show(Request $request, $encodedRoomPath)
-{
-    $roomPath = urldecode($encodedRoomPath);
-    $room = Room::where('room_path', $roomPath)->firstOrFail();
+    public function show($encodedRoomPath)
+    {
+        $roomPath = urldecode($encodedRoomPath);
 
-    // Filters
-    $condition = $request->query('condition');
-    $unitCode = $request->query('unit_code');
-    $search = $request->query('search');
+        $room = Room::where('room_path', $roomPath)->firstOrFail();
 
-    // Equipments
-    $equipments = Equipment::where('room_number', $room->room_number)
-        ->when($condition, fn($q) => $q->where('condition', $condition))
-        ->when($search, fn($q) => $q->where('equipment_code', 'like', "%$search%"))
-        ->get()
-        ->map(fn ($e) => [
-            'id' => $e->id,
-            'name' => $e->equipment_code,
-            'condition' => $e->condition ?? 'Good',
-            'type' => $e->type,
-            'room_path' => $room->room_path,
+        // ✅ Mark the room active when scanned
+        if ($room->is_active == 0) {
+            $room->update([
+                'is_active'       => 1,
+                'last_scanned_by' => Auth::user()->name ?? 'Unknown',
+                'last_scanned_at' => Carbon::now(),
+            ]);
+        }
+
+        // ✅ Track which room this user activated (fetch an actual Eloquent User)
+        $userId = Auth::id();
+        if ($userId) {
+            /** @var User|null $user */
+            $user = User::find($userId);     // <-- now the IDE knows it's App\Models\User
+            if ($user) {
+                $user->active_room_id = $room->id;
+                $user->save();              // <-- no more underline
+            }
+        }
+
+        $equipments = Equipment::where('room_number', $room->room_number)
+            ->get()
+            ->map(fn ($e) => [
+                'id'        => $e->id,
+                'name'      => $e->equipment_code,
+                'condition' => $e->condition ?? 'Good',
+                'type'      => 'Equipment',
+                'room_path' => $room->room_path,
+            ]);
+
+        $systemUnits = SystemUnit::where('room_id', $room->id)
+            ->get()
+            ->map(fn ($s) => [
+                'id'        => $s->id,
+                'name'      => $s->unit_code,
+                'condition' => $s->condition ?? 'Good',
+                'type'      => 'System Unit',
+                'room_path' => $room->room_path,
+            ]);
+
+        $peripherals = Peripheral::where('room_id', $room->id)
+            ->get()
+            ->map(fn ($p) => [
+                'id'        => $p->id,
+                'name'      => $p->peripheral_code,
+                'condition' => $p->condition ?? 'Good',
+                'type'      => 'Peripheral',
+                'room_path' => $room->room_path,
+            ]);
+
+        return Inertia::render('Faculty/FacultyRoomView', [
+            'room'        => $room,
+            'equipments'  => $equipments,
+            'systemUnits' => $systemUnits,
+            'peripherals' => $peripherals,
+            'auth'        => ['user' => Auth::user()],
+            'section'     => request()->query('section', 'system-units'),
         ]);
-
-    // System Units
-    $systemUnits = SystemUnit::where('room_id', $room->id)
-        ->when($condition, fn($q) => $q->where('condition', $condition))
-        ->when($search, fn($q) => $q->where('unit_code', 'like', "%$search%"))
-        ->get()
-        ->map(fn ($s) => [
-            'id' => $s->id,
-            'name' => $s->unit_code,
-            'condition' => $s->condition ?? 'Good',
-            'type' => 'System Unit',
-            'room_path' => $room->room_path,
-        ]);
-
-    // Peripherals
-    $peripherals = Peripheral::where('room_id', $room->id)
-        ->when($condition, fn($q) => $q->where('condition', $condition))
-        ->when($unitCode, fn($q) => $q->where('unit_code', $unitCode))
-        ->when($search, fn($q) => $q->where('peripheral_code', 'like', "%$search%"))
-        ->get()
-        ->map(fn ($p) => [
-            'id' => $p->id,
-            'name' => $p->peripheral_code,
-            'condition' => $p->condition ?? 'Good',
-            'type' => $p->type,
-            'room_path' => $room->room_path,
-        ]);
-
-    // 🔹 Fetch unique filter values
-    $conditionOptions = collect()
-        ->merge(Equipment::select('condition')->distinct()->pluck('condition'))
-        ->merge(SystemUnit::select('condition')->distinct()->pluck('condition'))
-        ->merge(Peripheral::select('condition')->distinct()->pluck('condition'))
-        ->unique()
-        ->filter()
-        ->values();
-
-    $unitCodeOptions = Peripheral::where('room_id', $room->id)
-        ->select('unit_code')->distinct()->pluck('unit_code');
-
-    return Inertia::render('Faculty/FacultyRoomView', [
-        'room' => $room,
-        'equipments' => $equipments,
-        'systemUnits' => $systemUnits,
-        'peripherals' => $peripherals,
-        'filters' => [
-            'condition' => $condition,
-            'unit_code' => $unitCode,
-            'search' => $search,
-        ],
-        'filterOptions' => [
-            'conditions' => $conditionOptions,
-            'unit_codes' => $unitCodeOptions,
-        ],
-        'auth' => ['user' => Auth::user()],
-        'section' => $request->query('section', 'system-units')
-    ]);
-}
-
+    }
 
 
     /**
@@ -198,7 +184,7 @@ public function show(Request $request, $encodedRoomPath)
 
         $room->update([
             'room_number' => $roomNumber,
-            'room_path' => $roomPath,
+            'room_path'   => $roomPath,
         ]);
 
         return redirect()->route('rooms.index')->with('success', 'Room updated.');
@@ -220,14 +206,14 @@ public function show(Request $request, $encodedRoomPath)
     public function getRoomStatus(Request $request)
     {
         $perPage = $request->input('per_page', 10);
-        $page = $request->input('page', 1);
+        $page    = $request->input('page', 1);
 
         $rooms = Room::orderBy('id')
             ->paginate($perPage, ['*'], 'page', $page)
             ->through(fn ($room) => [
                 'id' => $room->id,
                 'name' => 'Room ' . $room->room_number,
-                'status' => $room->status,
+                'is_active' => $room->is_active, // ✅ FIXED
                 'last_scanned_by' => $room->last_scanned_by,
                 'last_scanned_at' => $room->last_scanned_at,
             ]);
@@ -236,7 +222,7 @@ public function show(Request $request, $encodedRoomPath)
             'data' => $rooms->items(),
             'meta' => [
                 'current_page' => $rooms->currentPage(),
-                'total_pages' => $rooms->lastPage(),
+                'total_pages'  => $rooms->lastPage(),
             ],
         ]);
     }
@@ -247,7 +233,7 @@ public function show(Request $request, $encodedRoomPath)
     public function scanRoom(Request $request, Room $room)
     {
         $room->update([
-            'status' => 'active',
+            'is_active'       => 1,
             'last_scanned_by' => $request->user()->name,
             'last_scanned_at' => Carbon::now(),
         ]);

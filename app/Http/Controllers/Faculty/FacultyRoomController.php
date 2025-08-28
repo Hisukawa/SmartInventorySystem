@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Faculty;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 
@@ -25,7 +26,7 @@ public function show($room_path)
         'equipments' => $room->equipments,
         'systemUnits' => $room->systemUnits,
         'peripherals' => $room->peripherals,
-        'user' => auth()->user(),
+        'user' => Auth::user(),
     ]);
 }
 
@@ -36,7 +37,7 @@ public function showUnit(Room $room, SystemUnit $unit)
     return Inertia::render('Faculty/FacultyUnitView', [
         'room' => $room,
         'unit' => $unit,
-        'user' => auth()->user(),
+        'user' => Auth::user(),
         'equipments' => $room->equipments,
         'systemUnits' => $room->systemUnits,
         'peripherals' => $room->peripherals,

@@ -12,6 +12,7 @@ class Room extends Model
     protected $fillable = [
         'room_number',
         'room_path',
+        'is_active',
     ];
 
     // A room has many system units

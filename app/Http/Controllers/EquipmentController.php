@@ -98,8 +98,8 @@ class EquipmentController extends Controller
             'systemUnits' => $room->systemUnits,
             'peripherals' => $room->peripherals,
         ]);
-            
 
-        
+
+
     }
 }
