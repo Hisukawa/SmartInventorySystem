@@ -4,15 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class Reports extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+      public function index()
     {
-        //
+        // Load reports with relationships (room + user)
+        $reports = Report::with(['room', 'user'])
+            ->latest()
+            ->get();
+
+        return Inertia::render('Admin/Faculty-Reports/Faculty-reports', [
+            'reports' => $reports,
+        ]);
     }
 
     /**

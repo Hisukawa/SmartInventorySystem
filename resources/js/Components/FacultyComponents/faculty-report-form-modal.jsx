@@ -26,10 +26,16 @@ export default function ReportFormModal({
   });
 
   const handleSubmit = (e) => {
+     const typeMap = {
+    "system-units": "system_unit",
+    "peripherals": "peripheral",
+    "equipment": "equipment",
+  };
+
     e.preventDefault();
 
     const data = new FormData();
-    data.append("reportable_type", section); // section used as type
+    data.append("reportable_type", typeMap[section] || section); // section used as type
     data.append("reportable_id", item.id);   // item id
     data.append("room_id", room.id);
     data.append("condition", form.condition);
