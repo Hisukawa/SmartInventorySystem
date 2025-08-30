@@ -8,14 +8,23 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 class EquipmentController extends Controller
 {
-    public function index()
-    {
-        $equipments = Equipment::with('room')->get();
+        public function index(Request $request)
+        {
+            $equipments = Equipment::with('room')
+                ->when($request->filled('type'), fn($q) => $q->where('type', $request->type))
+                ->when($request->filled('condition'), fn($q) => $q->where('condition', $request->condition))
+                ->when($request->filled('room_id'), fn($q) => $q->where('room_id', $request->room_id))
+                ->latest()
+                ->get();
 
-        return Inertia::render('Admin/Equipments/EquipmentsPage', [
-            'equipments' => $equipments,
-        ]);
-    }
+            $rooms = Room::select('id', 'room_number')->get();
+
+            return Inertia::render('Admin/Equipments/EquipmentsPage', [
+                'equipments' => $equipments,
+                'filters'    => $request->only(['type', 'condition', 'room_id']),
+                'existingRooms' => $rooms,
+            ]);
+        }
 
     public function create()
     {

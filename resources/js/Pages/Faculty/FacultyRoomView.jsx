@@ -68,18 +68,17 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
         if (filters.condition) {
             setSelectedField("condition");
             setSelectedValue(filters.condition);
-        } else if (filters.unit_code && activeSection === "peripherals") {
+        } else if (
+            filters.unit_code &&
+            (activeSection === "system-units" || activeSection === "peripherals")
+        ) {
             setSelectedField("unit_code");
             setSelectedValue(filters.unit_code);
-        } else {
-            setSelectedField("");
-            setSelectedValue("");
         }
     }, [filters, activeSection]);
 
     // Trigger filter immediately on change
     const handleValueChange = (value) => {
-        // If 'All' is selected, set the value to an empty string to remove the filter
         const newValue = value === "all" ? "" : value;
         setSelectedValue(newValue);
 
@@ -90,9 +89,15 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
         }
     };
 
+    const handleReset = () => {
+        setSelectedField("");
+        setSelectedValue("");
+        onApplyFilters("", "", filters.search); // reset all filters except search
+    };
+
     const getAvailableFields = () => {
         const fields = [{ value: "condition", label: "Condition" }];
-        if (activeSection === "peripherals") {
+        if (activeSection === "system-units" || activeSection === "peripherals") {
             fields.push({ value: "unit_code", label: "Unit Code" });
         }
         return fields;
@@ -105,15 +110,14 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                     <FilterIcon className="h-4 w-4" />
                     Filter
                     {(filters.condition ||
-                        (activeSection === "peripherals" &&
+                        ((activeSection === "system-units" ||
+                            activeSection === "peripherals") &&
                             filters.unit_code)) && (
                         <X
                             className="h-4 w-4 ml-1"
                             onClick={(e) => {
-                                e.stopPropagation(); // Prevent popover from opening when clearing
-                                setSelectedField("");
-                                setSelectedValue("");
-                                onApplyFilters("", "", filters.search); // Clear all filters except search
+                                e.stopPropagation();
+                                handleReset();
                             }}
                         />
                     )}
@@ -131,7 +135,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                         value={selectedField}
                         onValueChange={(val) => {
                             setSelectedField(val);
-                            setSelectedValue(""); // Reset value when field changes
+                            setSelectedValue("");
                         }}
                     >
                         <SelectTrigger className="w-full">
@@ -170,7 +174,8 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                     )}
 
                     {selectedField === "unit_code" &&
-                        activeSection === "peripherals" && (
+                        (activeSection === "system-units" ||
+                            activeSection === "peripherals") && (
                             <Select
                                 value={selectedValue || "all"}
                                 onValueChange={handleValueChange}
@@ -188,11 +193,30 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                                 </SelectContent>
                             </Select>
                         )}
+
+                    {/* ✅ Reset Button now works for system-units & peripherals */}
+                    {(filters.condition ||
+                        ((activeSection === "system-units" ||
+                            activeSection === "peripherals") &&
+                            filters.unit_code)) && (
+                        <div className="flex justify-end">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleReset}
+                                className="flex items-center gap-1 text-red-600 hover:bg-red-50 w-auto"
+                            >
+                                <X className="h-4 w-4" />
+                                Reset
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </PopoverContent>
         </Popover>
     );
 }
+
 
 export default function FacultyRoomView({
     room,
@@ -250,9 +274,9 @@ export default function FacultyRoomView({
         if (newCondition) {
             params.append("condition", newCondition);
         }
-        if (newUnitCode && activeSection === "peripherals") {
-            params.append("unit_code", newUnitCode);
-        }
+            if (newUnitCode && (activeSection === "system-units" || activeSection === "peripherals")) {
+    params.append("unit_code", newUnitCode);
+    }
         if (newSearch) {
             params.append("search", newSearch);
         }
@@ -260,13 +284,16 @@ export default function FacultyRoomView({
         // This is the crucial part for navigation with filters
         // Use Inertia's router.get for full page reload with new query params
         // or you could use window.location.href for simpler but less "Inertia-like" navigation
-        window.location.href = route("room.show", {
-            roomPath: room.room_path,
-            section: activeSection, // Ensure section is passed
-            condition: newCondition || undefined, // Pass undefined to remove if empty
-            unit_code: newUnitCode || undefined, // Pass undefined to remove if empty
-            search: newSearch || undefined, // Pass undefined to remove if empty
+            window.location.href = route("room.show", {
+        roomPath: room.room_path,
+        section: activeSection,
+        condition: newCondition || undefined,
+        unit_code: (activeSection === "system-units" || activeSection === "peripherals") 
+            ? newUnitCode || undefined 
+            : undefined,
+        search: newSearch || undefined,
         });
+
     };
 
     return (

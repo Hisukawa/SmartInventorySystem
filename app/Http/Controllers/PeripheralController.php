@@ -10,29 +10,38 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 class PeripheralController extends Controller
 {
-    public function index(Request $request)
-    {
-        $peripherals = Peripheral::with('room')
-            ->when($request->search, function ($query, $search) {
-                $query->where('peripheral_code', 'like', "%{$search}%")
-                    ->orWhere('type', 'like', "%{$search}%")
-                    ->orWhere('serial_number', 'like', "%{$search}%")
-                    ->orWhere('condition', 'like', "%{$search}%")
-                    ->orWhereHas('room', fn($q) => $q->where('room_number', 'like', "%{$search}%"))
-                    ->orWhere('unit_code', 'like', "%{$search}%");
-            })
-            ->get();
+  public function index(Request $request)
+{
+    $peripherals = Peripheral::with('room')
+        ->when($request->search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('peripheral_code', 'like', "%{$search}%")
+                  ->orWhere('type', 'like', "%{$search}%")
+                  ->orWhere('serial_number', 'like', "%{$search}%")
+                  ->orWhere('condition', 'like', "%{$search}%")
+                  ->orWhereHas('room', fn($qr) => $qr->where('room_number', 'like', "%{$search}%"))
+                  ->orWhere('unit_code', 'like', "%{$search}%");
+            });
+        })
+        ->when($request->filled('type'), fn($q) => $q->where('type', $request->type))
+        ->when($request->filled('serial_number'), fn($q) => $q->where('serial_number', $request->serial_number))
+        ->when($request->filled('condition'), fn($q) => $q->where('condition', $request->condition))
+        ->when($request->filled('room_id'), fn($q) => $q->where('room_id', $request->room_id))
+        ->when($request->filled('unit_code'), fn($q) => $q->where('unit_code', $request->unit_code))
+        ->get();
 
-        $rooms = Room::select('id', 'room_number')->get();
-        $units = SystemUnit::select('id', 'unit_code')->get();
+    $rooms = Room::select('id', 'room_number')->get();
+    $units = SystemUnit::select('id', 'unit_code')->get();
 
-        return Inertia::render('Admin/PeripheralsPage', [
-            'peripherals'    => $peripherals,
-            'search'         => $request->search,
-            'existingRooms'  => $rooms,
-            'existingUnits'  => $units,
-        ]);
-    }
+    return Inertia::render('Admin/PeripheralsPage', [
+        'peripherals'    => $peripherals,
+        'search'         => $request->search,
+        'existingRooms'  => $rooms,
+        'existingUnits'  => $units,
+        'filters'        => $request->only(['type','serial_number','condition','room_id','unit_code']),
+    ]);
+}
+
 
     public function create()
     {

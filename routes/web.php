@@ -80,6 +80,8 @@ Route::middleware(['auth'])->group(function () {
 
 
         // System Units
+        Route::get('/system-units', [SystemUnitController::class, 'index']) ->name('system-units.index');
+
         Route::put('/system-units/{id}', [SystemUnitController::class, 'update']);
         Route::delete('/system-units/{id}', [SystemUnitController::class, 'destroy']);
         Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
