@@ -56,11 +56,11 @@ const CONDITION_OPTIONS = [
 ];
 
 /* ✅ Reusable Filter (Faculty-style) */
+/* ✅ Reusable Filter (Faculty-style) */
 function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
   const [selectedField, setSelectedField] = useState("");
   const [selectedValue, setSelectedValue] = useState("");
 
-  // Reflect current server filters into the UI (like in Faculty page)
   useEffect(() => {
     const fieldsOrder = [
       "unit_code",
@@ -97,7 +97,6 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
     const newValue = value === "all" ? "" : value;
     setSelectedValue(newValue);
 
-    // Send only the selected field value to backend (cleaned there)
     const newFilters = { ...filters };
     if (selectedField) newFilters[selectedField] = newValue;
     onApplyFilters(newFilters);
@@ -126,7 +125,7 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
                 e.stopPropagation();
                 setSelectedField("");
                 setSelectedValue("");
-                onReset(); // clear on server
+                onReset();
               }}
             />
           )}
@@ -158,10 +157,7 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
 
           {/* Value selector (depends on field) */}
           {selectedField === "unit_code" && (
-            <Select
-              value={selectedValue || "all"}
-              onValueChange={handleValueChange}
-            >
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Unit Code" />
               </SelectTrigger>
@@ -177,10 +173,7 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
           )}
 
           {selectedField === "room_id" && (
-            <Select
-              value={selectedValue || "all"}
-              onValueChange={handleValueChange}
-            >
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Room" />
               </SelectTrigger>
@@ -196,10 +189,7 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
           )}
 
           {selectedField === "processor" && (
-            <Select
-              value={selectedValue || "all"}
-              onValueChange={handleValueChange}
-            >
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Processor" />
               </SelectTrigger>
@@ -215,10 +205,7 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
           )}
 
           {selectedField === "ram" && (
-            <Select
-              value={selectedValue || "all"}
-              onValueChange={handleValueChange}
-            >
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select RAM" />
               </SelectTrigger>
@@ -234,10 +221,7 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
           )}
 
           {selectedField === "storage" && (
-            <Select
-              value={selectedValue || "all"}
-              onValueChange={handleValueChange}
-            >
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Storage" />
               </SelectTrigger>
@@ -253,10 +237,7 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
           )}
 
           {selectedField === "gpu" && (
-            <Select
-              value={selectedValue || "all"}
-              onValueChange={handleValueChange}
-            >
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select GPU" />
               </SelectTrigger>
@@ -272,10 +253,7 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
           )}
 
           {selectedField === "motherboard" && (
-            <Select
-              value={selectedValue || "all"}
-              onValueChange={handleValueChange}
-            >
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Motherboard" />
               </SelectTrigger>
@@ -291,10 +269,7 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
           )}
 
           {selectedField === "condition" && (
-            <Select
-              value={selectedValue || "all"}
-              onValueChange={handleValueChange}
-            >
+            <Select value={selectedValue || "all"} onValueChange={handleValueChange}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Condition" />
               </SelectTrigger>
@@ -308,11 +283,27 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
               </SelectContent>
             </Select>
           )}
+
+          {/* ✅ Reset button inside filter */}
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSelectedField("");
+                setSelectedValue("");
+                onReset();
+              }}
+            >
+              <X className="mr-1 h-4 w-4" /> Reset
+            </Button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
   );
 }
+
 
 export default function UnitsPage({ units, rooms, filters = {} }) {
   const [search, setSearch] = useState(filters.search || "");

@@ -42,7 +42,7 @@ import {
 import { Filter as FilterIcon, X } from "lucide-react";
 
 // ✅ Reusable Filter component
-function Filter({ filters, filterOptions, onApplyFilters }) {
+function Filter({ filters, filterOptions, onApplyFilters, onResetFilters }) {
     const [selectedField, setSelectedField] = useState("");
     const [selectedValue, setSelectedValue] = useState("");
 
@@ -76,6 +76,12 @@ function Filter({ filters, filterOptions, onApplyFilters }) {
         onApplyFilters(newFilters);
     };
 
+    const handleReset = () => {
+        setSelectedField("");
+        setSelectedValue("");
+        onResetFilters(); // calls parent reset function
+    };
+
     const fields = [
         { value: "condition", label: "Condition" },
         { value: "room", label: "Room" },
@@ -93,17 +99,14 @@ function Filter({ filters, filterOptions, onApplyFilters }) {
                         filters.room ||
                         filters.faculty ||
                         filters.reportable_type) && (
-                   <X
-                className="h-4 w-4 ml-1 cursor-pointer"
-                onClick={(e) => {
-                    e.stopPropagation();  // stop triggering the Popover
-                    e.preventDefault();   // stop triggering button behavior
-                    setSelectedField("");
-                    setSelectedValue("");
-                    onApplyFilters({});
-                }}
-                />
-
+                        <X
+                            className="h-4 w-4 ml-1 cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                handleReset();
+                            }}
+                        />
                     )}
                 </Button>
             </PopoverTrigger>
@@ -210,11 +213,26 @@ function Filter({ filters, filterOptions, onApplyFilters }) {
                             </SelectContent>
                         </Select>
                     )}
+
+                    {/* Reset Button */}
+                   {/* Reset Button */}
+                        <div className="flex justify-end">
+                        <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={handleReset} 
+                            className="w-auto px-3"
+                        >
+                             <X className="mr-1 h-4 w-4" /> Reset
+                        </Button>
+                        </div>
+
                 </div>
             </PopoverContent>
         </Popover>
     );
 }
+
 
 export default function FacultyReportsIndex({ reports, filters = {}, filterOptions }) {
     const [search, setSearch] = useState(filters.search || "");

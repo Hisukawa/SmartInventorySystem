@@ -123,6 +123,7 @@ class RoomController extends Controller
     // ✅ Equipments
     $equipments = Equipment::where('room_number', $room->room_number)
         ->when($condition, fn($q) => $q->where('condition', $condition))
+        
         ->when($search, fn($q) => $q->where('equipment_code', 'like', "%$search%"))
         ->get()
         ->map(fn ($e) => [
@@ -136,6 +137,7 @@ class RoomController extends Controller
     // ✅ System Units
     $systemUnits = SystemUnit::where('room_id', $room->id)
         ->when($condition, fn($q) => $q->where('condition', $condition))
+       ->when($unitCode, fn($q) => $q->where('unit_code', $unitCode)) // 🔥 ad
         ->when($search, fn($q) => $q->where('unit_code', 'like', "%$search%"))
         ->get()
         ->map(fn ($s) => [
@@ -169,8 +171,12 @@ class RoomController extends Controller
         ->filter()
         ->values();
 
-    $unitCodeOptions = Peripheral::where('room_id', $room->id)
-        ->select('unit_code')->distinct()->pluck('unit_code');
+    $unitCodeOptions = collect()
+        ->merge(SystemUnit::where('room_id', $room->id)->select('unit_code')->distinct()->pluck('unit_code'))
+        ->merge(Peripheral::where('room_id', $room->id)->select('unit_code')->distinct()->pluck('unit_code'))
+        ->unique()
+        ->filter()
+        ->values();
 
     return Inertia::render('Faculty/FacultyRoomView', [
         'room'        => $room,
