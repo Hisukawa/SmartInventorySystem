@@ -7,9 +7,9 @@ use Inertia\Inertia;
 
 class AdminController extends Controller
 {
-    public function dashboard()
+    public function monitoring()
     {
-        return Inertia::render('Admin/AdminDashboard', [
+        return Inertia::render('Admin/Rooms/Monitoring', [
             'user' => Auth::user(),
         ]);
     }

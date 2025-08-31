@@ -34,6 +34,13 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+} from "@/components/ui/sheet";
+
 export default function RoomPage({ rooms, search }) {
     const [searchTerm, setSearchTerm] = useState(search || "");
     const [addRoomModalOpen, setAddRoomModalOpen] = useState(false);
@@ -66,7 +73,7 @@ export default function RoomPage({ rooms, search }) {
             preserveScroll: true,
             onSuccess: () => {
                 reset();
-                setAddRoomModalOpen(false);
+                // setAddRoomModalOpen(false);
                 setSuccessMessage("Room added successfully!");
                 setTimeout(() => setSuccessMessage(""), 5000);
             },
@@ -201,10 +208,10 @@ export default function RoomPage({ rooms, search }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
+                <header className="fixed top-0 left-[var(--sidebar-width,16rem)] right-0 z-50 flex h-16 items-center gap-2 px-4 border-b bg-white">
                     <SidebarTrigger />
                     <Separator orientation="vertical" className="h-6 mx-3" />
-                    <Breadcrumb>
+                    <Breadcrumb className="">
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink
@@ -219,17 +226,15 @@ export default function RoomPage({ rooms, search }) {
                     </Breadcrumb>
                 </header>
 
-                <main className="w-full px-6 py-4">
+                <main className="w-full px-6 py-4 pt-20 overflow-y-auto">
                     <div className="flex items-center justify-between mb-4">
                         <h1 className="text-xl font-bold">Room Management</h1>
                     </div>
-
                     {successMessage && (
                         <div className="mb-4 p-3 bg-green-100 text-green-800 rounded shadow text-sm">
                             {successMessage}
                         </div>
                     )}
-
                     {/* Edit Room Modal */}
                     <Dialog
                         open={editRoomModalOpen}
@@ -275,153 +280,252 @@ export default function RoomPage({ rooms, search }) {
                             </form>
                         </DialogContent>
                     </Dialog>
-
-                    {/* Search */}
-                    <div className="flex justify-between items-center mb-4">
-                        <Input
-                            placeholder="Search rooms..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyDown={handleSearch}
-                            className="mb-4 w-full sm:w-1/3"
-                        />
-
-                        <Button
-                            onClick={() => router.visit("/admin/rooms/create")}
+                    <div className="flex transition-all duration-700 ease-in-out relative">
+                        {/* Left Side: Search + Add + Table */}
+                        <div
+                            className={`flex-1 transition-all duration-700 ease-in-out ${
+                                addRoomModalOpen
+                                    ? "mr-[400px] sm:mr-[500px]"
+                                    : "mr-0"
+                            }`}
                         >
-                            Add Room
-                        </Button>
-                    </div>
+                            {/* Search + Add Room Button */}
+                            <div className="flex items-center justify-between mb-4 gap-2">
+                                {/* Search Input */}
+                                <Input
+                                    placeholder="Search rooms..."
+                                    value={searchTerm}
+                                    onChange={(e) =>
+                                        setSearchTerm(e.target.value)
+                                    }
+                                    onKeyDown={handleSearch}
+                                    className="w-full sm:w-1/3"
+                                />
 
-                    {/* Table */}
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>#</TableHead>
-                                    <TableHead>Room Name</TableHead>
-                                    <TableHead>Room Code</TableHead>
-                                    <TableHead>QR Code</TableHead>
-                                    <TableHead>Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {rooms.data.map((room, index) => {
-                                    const qrValue =
-                                        typeof room.room_path === "string"
-                                            ? `${window.location.origin}/room/${room.room_path}`
-                                            : null;
+                                {/* Add Room Button */}
+                                <Button
+                                    onClick={() => setAddRoomModalOpen(true)}
+                                >
+                                    Add Room
+                                </Button>
+                            </div>
 
-                                    return (
-                                        <TableRow key={room.id}>
-                                            <TableCell>
-                                                {/* {(rooms.current_page - 1) *
-                                                    rooms.per_page +
-                                                    index +
-                                                    1} */}
-                                                {/* THIS IS FROM DATABASE */}
+                            {/* Table */}
+                            <div>
+                                <div className="rounded-md border transition-all duration-700 ease-in-out">
+                                    {/* Scrollable Table Container */}
+                                    <div className="max-h-[500px] overflow-y-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>#</TableHead>
+                                                    <TableHead>
+                                                        Room Name
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        Room Code
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        QR Code
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        Actions
+                                                    </TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {rooms.data.map(
+                                                    (room, index) => {
+                                                        const qrValue =
+                                                            typeof room.room_path ===
+                                                            "string"
+                                                                ? `${window.location.origin}/room/${room.room_path}`
+                                                                : null;
 
-                                                {/* STATIC */}
-                                                {(rooms.current_page - 1) *
-                                                    rooms.per_page +
-                                                    index +
-                                                    1}
-                                            </TableCell>
-                                            <TableCell>
-                                                ROOM {room.room_number}
-                                            </TableCell>
-                                            <TableCell>
-                                                {room.room_path}
-                                            </TableCell>
-                                            <TableCell>
-                                                {qrValue ? (
-                                                    <div
-                                                        className="w-16 h-16 bg-white p-1 rounded cursor-pointer m-1"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleQRCodeClick(
-                                                                qrValue,
-                                                                room.room_number
-                                                            );
-                                                        }}
-                                                    >
-                                                        <QRCode
-                                                            value={qrValue}
-                                                            size={64}
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-sm text-gray-500">
-                                                        No QR
-                                                    </span>
+                                                        return (
+                                                            <TableRow
+                                                                key={room.id}
+                                                            >
+                                                                <TableCell>
+                                                                    {(rooms.current_page -
+                                                                        1) *
+                                                                        rooms.per_page +
+                                                                        index +
+                                                                        1}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    ROOM{" "}
+                                                                    {
+                                                                        room.room_number
+                                                                    }
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {
+                                                                        room.room_path
+                                                                    }
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {qrValue ? (
+                                                                        <div
+                                                                            className="w-16 h-16 bg-white p-1 rounded cursor-pointer m-1"
+                                                                            onClick={(
+                                                                                e
+                                                                            ) => {
+                                                                                e.stopPropagation();
+                                                                                handleQRCodeClick(
+                                                                                    qrValue,
+                                                                                    room.room_number
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            <QRCode
+                                                                                value={
+                                                                                    qrValue
+                                                                                }
+                                                                                size={
+                                                                                    64
+                                                                                }
+                                                                            />
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-sm text-gray-500">
+                                                                            No
+                                                                            QR
+                                                                        </span>
+                                                                    )}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            openEditModal(
+                                                                                room
+                                                                            )
+                                                                        }
+                                                                        className="mr-2"
+                                                                    >
+                                                                        Edit
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="destructive"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            handleDelete(
+                                                                                room.id
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        Delete
+                                                                    </Button>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    }
                                                 )}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        openEditModal(room)
-                                                    }
-                                                    className="mr-2"
-                                                >
-                                                    Edit
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        handleDelete(room.id)
-                                                    }
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
+                                            </TableBody>
+                                        </Table>
+                                    </div>
 
-                        {/* Pagination with page info */}
-                        <div className="mt-2 flex flex-col sm:flex-row justify-between items-center gap-2">
-                            {/* Page Info */}
-                            <span className="text-sm text-muted-foreground m-2">
-                                Page {rooms.current_page} of {rooms.last_page}
-                            </span>
+                                    {/* Pagination with page info */}
+                                    <div className="mt-2 flex flex-col sm:flex-row justify-between items-center gap-2">
+                                        {/* Page Info */}
+                                        <span className="text-sm text-muted-foreground m-2">
+                                            Page {rooms.current_page} of{" "}
+                                            {rooms.last_page}
+                                        </span>
 
-                            {/* Pagination Buttons */}
-                            <div className="flex flex-wrap justify-center items-center gap-2">
-                                {rooms.links.map((link, index) => {
-                                    const label = link.label
-                                        .replace("&laquo;", "«")
-                                        .replace("&raquo;", "»");
+                                        {/* Pagination Buttons */}
+                                        <div className="flex flex-wrap justify-center items-center gap-2">
+                                            {rooms.links.map((link, index) => {
+                                                const label = link.label
+                                                    .replace("&laquo;", "«")
+                                                    .replace("&raquo;", "»");
 
-                                    return (
-                                        <Button
-                                            key={index}
-                                            variant={
-                                                link.active
-                                                    ? "default"
-                                                    : "ghost"
-                                            }
-                                            size="sm"
-                                            className="min-w-[36px] px-3 py-1"
-                                            onClick={() =>
-                                                link.url &&
-                                                router.visit(link.url)
-                                            }
-                                            disabled={!link.url}
-                                            dangerouslySetInnerHTML={{
-                                                __html: label,
-                                            }}
-                                        />
-                                    );
-                                })}
+                                                return (
+                                                    <Button
+                                                        key={index}
+                                                        variant={
+                                                            link.active
+                                                                ? "default"
+                                                                : "ghost"
+                                                        }
+                                                        size="sm"
+                                                        className="min-w-[36px] px-3 py-1"
+                                                        onClick={() =>
+                                                            link.url &&
+                                                            router.visit(
+                                                                link.url,
+                                                                {
+                                                                    preserveState: true, // ✅ keeps React component state
+                                                                    preserveScroll: true, // (optional) keeps scroll position
+                                                                }
+                                                            )
+                                                        }
+                                                        disabled={!link.url}
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: label,
+                                                        }}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
+                        {/* Right Drawer (Slide-in Modal) */}
+                        <div
+                            className={`fixed top-[56px] right-0 h-[calc(100vh-4rem)] w-[400px] sm:w-[500px] bg-white border-l shadow-lg z-40 p-4 overflow-y-auto transform transition-transform duration-700 ease-in-out ${
+                                addRoomModalOpen
+                                    ? "translate-x-0"
+                                    : "translate-x-full"
+                            }`}
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-semibold">
+                                    Add Room
+                                </h2>
+                                {/* <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setAddRoomModalOpen(false)}
+                                >
+                                    ✕
+                                </Button> */}
+                            </div>
+
+                            <form onSubmit={submit} className="space-y-4">
+                                <Input
+                                    placeholder="e.g. 101"
+                                    value={data.room_number}
+                                    onChange={(e) =>
+                                        setData("room_number", e.target.value)
+                                    }
+                                />
+                                {errors.room_number && (
+                                    <p className="text-sm text-red-500">
+                                        {errors.room_number}
+                                    </p>
+                                )}
+                                <div className="flex justify-end gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() =>
+                                            setAddRoomModalOpen(false)
+                                        }
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button type="submit" disabled={processing}>
+                                        Save
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                     {/* QR Code Modal */}
                     <Dialog
                         open={!!selectedQR}

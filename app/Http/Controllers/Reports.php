@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class Reports extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-      
+
 public function index(Request $request)
 {
     $query = Report::with(['room', 'user', 'reportable'])->latest();
@@ -86,7 +87,7 @@ public function index(Request $request)
         'photo'           => 'nullable|image|max:2048',
     ]);
 
-    $validated['user_id'] = auth()->id();
+    $validated['user_id'] = Auth::id();
 
     // Handle photo upload
     if ($request->hasFile('photo')) {

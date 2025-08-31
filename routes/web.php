@@ -67,7 +67,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->group(function () {
 
         // Admin Dashboard
-        Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+        Route::get('/admin/monitoring', [AdminController::class, 'monitoring'])->name('admin.monitoring');
 
 
         // Rooms

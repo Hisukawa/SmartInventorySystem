@@ -18,7 +18,7 @@ class SystemUnitController extends Controller
             if ($request->filled('room_id')) {
                 $query->where('room_id', $request->room_id);
             }
-             if ($request->filled('unit_code')) {
+            if ($request->filled('unit_code')) {
                 $query->where('unit_code', $request->unit_code);
             }
             if ($request->filled('processor')) {
@@ -66,6 +66,7 @@ class SystemUnitController extends Controller
         }
 
 
+    // Store System Unit
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -87,18 +88,22 @@ class SystemUnitController extends Controller
 
         $room = Room::findOrFail($validated['room_id']);
 
-        // 🔹 Ensure no duplicate "unit-"
-        $unitCode = preg_replace('/^unit-?/i', '', $validated['unit_code']);
+        // 🔹 FIXED: Ensure unit_code is always in "UNIT-XX" format
+        $unitCode = strtoupper($validated['unit_code']);
+        if (!str_starts_with($unitCode, 'UNIT-')) {
+            $unitCode = 'UNIT-' . $unitCode;
+        }
         $validated['unit_code'] = $unitCode;
 
-        // 🔹 Always build path with a single "unit-"
-        $validated['unit_path'] = strtolower("isu-ilagan/ict-department/room-{$room->room_number}/unit-{$unitCode}");
+        // 🔹 FIXED: Always lowercase unit_path (clean URLs)
+        $validated['unit_path'] = strtolower(
+            "isu-ilagan/ict-department/room-{$room->room_number}/{$unitCode}"
+        );
 
         SystemUnit::create($validated);
 
         return redirect()->back()->with('message', 'System unit added successfully!');
     }
-
 
 
 
@@ -125,9 +130,19 @@ class SystemUnitController extends Controller
             'room_id' => 'required|exists:rooms,id',
         ]);
 
-        // 🔹 Rebuild unit_path if code or room changed
         $room = Room::findOrFail($request->room_id);
-        $validated['unit_path'] = strtolower("isu-ilagan/ict-department/room-{$room->room_number}/unit-{$validated['unit_code']}");
+
+        // 🔹 FIXED: Apply the same UNIT-XX normalization as store()
+        $unitCode = strtoupper($validated['unit_code']);
+        if (!str_starts_with($unitCode, 'UNIT-')) {
+            $unitCode = 'UNIT-' . $unitCode;
+        }
+        $validated['unit_code'] = $unitCode;
+
+        // 🔹 FIXED: Keep unit_path lowercase for URLs
+        $validated['unit_path'] = strtolower(
+            "isu-ilagan/ict-department/room-{$room->room_number}/{$unitCode}"
+        );
 
         $unit->update($validated);
 
@@ -135,13 +150,17 @@ class SystemUnitController extends Controller
     }
 
 
+
     // Delete System Unit
     public function destroy($id)
     {
+        // ✅ No change needed here, works fine with ID
         $unit = SystemUnit::findOrFail($id);
         $unit->delete();
+
         return back()->with('success', 'Unit deleted successfully.');
     }
+
 
     public function show($unit_code)
     {

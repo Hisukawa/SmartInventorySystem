@@ -33,30 +33,29 @@ export default function AddPeripheral({
         model: "",
         serial_number: "",
         condition: "Working",
-        room_number: "", // keep consistent naming
+        room_number: "",
         unit_code: "",
     });
 
-    // Units filtered by selected room
     const [filteredUnits, setFilteredUnits] = useState([]);
 
-    // Update filtered units when room_number changes
+    // Update filtered units whenever room_number changes
     useEffect(() => {
         if (data.room_number) {
-            // Find room object by room_number string
             const matchedRoom = existingRooms.find(
-                (room) => room.room_number === data.room_number
+                (room) => String(room.room_number) === String(data.room_number)
             );
 
             if (matchedRoom) {
-                // Filter units by matched room's id
                 const unitsForRoom = existingUnits
-                    .filter((unit) => unit.room_id === matchedRoom.id)
+                    .filter(
+                        (unit) =>
+                            String(unit.room_id) === String(matchedRoom.id)
+                    )
                     .map((unit) => unit.unit_code);
 
                 setFilteredUnits(unitsForRoom);
 
-                // Reset unit_code if not in filtered units
                 if (!unitsForRoom.includes(data.unit_code)) {
                     setData("unit_code", "");
                 }
@@ -68,14 +67,19 @@ export default function AddPeripheral({
             setFilteredUnits([]);
             setData("unit_code", "");
         }
-    }, [data.room_number]);
+    }, [data.room_number, existingRooms, existingUnits]);
 
     function handleSubmit(e) {
         e.preventDefault();
-        // Debug: Log form data before posting
         console.log("Submitting:", data);
         post("/admin/peripherals");
     }
+
+    // DEBUG LOGGING
+    console.log("Rooms:", existingRooms);
+    console.log("Units:", existingUnits);
+    console.log("Selected Room:", data.room_number);
+    console.log("Filtered Units:", filteredUnits);
 
     return (
         <SidebarProvider>
@@ -91,7 +95,6 @@ export default function AddPeripheral({
                                 <BreadcrumbLink href="#" aria-current="page">
                                     Assets
                                 </BreadcrumbLink>
-
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
                                     href="/admin/peripherals"
@@ -99,7 +102,6 @@ export default function AddPeripheral({
                                 >
                                     Peripherals
                                 </BreadcrumbLink>
-
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
                                     href="/admin/peripherals/create"
@@ -144,6 +146,7 @@ export default function AddPeripheral({
                                         </div>
                                     )}
                                 </div>
+
                                 {/* Room */}
                                 <div>
                                     <Label htmlFor="room_number">Room</Label>

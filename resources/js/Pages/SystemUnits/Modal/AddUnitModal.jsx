@@ -114,6 +114,7 @@ export default function AddUnitModal() {
                             onChange={(e) =>
                                 setData("unit_code", e.target.value)
                             }
+                            placeholder="01"
                             required
                         />
                         {errors.unit_code && (
@@ -132,6 +133,7 @@ export default function AddUnitModal() {
                             onChange={(e) =>
                                 setData("processor", e.target.value)
                             }
+                            placeholder="Intel Core i5-10400"
                         />
                         {errors.processor && (
                             <p className="text-sm text-red-500">
@@ -147,6 +149,7 @@ export default function AddUnitModal() {
                             name="ram"
                             value={data.ram}
                             onChange={(e) => setData("ram", e.target.value)}
+                            placeholder="16GB DDR5"
                         />
                         {errors.ram && (
                             <p className="text-sm text-red-500">{errors.ram}</p>
@@ -160,6 +163,7 @@ export default function AddUnitModal() {
                             name="storage"
                             value={data.storage}
                             onChange={(e) => setData("storage", e.target.value)}
+                            placeholder="512GB NVME SATA SSD"
                         />
                         {errors.storage && (
                             <p className="text-sm text-red-500">
@@ -175,6 +179,7 @@ export default function AddUnitModal() {
                             name="gpu"
                             value={data.gpu}
                             onChange={(e) => setData("gpu", e.target.value)}
+                            placeholder="NVIDIA GeForce RTX 5090"
                         />
                         {errors.gpu && (
                             <p className="text-sm text-red-500">{errors.gpu}</p>
@@ -190,6 +195,7 @@ export default function AddUnitModal() {
                             onChange={(e) =>
                                 setData("motherboard", e.target.value)
                             }
+                            placeholder="ASUS ROG Maximus Z790 Dark Hero (Intel)"
                         />
                         {errors.motherboard && (
                             <p className="text-sm text-red-500">
@@ -207,7 +213,7 @@ export default function AddUnitModal() {
                             onChange={(e) =>
                                 setData("condition", e.target.value)
                             }
-                            placeholder="Type or select"
+                            placeholder="Type or select Condition"
                         />
                         <datalist id="condition-options">
                             {CONDITION_OPTIONS.map((opt) => (

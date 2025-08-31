@@ -53,10 +53,10 @@ class PeripheralController extends Controller
         $models = Peripheral::distinct()->pluck('model')->filter()->values()->all();
 
         return inertia('Admin/Peripherals/AddPeripheral', [
-            'rooms'  => $rooms,
-            'units'  => $units,
-            'brands' => $brands,
-            'models' => $models,
+            'existingRooms'  => $rooms,
+            'existingUnits'  => $units,
+            'existingBrands' => $brands,
+            'existingModels' => $models,
         ]);
     }
 

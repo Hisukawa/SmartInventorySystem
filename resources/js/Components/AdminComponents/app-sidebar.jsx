@@ -38,11 +38,6 @@ const data = {
     },
     navMain: [
         {
-            title: "Dashboard",
-            url: "/admin/dashboard",
-            icon: LayoutDashboard,
-        },
-        {
             title: "Rooms",
             url: "/admin/rooms",
             icon: Home,
@@ -71,15 +66,17 @@ const data = {
             title: "Reports",
             url: "#",
             icon: List,
+            isActive: true,
             items: [
                 {
                     title: "View Reports",
                     url: "/faculty/reports",
-                  
                 },
-
-             
-              
+                {
+                    title: "Monitoring",
+                    url: "/admin/monitoring",
+                    icon: LayoutDashboard,
+                },
             ],
         },
     ],
@@ -90,11 +87,11 @@ const data = {
             url: "/admin/users",
             icon: User,
         },
-        {
-            title: "Feedback",
-            url: "#",
-            icon: Send,
-        },
+        // {
+        //     title: "Feedback",
+        //     url: "#",
+        //     icon: Send,
+        // },
     ],
 
     projects: [

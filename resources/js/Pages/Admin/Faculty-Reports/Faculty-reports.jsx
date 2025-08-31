@@ -215,26 +215,28 @@ function Filter({ filters, filterOptions, onApplyFilters, onResetFilters }) {
                     )}
 
                     {/* Reset Button */}
-                   {/* Reset Button */}
-                        <div className="flex justify-end">
-                        <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={handleReset} 
+                    {/* Reset Button */}
+                    <div className="flex justify-end">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleReset}
                             className="w-auto px-3"
                         >
-                             <X className="mr-1 h-4 w-4" /> Reset
+                            <X className="mr-1 h-4 w-4" /> Reset
                         </Button>
-                        </div>
-
+                    </div>
                 </div>
             </PopoverContent>
         </Popover>
     );
 }
 
-
-export default function FacultyReportsIndex({ reports, filters = {}, filterOptions }) {
+export default function FacultyReportsIndex({
+    reports,
+    filters = {},
+    filterOptions,
+}) {
     const [search, setSearch] = useState(filters.search || "");
 
     // ✅ Pagination state
@@ -249,27 +251,27 @@ export default function FacultyReportsIndex({ reports, filters = {}, filterOptio
     );
 
     function onApplyFilters(newFilters) {
-    const cleanedFilters = Object.fromEntries(
-        Object.entries(newFilters).filter(([_, v]) => v !== "" && v !== undefined)
-    );
+        const cleanedFilters = Object.fromEntries(
+            Object.entries(newFilters).filter(
+                ([_, v]) => v !== "" && v !== undefined
+            )
+        );
 
-    router.get("/faculty/reports", {
-        ...cleanedFilters,
-        search: search || undefined,
-    });
-}
+        router.get("/faculty/reports", {
+            ...cleanedFilters,
+            search: search || undefined,
+        });
+    }
 
     function resetFilters() {
         setSearch(""); // clear search
         router.get(route("admin.reports.index")); // fetch all data
     }
-        function handleSearch(e) {
-            if (e.key === "Enter") {
-                onApplyFilters(filters);
-            }
+    function handleSearch(e) {
+        if (e.key === "Enter") {
+            onApplyFilters(filters);
         }
-
-
+    }
 
     function handleDelete(id) {
         Swal.fire({
@@ -295,10 +297,10 @@ export default function FacultyReportsIndex({ reports, filters = {}, filterOptio
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="#">Reports</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
+                                <BreadcrumbLink href="#">
+                                    Reports
+                                </BreadcrumbLink>
+                                <BreadcrumbSeparator />
                                 <BreadcrumbLink
                                     href="/admin/faculty-reports"
                                     className="font-semibold text-foreground"
@@ -312,16 +314,18 @@ export default function FacultyReportsIndex({ reports, filters = {}, filterOptio
 
                 <main>
                     <div className="p-6">
-                        <h1 className="text-2xl font-bold mb-5">Faculty Reports</h1>
+                        <h1 className="text-2xl font-bold mb-5">
+                            Faculty Reports
+                        </h1>
 
                         {/* Filters + Search */}
                         <div className="flex flex-col sm:flex-row gap-2 mb-4">
-                           <Filter
-                            filters={filters}
-                            filterOptions={filterOptions}
-                            onApplyFilters={onApplyFilters}
-                            onResetFilters={resetFilters}
-                        />
+                            <Filter
+                                filters={filters}
+                                filterOptions={filterOptions}
+                                onApplyFilters={onApplyFilters}
+                                onResetFilters={resetFilters}
+                            />
                             <Input
                                 placeholder="Search reports..."
                                 value={search}
@@ -355,47 +359,84 @@ export default function FacultyReportsIndex({ reports, filters = {}, filterOptio
                                             paginatedData.map((r, index) => (
                                                 <TableRow key={r.id}>
                                                     <TableCell>
-                                                        {(currentPage - 1) * itemsPerPage + index + 1}
+                                                        {(currentPage - 1) *
+                                                            itemsPerPage +
+                                                            index +
+                                                            1}
                                                     </TableCell>
-                                                    <TableCell>{r.user?.name || "N/A"}</TableCell>
-                                                    <TableCell>{r.reportable_type}</TableCell>
-                                                    <TableCell>{r.reportable_id}</TableCell>
                                                     <TableCell>
-                                                        {r.reportable_type === "peripheral"
+                                                        {r.user?.name || "N/A"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {r.reportable_type}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {r.reportable_id}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {r.reportable_type ===
+                                                        "peripheral"
                                                             ? r.reportable?.type
-                                                            : r.reportable_type === "system_unit"
+                                                            : r.reportable_type ===
+                                                              "system_unit"
                                                             ? "System Unit"
-                                                            : r.reportable_type === "equipment"
-                                                            ? r.reportable?.equipment_type
+                                                            : r.reportable_type ===
+                                                              "equipment"
+                                                            ? r.reportable
+                                                                  ?.equipment_type
                                                             : "N/A"}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {r.reportable_type === "peripheral"
-                                                            ? r.reportable?.peripheral_code
-                                                            : r.reportable_type === "system_unit"
-                                                            ? r.reportable?.unit_code
-                                                            : r.reportable_type === "equipment"
-                                                            ? r.reportable?.equipment_code
+                                                        {r.reportable_type ===
+                                                        "peripheral"
+                                                            ? r.reportable
+                                                                  ?.peripheral_code
+                                                            : r.reportable_type ===
+                                                              "system_unit"
+                                                            ? r.reportable
+                                                                  ?.unit_code
+                                                            : r.reportable_type ===
+                                                              "equipment"
+                                                            ? r.reportable
+                                                                  ?.equipment_code
                                                             : "N/A"}
                                                     </TableCell>
-                                                    <TableCell>{r.condition}</TableCell>
-                                                    <TableCell>{r.remarks}</TableCell>
                                                     <TableCell>
-                                                        ROOM {r.room ? r.room.room_number : "N/A"}
+                                                        {r.condition}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {new Date(r.created_at).toLocaleDateString()}
+                                                        {r.remarks}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        ROOM{" "}
+                                                        {r.room
+                                                            ? r.room.room_number
+                                                            : "N/A"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {new Date(
+                                                            r.created_at
+                                                        ).toLocaleDateString()}
                                                     </TableCell>
                                                     <TableCell className="space-x-2">
-                                                        <Link href={`/admin/faculty-reports/${r.id}/edit`}>
-                                                            <Button variant="outline" size="sm">
+                                                        <Link
+                                                            href={`/admin/faculty-reports/${r.id}/edit`}
+                                                        >
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                            >
                                                                 Edit
                                                             </Button>
                                                         </Link>
                                                         <Button
                                                             variant="destructive"
                                                             size="sm"
-                                                            onClick={() => handleDelete(r.id)}
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    r.id
+                                                                )
+                                                            }
                                                         >
                                                             Delete
                                                         </Button>
@@ -404,7 +445,10 @@ export default function FacultyReportsIndex({ reports, filters = {}, filterOptio
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan="11" className="text-center">
+                                                <TableCell
+                                                    colSpan="11"
+                                                    className="text-center"
+                                                >
                                                     No reports found.
                                                 </TableCell>
                                             </TableRow>
@@ -418,16 +462,24 @@ export default function FacultyReportsIndex({ reports, filters = {}, filterOptio
                                         variant="outline"
                                         size="sm"
                                         disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(currentPage - 1)}
+                                        onClick={() =>
+                                            setCurrentPage(currentPage - 1)
+                                        }
                                     >
                                         Previous
                                     </Button>
                                     {[...Array(totalPages)].map((_, idx) => (
                                         <Button
                                             key={idx}
-                                            variant={currentPage === idx + 1 ? "default" : "outline"}
+                                            variant={
+                                                currentPage === idx + 1
+                                                    ? "default"
+                                                    : "outline"
+                                            }
                                             size="sm"
-                                            onClick={() => setCurrentPage(idx + 1)}
+                                            onClick={() =>
+                                                setCurrentPage(idx + 1)
+                                            }
                                         >
                                             {idx + 1}
                                         </Button>
@@ -436,7 +488,9 @@ export default function FacultyReportsIndex({ reports, filters = {}, filterOptio
                                         variant="outline"
                                         size="sm"
                                         disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(currentPage + 1)}
+                                        onClick={() =>
+                                            setCurrentPage(currentPage + 1)
+                                        }
                                     >
                                         Next
                                     </Button>
