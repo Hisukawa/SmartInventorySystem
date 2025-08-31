@@ -7,6 +7,7 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\EquipmentController;
@@ -67,7 +68,10 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->group(function () {
 
         // Admin Dashboard
-        Route::get('/admin/monitoring', [AdminController::class, 'monitoring'])->name('admin.monitoring');
+        Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+
+        // Room Monitoring
+        Route::get('/admin/monitoring', [MonitoringController::class, 'monitoring'])->name('admin.monitoring');
 
 
         // Rooms

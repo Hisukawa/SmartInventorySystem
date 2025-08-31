@@ -90,14 +90,14 @@ export default function Login({ status, canResetPassword }) {
                             <div className="space-y-1">
                                 <div className="flex justify-between">
                                     <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
+                                    {/* {canResetPassword && (
                                         <Link
                                             href={route("password.request")}
                                             className="text-sm text-muted-foreground hover:underline"
                                         >
                                             Forgot your password?
                                         </Link>
-                                    )}
+                                    )} */}
                                 </div>
                                 <Input
                                     id="password"
