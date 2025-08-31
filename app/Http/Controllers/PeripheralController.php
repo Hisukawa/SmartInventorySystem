@@ -98,6 +98,9 @@ class PeripheralController extends Controller
 
         $peripheralCode = 'PRF-' . $newNumber;
 
+        // Generate QR code path in the hierarchical format and convert to lowercase
+        $qrCodePath = strtolower("isu-ilagan/ict-department/room-{$validated['room_number']}/{$validated['unit_code']}/{$peripheralCode}");
+
         // Create the peripheral
         Peripheral::create([
             'type'           => $validated['type'],
@@ -106,14 +109,16 @@ class PeripheralController extends Controller
             'serial_number'  => $validated['serial_number'] ?? null,
             'condition'      => $validated['condition'],
             'room_id'        => $room->id,
-            'room_number'    => $validated['room_number'], // Optional
+            'room_number'    => $validated['room_number'],
             'unit_code'      => $validated['unit_code'],
             'peripheral_code'=> $peripheralCode,
-            'qr_code_path'   => $peripheralCode, // Store code for QR generation
+            'qr_code_path'   => $qrCodePath, // store hierarchical path in lowercase
         ]);
 
         return redirect()->route('peripherals.index')->with('success', 'Peripheral added successfully.');
     }
+
+
 
     public function edit($id)
     {

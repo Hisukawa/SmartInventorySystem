@@ -105,7 +105,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/equipments', [EquipmentController::class, 'index'])->name('equipments.index'); // List all
         Route::get('/equipments/addequipment', [EquipmentController::class, 'create'])->name('equipments.create'); // Create form
         Route::post('/equipments', [EquipmentController::class, 'store'])->name('equipments.store'); // Store
-        Route::get('/equipments/{equipment}', [EquipmentController::class, 'show'])->name('equipments.show'); // View single
+        Route::get('/equipments/view/{equipment_code}', [EquipmentController::class, 'show'])->name('equipments.show'); // View single
         Route::get('/equipments/{equipment}/edit', [EquipmentController::class, 'edit'])->name('equipments.edit'); // Edit form
         Route::put('/equipments/{equipment}', [EquipmentController::class, 'update'])->name('equipments.update'); // Update
         Route::delete('/equipments/{equipment}', [EquipmentController::class, 'destroy'])->name('equipments.destroy'); // Delete

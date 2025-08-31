@@ -10,11 +10,18 @@ class Equipment extends Model
 
     protected $fillable = [
         'equipment_code',
+        'equipment_name',
         'type',
         'brand',
         'condition',
         'room_number',
     ];
+
+    public function getRouteKeyName()
+    {
+        return 'equipment_code';
+    }
+
 
     // If you have a Room model
     public function room()
@@ -22,7 +29,7 @@ class Equipment extends Model
         return $this->belongsTo(Room::class, 'room_number', 'room_number');
     }
 
-     public static function availableConditions(){
+    public static function availableConditions(){
 
         return static::select('condition')->distinct()->pluck('condition');
     }
