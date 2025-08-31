@@ -38,14 +38,14 @@ const data = {
     },
     navMain: [
         {
-            title: "Rooms",
-            url: "/admin/rooms",
-            icon: Home,
-        },
-        {
             title: "Dashboard",
             url: "/admin/dashboard",
             icon: LayoutDashboard,
+        },
+        {
+            title: "Rooms",
+            url: "/admin/rooms",
+            icon: Home,
         },
         {
             title: "Assets",
