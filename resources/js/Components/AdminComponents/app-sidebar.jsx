@@ -43,6 +43,11 @@ const data = {
             icon: Home,
         },
         {
+            title: "Dashboard",
+            url: "/admin/dashboard",
+            icon: LayoutDashboard,
+        },
+        {
             title: "Assets",
             url: "#",
             icon: Boxes,
