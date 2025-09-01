@@ -158,7 +158,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/rooms/{room}/peripherals/{peripheral}', [PeripheralController::class, 'showPeripherals'])->name('faculty.peripherals.show');
 
 
-        Route::get('/rooms/{room}/RoomEquipments/{equipment}', [EquipmentController::class, 'showRoomEquipments'])->name('faculty.equipments.show');
+ Route::get('/rooms/{room}/equipments/{equipment}', [EquipmentController::class, 'showRoomEquipments'])
+    ->name('faculty.equipments.show');
+
+
 
         Route::resource('reports', Reports::class);
 
@@ -185,6 +188,21 @@ Route::middleware(['auth'])->group(function () {
 
 
 });
+
+
+//Route to see all users the units details without logging in
+Route::get('/unit/{unit_path}', [SystemUnitController::class, 'showUnitsDetails'])
+    ->where('unit_path', '.*')
+    ->name('units.public.show');
+
+
+    //Route to see all users peripherals details without logging in
+Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'showPeripheralsDetails'])
+    ->name('peripherals.public.show');
+
+    //Route to see all users equipment details without logging in
+Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
+    ->name('equipment.public.show');
 
 
 

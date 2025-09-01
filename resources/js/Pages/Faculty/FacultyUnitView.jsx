@@ -91,15 +91,17 @@ export default function FacultyUnitView({ room, unit, user }) {
               </div>
 
               {/* Back button */}
-              {/* Back button */}
             <div className="mt-6">
-              <Link href={route("room.show", { roomPath: room.room_path })}>
-                <Button variant="outline" className="flex items-center gap-2 hover:bg-green-100">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Units
-                </Button>
-              </Link>
-            </div>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 hover:bg-green-100"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+          </div>
+
 
             </CardContent>
           </Card>

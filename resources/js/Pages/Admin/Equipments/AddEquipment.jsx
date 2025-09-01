@@ -82,7 +82,7 @@ export default function AddEquipment({ rooms }) {
             type,
             brand,
             condition,
-            room_number: room,
+            room_id: room,
         });
     };
 
@@ -203,25 +203,24 @@ export default function AddEquipment({ rooms }) {
                             </div>
 
                             {/* Room */}
-                            <div className="flex flex-col">
-                                <label className="mb-1 font-medium">Room</label>
-                                <Input
-                                    list="room-options"
-                                    placeholder="Select room or type new"
-                                    value={room}
-                                    onChange={(e) => setRoom(e.target.value)}
-                                    className="w-full"
-                                    required
-                                />
-                                <datalist id="room-options">
-                                    {rooms.map((r) => (
-                                        <option
-                                            key={r.room_number}
-                                            value={r.room_number}
-                                        />
-                                    ))}
-                                </datalist>
-                            </div>
+                         
+                        <div className="flex flex-col">
+                        <label className="mb-1 font-medium">Room</label>
+                        <select
+                            value={room}
+                            onChange={(e) => setRoom(e.target.value)}
+                            className="border rounded px-3 py-2 w-full"
+                            required
+                        >
+                            <option value="">Select room</option>
+                            {rooms.map((r) => (
+                            <option key={r.id} value={r.id}>
+                                {r.room_number}
+                            </option>
+                            ))}
+                        </select>
+                        </div>
+
 
                             <Button
                                 type="submit"

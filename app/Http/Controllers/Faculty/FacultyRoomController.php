@@ -43,7 +43,5 @@ public function showUnit(Room $room, SystemUnit $unit)
         'peripherals' => $room->peripherals,
     ]);
 }
-
-
-
 }
+

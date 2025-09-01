@@ -104,22 +104,16 @@ export default function FacultyRoomEquipmentView({ room, equipment, user }) {
               </div>
 
               {/* Back button */}
-              <div className="mt-6">
-                <Link
-                  href={route("room.show", {
-                    roomPath: room.room_path,
-                    section: "equipments",
-                  })}
-                >
-                  <Button
-                    variant="outline"
-                    className="flex items-center gap-2 hover:bg-green-100"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Equipments
-                  </Button>
-                </Link>
-              </div>
+             <div className="mt-6">
+                         <Button
+                           variant="outline"
+                           className="flex items-center gap-2 hover:bg-green-100"
+                           onClick={() => window.history.back()}
+                         >
+                           <ArrowLeft className="h-4 w-4" />
+                           Back
+                         </Button>
+                       </div>
             </CardContent>
           </Card>
         </div>

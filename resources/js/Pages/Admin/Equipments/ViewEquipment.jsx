@@ -42,8 +42,10 @@ export default function ViewEquipment() {
         );
     }
 
-    // QR URL
-    const qrValue = `${window.location.origin}/isu-ilagan/ict-department/room-${equipment.room_number}/${equipment.equipment_code}`;
+    // QR URL (fixed to use relation)
+  // QR URL (based on route)
+const qrValue = `${window.location.origin}/equipment/${equipment.equipment_code}`;
+
 
     const handleQRCodeClick = (qrValue, roomNumber, equipmentCode) => {
         setSelectedQR(qrValue);
@@ -162,7 +164,7 @@ export default function ViewEquipment() {
                         </div>
                         <div>
                             <strong>Room Number:</strong>{" "}
-                            {equipment.room_number}
+                            {equipment.room?.room_number}
                         </div>
 
                         {/* QR Code (clickable) */}
@@ -171,7 +173,7 @@ export default function ViewEquipment() {
                             onClick={() =>
                                 handleQRCodeClick(
                                     qrValue,
-                                    equipment.room_number,
+                                    equipment.room?.room_number,
                                     equipment.equipment_code
                                 )
                             }
@@ -207,7 +209,8 @@ export default function ViewEquipment() {
                                 ref={qrRef}
                             >
                                 <QRCode
-                                    value={selectedQR}
+                                    id="qr-download"
+                                    value={selectedQR} // ✅ fixed to use same QR link
                                     size={200}
                                     className="cursor-pointer"
                                     onClick={handleCopy}
@@ -220,10 +223,7 @@ export default function ViewEquipment() {
                                         Copied to clipboard!
                                     </p>
                                 )}
-                                <Button
-                                    className="mt-4"
-                                    onClick={handleDownload}
-                                >
+                                <Button className="mt-4" onClick={handleDownload}>
                                     Download QR
                                 </Button>
                             </div>

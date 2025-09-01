@@ -125,18 +125,21 @@ class RoomController extends Controller
     $search    = $request->query('search');
 
     // ✅ Equipments
-    $equipments = Equipment::where('room_number', $room->room_number)
-        ->when($condition, fn($q) => $q->where('condition', $condition))
-        
-        ->when($search, fn($q) => $q->where('equipment_code', 'like', "%$search%"))
-        ->get()
-        ->map(fn ($e) => [
-            'id'        => $e->id,
-            'name'      => $e->equipment_code,
-            'condition' => $e->condition ?? 'Good',
-            'type'      => $e->type,
-            'room_path' => $room->room_path,
-        ]);
+ // ✅ Equipments
+$equipments = Equipment::with('room') // eager load room relation
+    ->where('room_id', $room->id)     // filter by room_id instead of room_number
+    ->when($condition, fn($q) => $q->where('condition', $condition))
+    ->when($search, fn($q) => $q->where('equipment_code', 'like', "%$search%"))
+    ->get()
+    ->map(fn ($e) => [
+        'id'        => $e->id,
+        'name'      => $e->equipment_code,
+        'condition' => $e->condition ?? 'Good',
+        'type'      => $e->type,
+        'room_path' => $room->room_path,
+        'room_number' => $e->room?->room_number, // get from relation
+    ]);
+
 
     // ✅ System Units
     $systemUnits = SystemUnit::where('room_id', $room->id)

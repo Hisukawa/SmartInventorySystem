@@ -77,12 +77,12 @@ class SystemUnitController extends Controller
                     return $query->where('room_id', $request->room_id);
                 }),
             ],
-            'processor' => 'nullable|string',
-            'ram' => 'nullable|string',
-            'storage' => 'nullable|string',
-            'gpu' => 'nullable|string',
-            'motherboard' => 'nullable|string',
-            'condition' => 'nullable|string',
+            'processor' => 'required|string',
+            'ram' => 'required|string',
+            'storage' => 'required|string',
+            'gpu' => 'required|string',
+            'motherboard' => 'required|string',
+            'condition' => 'required|string',
             'room_id' => 'required|exists:rooms,id',
         ]);
 
@@ -170,6 +170,15 @@ class SystemUnitController extends Controller
 
         return Inertia::render('SystemUnits/ViewUnit', [
             'unit' => $unit
+        ]);
+    }
+
+
+    public function showUnitsDetails($unit_path){
+        $unit = SystemUnit::with('room')->where('unit_path', $unit_path)->firstOrFail();
+
+        return Inertia::render('OtherUser/UnitDetails', [
+            'unit' => $unit,
         ]);
     }
 

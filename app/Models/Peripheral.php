@@ -23,6 +23,11 @@ class Peripheral extends Model
     {
         return $this->belongsTo(Room::class);
     }
+
+     public function unit()
+    {
+        return $this->belongsTo(SystemUnit::class, 'unit_code', 'unit_code');
+    }
     
      public static function availableConditions(){
 
