@@ -97,23 +97,27 @@ class RoomController extends Controller
     $room = Room::where('room_path', $roomPath)->firstOrFail();
 
     // ✅ Mark the room active when scanned
+     // ✅ Mark the room active when scanned
     if ($room->is_active == 0) {
+        $user = Auth::user();
+
         $room->update([
+            'status'            => 'active', 
             'is_active'       => 1,
-            'last_scanned_by' => Auth::user()->name ?? 'Unknown',
-            'last_scanned_at' => Carbon::now(),
+            'last_scanned_by' => $user?->name ?? 'Unknown',
+            'last_scanned_at' => now(),
         ]);
     }
 
     // ✅ Track which room this user activated (fetch actual Eloquent User)
-    $userId = Auth::id();
-    if ($userId) {
-        $user = User::find($userId);
-        if ($user) {
-            $user->active_room_id = $room->id;
-            $user->save();
+        $userId = Auth::id();
+        if ($userId) {
+            $user = User::find($userId);
+            if ($user) {
+                $user->active_room_id = $room->id;
+                $user->save();
+            }
         }
-    }
 
     // ✅ Filters
     $condition = $request->query('condition');

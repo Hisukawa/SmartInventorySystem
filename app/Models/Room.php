@@ -9,11 +9,15 @@ class Room extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'room_number',
-        'room_path',
-        'is_active',
-    ];
+  protected $fillable = [
+    'room_number',
+    'room_path',
+    'status',
+    'is_active',
+    'last_scanned_by',
+    'last_scanned_at',
+];
+
 
     // A room has many system units
     public function systemUnits()
@@ -32,4 +36,12 @@ class Room extends Model
     {
         return $this->hasMany(Equipment::class);
     }
+
+
+        public function faculties()
+        {
+            return $this->hasMany(User::class, 'active_room_id') // foreign key
+                        ->where('role', 'faculty');
+        }
+
 }
