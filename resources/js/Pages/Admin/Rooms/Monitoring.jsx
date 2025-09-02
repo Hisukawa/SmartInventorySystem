@@ -107,12 +107,12 @@ export default function AdminDashboard({ children }) {
                                     </p>
                                     {room.last_scanned_by && (
                                         <p className="text-sm mt-1">
-                                            Last Used By: {room.last_scanned_by}
+                                             Used By: {room.last_scanned_by}
                                         </p>
                                     )}
                                     {room.last_scanned_at && (
                                         <p className="text-sm mt-1">
-                                            Last Scanned:{" "}
+                                            Scanned at:{" "}
                                             {new Date(
                                                 room.last_scanned_at
                                             ).toLocaleString()}
