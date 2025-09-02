@@ -1,4 +1,4 @@
-import { Head, usePage } from "@inertiajs/react";
+import { Head, usePage, router  } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
@@ -30,11 +30,18 @@ export default function UserManagement({ users }) {
     const { props } = usePage();
     const currentUserId = props.auth.user.id;
 
-    const handleDelete = (id) => {
-        if (confirm("Are you sure?")) {
-            destroy(route("admin.users.destroy", id));
-        }
-    };
+   const handleDelete = (id) => {
+    if (confirm("Are you sure?")) {
+        router.delete(route("admin.users.destroy", id), {
+            onSuccess: () => {
+                console.log("User deleted successfully");
+            },
+            onError: (errors) => {
+                console.error(errors);
+            },
+        });
+    }
+};
 
     return (
         <SidebarProvider>
