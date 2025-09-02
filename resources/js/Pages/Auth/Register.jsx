@@ -41,6 +41,7 @@ export default function Register() {
     };
 
     // 🔹 WebAuthn Registration
+// 🔹 WebAuthn Registration
 const registerWithDevice = async () => {
     try {
         // Step 1: Create user in DB first
@@ -52,7 +53,7 @@ const registerWithDevice = async () => {
             role: data.role,
         });
 
-        // Step 2: get challenge/options
+        // Step 2: Get challenge/options from backend
         const { data: options } = await axios.post("/webauthn/register/options", {
             email: data.email,
         });
@@ -61,29 +62,50 @@ const registerWithDevice = async () => {
         options.challenge = base64urlToUint8Array(options.challenge);
         options.user.id = base64urlToUint8Array(options.user.id);
 
-        // Step 3: ask authenticator (FaceID / Face Unlock / Fingerprint)
+        // Step 3: Ask authenticator (Force biometrics like Face Unlock / Fingerprint)
         const credential = await navigator.credentials.create({
             publicKey: {
                 ...options,
                 authenticatorSelection: {
-                    authenticatorAttachment: "platform",   // built-in biometrics
-                    userVerification: "required",          // MUST use biometric/PIN
-                    residentKey: "preferred",              // enable passkeys
+                    authenticatorAttachment: "platform", // built-in (phone, laptop)
+                    userVerification: "required",        // forces biometric/PIN
+                    residentKey: "preferred",            // allow passkey storage
                 },
             },
         });
 
-        // Step 4: send credential to backend
+        // Step 4: Send credential to backend
         await axios.post("/webauthn/register", {
             email: data.email,
-            credential: JSON.stringify(credential),
+            credential: JSON.stringify({
+                id: credential.id,
+                rawId: btoa(
+                    String.fromCharCode(...new Uint8Array(credential.rawId))
+                ),
+                type: credential.type,
+                response: {
+                    attestationObject: btoa(
+                        String.fromCharCode(...new Uint8Array(credential.response.attestationObject))
+                    ),
+                    clientDataJSON: btoa(
+                        String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))
+                    ),
+                },
+            }),
         });
 
-        alert("Device registered successfully with Face ID / Face Unlock!");
+        alert("✅ Device registered successfully with Face Unlock / Fingerprint!");
         window.location.href = "/admin/users";
     } catch (err) {
-        console.error(err);
-        alert("WebAuthn registration failed.");
+        console.error("WebAuthn error:", err);
+
+        if (err.name === "NotAllowedError") {
+            alert("❌ Authentication was cancelled or no biometrics are set up.");
+        } else if (err.name === "InvalidStateError") {
+            alert("❌ This device is already registered.");
+        } else {
+            alert("⚠️ WebAuthn registration failed.");
+        }
     }
 };
 
