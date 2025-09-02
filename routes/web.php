@@ -16,7 +16,7 @@ use App\Http\Controllers\Faculty\FacultyRoomController;
 use App\Http\Controllers\PeripheralController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SystemUnitController;
-
+use App\Http\Controllers\Auth\WebAuthnController;
 
 use App\Http\Controllers\Reports;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +36,13 @@ Route::get('/login', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 })->name('login');
+Route::middleware('auth')->group(function () {
+    Route::post('/webauthn/register/options', [WebAuthnController::class, 'registerOptions']);
+    Route::post('/webauthn/register', [WebAuthnController::class, 'register']);
+});
+
+Route::post('/webauthn/login/options', [WebAuthnController::class, 'loginOptions']);
+Route::post('/webauthn/login', [WebAuthnController::class, 'login']);
 
 
 // Auth routes (Laravel Breeze/Fortify/etc.)

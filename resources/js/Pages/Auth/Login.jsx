@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Head, Link, useForm } from "@inertiajs/react";
 
+import axios from "axios";
+
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
@@ -18,7 +20,39 @@ export default function Login({ status, canResetPassword }) {
             onFinish: () => reset("password"),
         });
     };
+   // 🔹 WebAuthn Login
+    const loginWithDevice = async () => {
+        try {
+            // Step 1: get challenge/options
+         const { data: options } = await axios.post("/webauthn/login/options", {
+            email: data.email,
+        });
+           
+    options.challenge = base64urlToUint8Array(options.challenge);
+    options.allowCredentials = options.allowCredentials.map(cred => ({
+        ...cred,
+        id: base64urlToUint8Array(cred.id),
+    }));
 
+    const assertion = await navigator.credentials.get({
+        publicKey: options,
+    });
+            // Step 3: send credential to backend
+            const res = await axios.post("/webauthn/login", {
+                email: data.email,
+                credential: JSON.stringify(assertion),
+            });
+
+            if (res.data.success) {
+                window.location.href = "/dashboard"; // redirect on success
+            } else {
+                alert("Login failed.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("WebAuthn login failed.");
+        }
+    };
     return (
         <>
             <Head title="Log in" />
@@ -138,6 +172,14 @@ export default function Login({ status, canResetPassword }) {
                                 disabled={processing}
                             >
                                 Login
+                            </Button>
+
+                              <Button
+                                type="button"
+                                className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white"
+                                onClick={loginWithDevice}
+                            >
+                                Login with Device
                             </Button>
 
                             <div className="text-center text-sm mt-6">
