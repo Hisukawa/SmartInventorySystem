@@ -9,77 +9,52 @@ use Illuminate\Support\Facades\Auth;
 
 class WebAuthnController extends Controller
 {
-    // Registration - Generate options
-    public function registerOptions(Request $request)
-    {
-        $user = User::where('email', $request->email)->firstOrFail();
+    // Step 1: Registration - Generate options for authenticator
+   // Step 1: Registration - Generate options
+public function registerOptions(Request $request)
+{
+    $user = User::where('email', $request->email)->firstOrFail();
 
-        return response()->json([
-            'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
-            'rp' => ['name' => config('app.name')],
-            'user' => [
-                'id' => rtrim(strtr(base64_encode(pack('N', $user->id)), '+/', '-_'), '='),
-                'name' => $user->email,
-                'displayName' => $user->name,
-            ],
-            'pubKeyCredParams' => [
-                ['type' => 'public-key', 'alg' => -7],    // ES256
-                ['type' => 'public-key', 'alg' => -257],  // RS256
-            ],
-        ]);
-    }
+    return response()->json([
+        'challenge' => base64_encode(random_bytes(32)),
+        'rp' => ['name' => config('app.name')],
+        'user' => [
+            'id' => base64_encode($user->id),
+            'name' => $user->email,
+            'displayName' => $user->name,
+        ],
+        'pubKeyCredParams' => [['type' => 'public-key', 'alg' => -7]],
+    ]);
+}
 
-    // Registration - Save credential
-    public function register(Request $request)
-    {
-        $user = User::where('email', $request->email)->firstOrFail();
+// Step 2: Registration - Save credential
+public function register(Request $request)
+{
+    $user = User::where('email', $request->email)->firstOrFail();
+    $user->webauthn_key = $request->input('credential');
+    $user->save();
 
-        $credential = json_decode($request->credential, true);
+    return response()->json(['success' => true]);
+}
 
-        $user->webauthn_key = json_encode([
-            'id' => $credential['id'],
-            'rawId' => $credential['rawId'],
-            'type' => $credential['type'],
-            'publicKey' => $credential['response'] ?? null, // needs proper parsing
-        ]);
-
-        $user->save();
-
-        return response()->json(['success' => true]);
-    }
-
-    // Login - Generate challenge
+    // Step 3: Login - Generate login challenge
     public function loginOptions(Request $request)
     {
-        $user = User::where('email', $request->email)->firstOrFail();
-
-        $storedKey = json_decode($user->webauthn_key, true);
-
         return response()->json([
-            'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
-            'allowCredentials' => [[
-                'id' => $storedKey['rawId'],
-                'type' => 'public-key',
-            ]],
+            'challenge' => base64_encode(random_bytes(32)),
+            'allowCredentials' => [
+                ['id' => $request->user()->webauthn_key, 'type' => 'public-key']
+            ],
         ]);
     }
 
-    // Login - Verify (simplified)
+    // Step 4: Verify login
     public function login(Request $request)
     {
+        // Here you’d verify the credential against stored user key
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
-            return response()->json(['success' => false], 401);
-        }
-
-        // ⚠️ Proper verification needed with a WebAuthn lib.
-        // For now, accept if IDs match.
-        $credential = $request->input('credential');
-
-        $storedKey = json_decode($user->webauthn_key, true);
-
-        if ($credential['id'] === $storedKey['id']) {
+        if ($user && $request->input('credential') === $user->webauthn_key) {
             Auth::login($user);
             return response()->json(['success' => true]);
         }
