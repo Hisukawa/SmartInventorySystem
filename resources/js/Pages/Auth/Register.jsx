@@ -44,7 +44,7 @@ export default function Register() {
 const registerWithDevice = async () => {
     try {
         // Step 1: Create user in DB first
-        const userRes = await axios.post("/register", {
+        await axios.post("/register", {
             name: data.name,
             email: data.email,
             password: data.password,
@@ -54,31 +54,33 @@ const registerWithDevice = async () => {
 
         // Step 2: get challenge/options
         const { data: options } = await axios.post("/webauthn/register/options", {
-            email: data.email, // so backend knows which user
+            email: data.email,
         });
 
+        // Convert challenge and user.id
         options.challenge = base64urlToUint8Array(options.challenge);
         options.user.id = base64urlToUint8Array(options.user.id);
 
-        // Step 3: ask authenticator
-      
+        // Step 3: ask authenticator (FaceID / Face Unlock / Fingerprint)
         const credential = await navigator.credentials.create({
-           publicKey: {
-               ...options,
+            publicKey: {
+                ...options,
                 authenticatorSelection: {
-                   authenticatorAttachment: "platform", // only built-in device (phone biometrics/Windows Hello)
-                   userVerification: "required",        // forces biometric/Face Unlock
-               },
+                    authenticatorAttachment: "platform",   // built-in biometrics
+                    userVerification: "required",          // MUST use biometric/PIN
+                    residentKey: "preferred",              // enable passkeys
+                },
             },
-       });
+        });
+
         // Step 4: send credential to backend
         await axios.post("/webauthn/register", {
             email: data.email,
             credential: JSON.stringify(credential),
         });
 
-        alert("Device registered successfully!");
-        window.location.href = "/admin/users"; // go back to list
+        alert("Device registered successfully with Face ID / Face Unlock!");
+        window.location.href = "/admin/users";
     } catch (err) {
         console.error(err);
         alert("WebAuthn registration failed.");

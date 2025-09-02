@@ -30,23 +30,25 @@ class WebAuthnController extends Controller
     }
 
     // Registration - Save credential
-    public function register(Request $request)
-    {
-        $user = User::where('email', $request->email)->firstOrFail();
+  // Registration - Save credential
+public function register(Request $request)
+{
+    $user = User::where('email', $request->email)->firstOrFail();
 
-        $credential = json_decode($request->credential, true);
+    $credential = $request->credential;
 
-        $user->webauthn_key = json_encode([
-            'id' => $credential['id'],
-            'rawId' => $credential['rawId'],
-            'type' => $credential['type'],
-            'publicKey' => $credential['response'] ?? null, // needs proper parsing
-        ]);
+    $user->webauthn_key = json_encode([
+        'id' => $credential['id'],
+        'rawId' => $credential['rawId'],
+        'type' => $credential['type'],
+        'response' => $credential['response'], // includes attestationObject + clientDataJSON
+    ]);
 
-        $user->save();
+    $user->save();
 
-        return response()->json(['success' => true]);
-    }
+    return response()->json(['success' => true]);
+}
+
 
     // Login - Generate challenge
     public function loginOptions(Request $request)
@@ -65,25 +67,24 @@ class WebAuthnController extends Controller
     }
 
     // Login - Verify (simplified)
-    public function login(Request $request)
-    {
-        $user = User::where('email', $request->email)->first();
+// Login - Verify (simplified)
+public function login(Request $request)
+{
+    $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
-            return response()->json(['success' => false], 401);
-        }
-
-        // ⚠️ Proper verification needed with a WebAuthn lib.
-        // For now, accept if IDs match.
-        $credential = $request->input('credential');
-
-        $storedKey = json_decode($user->webauthn_key, true);
-
-        if ($credential['id'] === $storedKey['id']) {
-            Auth::login($user);
-            return response()->json(['success' => true]);
-        }
-
+    if (!$user) {
         return response()->json(['success' => false], 401);
     }
+
+    $credential = $request->input('credential');
+    $storedKey = json_decode($user->webauthn_key, true);
+
+    if ($credential['rawId'] === $storedKey['rawId']) {
+        Auth::login($user);
+        return response()->json(['success' => true]);
+    }
+
+    return response()->json(['success' => false], 401);
+}
+
 }
