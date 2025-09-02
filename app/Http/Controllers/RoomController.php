@@ -102,7 +102,6 @@ class RoomController extends Controller
         $user = Auth::user();
 
         $room->update([
-            'status'            => 'active', 
             'is_active'       => 1,
             'last_scanned_by' => $user ? $user->id : null,
             'last_scanned_at' => now(),
