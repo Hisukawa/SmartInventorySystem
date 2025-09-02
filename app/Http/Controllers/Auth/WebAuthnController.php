@@ -9,22 +9,16 @@ use Illuminate\Support\Facades\Auth;
 
 class WebAuthnController extends Controller
 {
-    // Helper: generate base64url string
-    private function base64urlEncode($data)
-    {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
-    }
-
     // Registration - Generate options
     public function registerOptions(Request $request)
     {
         $user = User::where('email', $request->email)->firstOrFail();
 
         return response()->json([
-            'challenge' => $this->base64urlEncode(random_bytes(32)),
+            'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
             'rp' => ['name' => config('app.name')],
             'user' => [
-                'id' => $this->base64urlEncode(pack('N', $user->id)), // binary -> base64url
+                'id' => rtrim(strtr(base64_encode(pack('N', $user->id)), '+/', '-_'), '='),
                 'name' => $user->email,
                 'displayName' => $user->name,
             ],
@@ -32,8 +26,6 @@ class WebAuthnController extends Controller
                 ['type' => 'public-key', 'alg' => -7],    // ES256
                 ['type' => 'public-key', 'alg' => -257],  // RS256
             ],
-            'timeout' => 60000,
-            'attestation' => 'none',
         ]);
     }
 
@@ -42,17 +34,13 @@ class WebAuthnController extends Controller
     {
         $user = User::where('email', $request->email)->firstOrFail();
 
-        $credential = $request->input('credential');
+        $credential = json_decode($request->credential, true);
 
-        // Store essential info (already base64url from frontend)
         $user->webauthn_key = json_encode([
-            'id' => $credential['id'] ?? null,
-            'rawId' => $credential['rawId'] ?? null,
-            'type' => $credential['type'] ?? null,
-            'response' => [
-                'attestationObject' => $credential['response']['attestationObject'] ?? null,
-                'clientDataJSON' => $credential['response']['clientDataJSON'] ?? null,
-            ],
+            'id' => $credential['id'],
+            'rawId' => $credential['rawId'],
+            'type' => $credential['type'],
+            'publicKey' => $credential['response'] ?? null, // needs proper parsing
         ]);
 
         $user->save();
@@ -64,19 +52,19 @@ class WebAuthnController extends Controller
     public function loginOptions(Request $request)
     {
         $user = User::where('email', $request->email)->firstOrFail();
+
         $storedKey = json_decode($user->webauthn_key, true);
 
         return response()->json([
-            'challenge' => $this->base64urlEncode(random_bytes(32)),
+            'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
             'allowCredentials' => [[
-                'id' => $storedKey['rawId'] ?? null, // already base64url from storage
+                'id' => $storedKey['rawId'],
                 'type' => 'public-key',
             ]],
-            'userVerification' => 'required',
         ]);
     }
 
-    // Login - Verify (⚠ simplified!)
+    // Login - Verify (simplified)
     public function login(Request $request)
     {
         $user = User::where('email', $request->email)->first();
@@ -85,11 +73,13 @@ class WebAuthnController extends Controller
             return response()->json(['success' => false], 401);
         }
 
+        // ⚠️ Proper verification needed with a WebAuthn lib.
+        // For now, accept if IDs match.
         $credential = $request->input('credential');
+
         $storedKey = json_decode($user->webauthn_key, true);
 
-        // ⚠️ Simplified check — production must verify signatures!
-        if ($credential['id'] === ($storedKey['id'] ?? null)) {
+        if ($credential['id'] === $storedKey['id']) {
             Auth::login($user);
             return response()->json(['success' => true]);
         }
