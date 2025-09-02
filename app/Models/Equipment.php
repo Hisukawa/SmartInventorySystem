@@ -23,10 +23,6 @@ class Equipment extends Model
         return $this->belongsTo(Room::class, 'room_id', 'id');
     }
 
-    public function getRouteKeyName()
-    {
-        return 'equipment_code';
-    }
 
 
 

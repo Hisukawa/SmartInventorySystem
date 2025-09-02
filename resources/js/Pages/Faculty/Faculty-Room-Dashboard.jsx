@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Head } from "@inertiajs/react";
-import { Link } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Head, Link } from "@inertiajs/react";
 
 import {
     Card,
@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import {
     Breadcrumb,
     BreadcrumbItem,
-    BreadcrumbLink,
     BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import {
@@ -25,11 +24,28 @@ import {
     TableCell,
 } from "@/components/ui/table";
 
-// Import FacultyDashboard layout
 import FacultyDashboard from "@/Pages/Faculty/FacultyDashboard";
 
-export default function FacultyRoomDashboard({ rooms }) {
+export default function FacultyRoomDashboard() {
+    const [rooms, setRooms] = useState([]);
     const [selectedRoom, setSelectedRoom] = useState(null);
+
+    // Fetch rooms from API
+    const fetchRooms = async () => {
+        try {
+            const res = await axios.get("/faculty/rooms-status");
+            setRooms(res.data.data);
+        } catch (err) {
+            console.error("Failed to fetch rooms:", err);
+        }
+    };
+
+    // Fetch rooms initially and every 5 seconds
+    useEffect(() => {
+        fetchRooms();
+        const interval = setInterval(fetchRooms, 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleRoomClick = (room) => {
         if (selectedRoom && selectedRoom.id === room.id) {
@@ -87,32 +103,29 @@ export default function FacultyRoomDashboard({ rooms }) {
                 <title>Faculty Rooms</title>
             </Head>
 
-            {/* Breadcrumb inside content */}
             <div className="mb-6">
                 <Breadcrumb>
-                            <BreadcrumbList>
-                <BreadcrumbItem>
-                    <Link
-                        href="/faculty/dashboard"
-                        className="font-semibold text-foreground dark:text-gray-200"
-                    >
-                        Dashboard
-                    </Link>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                    <Link
-                        href="/faculty/faculty-room-dashboard"
-                        className="font-semibold text-foreground dark:text-gray-200"
-                    >
-                        Rooms
-                    </Link>
-                </BreadcrumbItem>
-            </BreadcrumbList>
-
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <Link
+                                href="/faculty/dashboard"
+                                className="font-semibold text-foreground dark:text-gray-200"
+                            >
+                                Dashboard
+                            </Link>
+                        </BreadcrumbItem>
+                        <BreadcrumbItem>
+                            <Link
+                                href="/faculty/faculty-room-dashboard"
+                                className="font-semibold text-foreground dark:text-gray-200"
+                            >
+                                Rooms
+                            </Link>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
                 </Breadcrumb>
             </div>
 
-            {/* Room Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
                 {rooms.map((room) => (
                     <div key={room.id} className="w-full">
@@ -120,39 +133,26 @@ export default function FacultyRoomDashboard({ rooms }) {
                             onClick={() => handleRoomClick(room)}
                             className={`cursor-pointer rounded-2xl transition-all duration-200 ease-in-out shadow-md 
                                 hover:scale-[1.02] hover:shadow-lg
-                                ${
-                                    room.is_active
-                                        ? "bg-green-600 border border-green-700 text-white"
-                                        : "bg-white border border-gray-300 text-gray-900"
+                                ${room.is_active
+                                    ? "bg-green-600 border border-green-700 text-white"
+                                    : "bg-white border border-gray-300 text-gray-900"
                                 }`}
                         >
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle
-                                    className={`text-lg md:text-xl font-semibold ${
-                                        room.is_active
-                                            ? "text-white"
-                                            : "text-gray-900"
-                                    }`}
+                                    className={`text-lg md:text-xl font-semibold ${room.is_active ? "text-white" : "text-gray-900"}`}
                                 >
                                     {room.room_number}
                                 </CardTitle>
                                 <Badge
-                                    className={`px-3 py-1 text-xs font-medium rounded-full ${
-                                        room.is_active
-                                            ? "bg-white text-green-700"
-                                            : "bg-gray-500 text-white"
-                                    }`}
+                                    className={`px-3 py-1 text-xs font-medium rounded-full ${room.is_active ? "bg-white text-green-700" : "bg-gray-500 text-white"}`}
                                 >
                                     {room.is_active ? "Active" : "Inactive"}
                                 </Badge>
                             </CardHeader>
                             <CardContent>
                                 <CardDescription
-                                    className={`text-sm ${
-                                        room.is_active
-                                            ? "text-green-100"
-                                            : "text-gray-700"
-                                    }`}
+                                    className={`text-sm ${room.is_active ? "text-green-100" : "text-gray-700"}`}
                                 >
                                     Tap to view faculty details
                                 </CardDescription>
@@ -179,5 +179,4 @@ export default function FacultyRoomDashboard({ rooms }) {
     );
 }
 
-// Apply FacultyDashboard layout
 FacultyRoomDashboard.layout = page => <FacultyDashboard>{page}</FacultyDashboard>;
