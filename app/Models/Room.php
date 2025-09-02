@@ -44,4 +44,12 @@ class Room extends Model
                         ->where('role', 'faculty');
         }
 
+
+public function lastScannedUser()
+{
+    return $this->belongsTo(User::class, 'last_scanned_by');
+}
+
+
+
 }

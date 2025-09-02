@@ -104,7 +104,7 @@ class RoomController extends Controller
         $room->update([
             'status'            => 'active', 
             'is_active'       => 1,
-            'last_scanned_by' => $user?->name ?? 'Unknown',
+            'last_scanned_by' => $user ? $user->id : null,
             'last_scanned_at' => now(),
         ]);
     }
@@ -249,29 +249,38 @@ $equipments = Equipment::with('room') // eager load room relation
     /**
      * API: Return rooms status for Admin Dashboard
      */
-    public function getRoomStatus(Request $request)
-    {
-        $perPage = $request->input('per_page', 10);
-        $page    = $request->input('page', 1);
+ public function getRoomStatus(Request $request)
+{
+    $perPage = $request->input('per_page', 10);
+    $page    = $request->input('page', 1);
 
-        $rooms = Room::orderBy('id')
-            ->paginate($perPage, ['*'], 'page', $page)
-            ->through(fn ($room) => [
-                'id' => $room->id,
-                'name' => 'Room ' . $room->room_number,
-                'is_active' => $room->is_active, // ✅ FIXED
-                'last_scanned_by' => $room->last_scanned_by,
-                'last_scanned_at' => $room->last_scanned_at,
-            ]);
-
-        return response()->json([
-            'data' => $rooms->items(),
-            'meta' => [
-                'current_page' => $rooms->currentPage(),
-                'total_pages'  => $rooms->lastPage(),
-            ],
+    $rooms = Room::with('lastScannedUser') //  load related user
+        ->orderBy('id')
+        ->paginate($perPage, ['*'], 'page', $page)
+        ->through(fn ($room) => [
+            'id' => $room->id,
+            'name' => 'Room ' . $room->room_number,
+            'is_active' => (bool)$room->is_active,
+            'last_scanned_by' => $room->is_active && $room->lastScannedUser
+                ? $room->lastScannedUser->name // 👈 show faculty name
+                : null,
+            'role' => $room->is_active && $room->lastScannedUser
+                ? $room->lastScannedUser->role // 👈 show faculty role
+                : null,
+            'last_scanned_at' => $room->is_active
+                ? $room->last_scanned_at
+                : null,
         ]);
-    }
+
+    return response()->json([
+        'data' => $rooms->items(),
+        'meta' => [
+            'current_page' => $rooms->currentPage(),
+            'total_pages'  => $rooms->lastPage(),
+        ],
+    ]);
+}
+
 
     /**
      * Update room status when QR code is scanned
