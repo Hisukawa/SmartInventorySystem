@@ -11,29 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('webauthn_credentials', function (Blueprint $table) {
-            $table->id();
-
-            // Link to users table
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-
-            // Credential ID (base64 encoded, unique per authenticator)
-            $table->string('credential_id')->unique();
-
-            // Public key associated with the credential
-            $table->longText('public_key');
-
-            // Type (usually "public-key")
-            $table->string('type')->default('public-key');
-
-            // Sign counter (for replay attack protection)
-            $table->unsignedBigInteger('sign_count')->default(0);
-
-            // Optional: device name / description (e.g., "iPhone", "Laptop")
-            $table->string('device_name')->nullable();
-
-            $table->timestamps();
-        });
+Schema::create('webauthn_credentials', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->onDelete('cascade');
+    $table->string('credential_id')->unique(); // rawId from the authenticator
+    $table->text('public_key'); // The COSE-encoded public key
+    $table->integer('counter')->default(0); // Signature counter
+    $table->string('transports')->nullable(); // e.g., 'usb,nfc'
+    $table->string('attestation_type')->nullable(); // 'none', 'fido-u2f', etc.
+    $table->string('aaguid')->nullable();
+    $table->json('trust_path')->nullable(); // If you store attestation trust path
+    $table->json('user_handle')->nullable(); // If needed for a specific user ID
+    $table->timestamps();
+});
     }
 
     /**
