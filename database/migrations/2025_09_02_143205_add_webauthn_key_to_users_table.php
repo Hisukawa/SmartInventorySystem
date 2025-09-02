@@ -11,9 +11,28 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            // Store the WebAuthn credential (public key, id, etc.)
-            $table->longText('webauthn_key')->nullable()->after('remember_token');
+        Schema::create('webauthn_credentials', function (Blueprint $table) {
+            $table->id();
+
+            // Link to users table
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+            // Credential ID (base64 encoded, unique per authenticator)
+            $table->string('credential_id')->unique();
+
+            // Public key associated with the credential
+            $table->longText('public_key');
+
+            // Type (usually "public-key")
+            $table->string('type')->default('public-key');
+
+            // Sign counter (for replay attack protection)
+            $table->unsignedBigInteger('sign_count')->default(0);
+
+            // Optional: device name / description (e.g., "iPhone", "Laptop")
+            $table->string('device_name')->nullable();
+
+            $table->timestamps();
         });
     }
 
@@ -22,8 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('webauthn_key');
-        });
+        Schema::dropIfExists('webauthn_credentials');
     }
 };

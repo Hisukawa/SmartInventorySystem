@@ -4,8 +4,30 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Head, Link, useForm } from "@inertiajs/react";
-
 import axios from "axios";
+
+// Helper to decode Base64URL → Uint8Array
+function base64urlToUint8Array(base64url) {
+    const padding = "=".repeat((4 - (base64url.length % 4)) % 4);
+    const base64 = (base64url + padding)
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+    const raw = atob(base64);
+    return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
+}
+
+// Helper to encode ArrayBuffer → Base64URL
+function arrayBufferToBase64Url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+}
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -20,31 +42,50 @@ export default function Login({ status, canResetPassword }) {
             onFinish: () => reset("password"),
         });
     };
-   // 🔹 WebAuthn Login
+
+    // 🔹 WebAuthn Login with multiple authenticators
     const loginWithDevice = async () => {
         try {
-            // Step 1: get challenge/options
-         const { data: options } = await axios.post("/webauthn/login/options", {
-            email: data.email,
-        });
-           
-    options.challenge = base64urlToUint8Array(options.challenge);
-    options.allowCredentials = options.allowCredentials.map(cred => ({
-        ...cred,
-        id: base64urlToUint8Array(cred.id),
-    }));
+            // Step 1: Request login options from backend
+            const { data: options } = await axios.post("/webauthn/login/options", {
+                email: data.email,
+            });
 
-    const assertion = await navigator.credentials.get({
-        publicKey: options,
-    });
-            // Step 3: send credential to backend
+            // Convert challenge + credentials to Uint8Array
+            options.challenge = base64urlToUint8Array(options.challenge);
+            options.allowCredentials = options.allowCredentials.map((cred) => ({
+                ...cred,
+                id: base64urlToUint8Array(cred.id),
+            }));
+
+            // Step 2: Request credential from authenticator
+            const assertion = await navigator.credentials.get({
+                publicKey: options,
+            });
+
+            // Step 3: Prepare data for backend
+            const credential = {
+                id: assertion.id,
+                rawId: arrayBufferToBase64Url(assertion.rawId),
+                type: assertion.type,
+                response: {
+                    clientDataJSON: arrayBufferToBase64Url(assertion.response.clientDataJSON),
+                    authenticatorData: arrayBufferToBase64Url(assertion.response.authenticatorData),
+                    signature: arrayBufferToBase64Url(assertion.response.signature),
+                    userHandle: assertion.response.userHandle
+                        ? arrayBufferToBase64Url(assertion.response.userHandle)
+                        : null,
+                },
+            };
+
+            // Step 4: Send credential to backend
             const res = await axios.post("/webauthn/login", {
                 email: data.email,
-                credential: JSON.stringify(assertion),
+                credential,
             });
 
             if (res.data.success) {
-                window.location.href = "/dashboard"; // redirect on success
+                window.location.href = "/faculty/dashboard";
             } else {
                 alert("Login failed.");
             }
@@ -53,12 +94,13 @@ export default function Login({ status, canResetPassword }) {
             alert("WebAuthn login failed.");
         }
     };
+
     return (
         <>
             <Head title="Log in" />
             <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
                 <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 bg-white shadow-lg rounded-lg overflow-hidden">
-                    {/* LEFT PANEL - IMAGE & TITLE */}
+                    {/* LEFT PANEL */}
                     <div className="hidden md:flex flex-col items-center justify-center bg-green-500 text-white p-8 relative">
                         <div className="flex space-x-4 mb-6">
                             <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white bg-white shadow-md">
@@ -110,28 +152,16 @@ export default function Login({ status, canResetPassword }) {
                                     name="email"
                                     value={data.email}
                                     autoComplete="username"
-                                    onChange={(e) =>
-                                        setData("email", e.target.value)
-                                    }
+                                    onChange={(e) => setData("email", e.target.value)}
                                 />
                                 {errors.email && (
-                                    <p className="text-sm text-red-500">
-                                        {errors.email}
-                                    </p>
+                                    <p className="text-sm text-red-500">{errors.email}</p>
                                 )}
                             </div>
 
                             <div className="space-y-1">
                                 <div className="flex justify-between">
                                     <Label htmlFor="password">Password</Label>
-                                    {/* {canResetPassword && (
-                                        <Link
-                                            href={route("password.request")}
-                                            className="text-sm text-muted-foreground hover:underline"
-                                        >
-                                            Forgot your password?
-                                        </Link>
-                                    )} */}
                                 </div>
                                 <Input
                                     id="password"
@@ -139,14 +169,10 @@ export default function Login({ status, canResetPassword }) {
                                     name="password"
                                     value={data.password}
                                     autoComplete="current-password"
-                                    onChange={(e) =>
-                                        setData("password", e.target.value)
-                                    }
+                                    onChange={(e) => setData("password", e.target.value)}
                                 />
                                 {errors.password && (
-                                    <p className="text-sm text-red-500">
-                                        {errors.password}
-                                    </p>
+                                    <p className="text-sm text-red-500">{errors.password}</p>
                                 )}
                             </div>
 
@@ -174,7 +200,7 @@ export default function Login({ status, canResetPassword }) {
                                 Login
                             </Button>
 
-                              <Button
+                            <Button
                                 type="button"
                                 className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={loginWithDevice}
@@ -185,20 +211,9 @@ export default function Login({ status, canResetPassword }) {
                             <div className="text-center text-sm mt-6">
                                 Don’t have an account?{" "}
                                 <span className="text-gray-600">
-                                    Please contact the ICT Department
-                                    Chairperson to request one.
+                                    Please contact the ICT Department Chairperson to request one.
                                 </span>
                             </div>
-
-                            {/* <div className="text-center text-sm mt-6">
-                                Don’t have an account?{" "}
-                                <Link
-                                    href={route("register")}
-                                    className="font-medium text-green-600 hover:underline"
-                                >
-                                    Sign up
-                                </Link>
-                            </div> */}
                         </form>
                     </div>
                 </div>
