@@ -3,107 +3,89 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, useForm } from "@inertiajs/react";
 import axios from "axios";
 
-// Helper to decode Base64URL → Uint8Array
-function base64urlToUint8Array(base64url) {
-    const padding = "=".repeat((4 - (base64url.length % 4)) % 4);
-    const base64 = (base64url + padding)
-        .replace(/-/g, "+")
-        .replace(/_/g, "/");
-    const raw = atob(base64);
-    return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
-}
-
-// Helper to encode ArrayBuffer → Base64URL
+// Helpers
 function arrayBufferToBase64Url(buffer) {
-    const bytes = new Uint8Array(buffer);
-    let binary = "";
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary)
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+function base64urlToUint8Array(base64url) {
+  const padding = "=".repeat((4 - (base64url.length % 4)) % 4);
+  const base64 = (base64url + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
 }
 
-export default function Login({ status, canResetPassword }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        email: "",
-        password: "",
-        remember: false,
+export default function Login({ status }) {
+  const { data, setData, post, processing, errors, reset } = useForm({
+    email: "",
+    password: "",
+    remember: false,
+  });
+
+  const submit = (e) => {
+    e.preventDefault();
+    post(route("login"), {
+      onFinish: () => reset("password"),
     });
+  };
 
-    const submit = (e) => {
-        e.preventDefault();
-        post(route("login"), {
-            onFinish: () => reset("password"),
-        });
-    };
-
-    // 🔹 WebAuthn Login with multiple authenticators
-// 🔹 Inside loginWithDevice()
-const loginWithDevice = async () => {
+  const loginWithDevice = async () => {
     try {
-        // Step 1: Request login options from backend
-        const { data: options } = await axios.post("/webauthn/login/options", {
-            email: data.email,
-        });
+      // Step 1: Request login options
+      const { data: options } = await axios.post("/webauthn/login/options", {
+        email: data.email,
+      });
 
-        // Convert challenge + credentials to Uint8Array
-        options.challenge = base64urlToUint8Array(options.challenge);
-        options.allowCredentials = options.allowCredentials.map((cred) => ({
-            ...cred,
-            id: base64urlToUint8Array(cred.id),
-        }));
+      options.challenge = base64urlToUint8Array(options.challenge);
+      options.allowCredentials = options.allowCredentials.map((cred) => ({
+        ...cred,
+        id: base64urlToUint8Array(cred.id),
+      }));
 
-        // ✅ Force built-in authenticator (Face Unlock, fingerprint, Windows Hello, TouchID)
-        const publicKeyOptions = {
-            ...options,
-            authenticatorSelection: {
-                authenticatorAttachment: "platform", // only use device biometrics
-                userVerification: "required",        // enforce biometric verification
-            },
-        };
+      // Step 2: Get assertion
+      const assertion = await navigator.credentials.get({ publicKey: options });
 
-        // Step 2: Request credential from authenticator
-        const assertion = await navigator.credentials.get({
-            publicKey: publicKeyOptions,
-        });
+      // Step 3: Prepare data
+      const credential = {
+        id: assertion.id,
+        rawId: arrayBufferToBase64Url(assertion.rawId),
+        type: assertion.type,
+        response: {
+          clientDataJSON: arrayBufferToBase64Url(assertion.response.clientDataJSON),
+          authenticatorData: arrayBufferToBase64Url(assertion.response.authenticatorData),
+          signature: arrayBufferToBase64Url(assertion.response.signature),
+          userHandle: assertion.response.userHandle
+            ? arrayBufferToBase64Url(assertion.response.userHandle)
+            : null,
+        },
+      };
 
-        // Step 3: Prepare data for backend
-        const credential = {
-            id: assertion.id,
-            rawId: arrayBufferToBase64Url(assertion.rawId),
-            type: assertion.type,
-            response: {
-                clientDataJSON: arrayBufferToBase64Url(assertion.response.clientDataJSON),
-                authenticatorData: arrayBufferToBase64Url(assertion.response.authenticatorData),
-                signature: arrayBufferToBase64Url(assertion.response.signature),
-                userHandle: assertion.response.userHandle
-                    ? arrayBufferToBase64Url(assertion.response.userHandle)
-                    : null,
-            },
-        };
+      // Step 4: Send to backend
+      const res = await axios.post("/webauthn/login", {
+        email: data.email,
+        credential,
+      });
 
-        // Step 4: Send credential to backend
-        const res = await axios.post("/webauthn/login", {
-            email: data.email,
-            credential,
-        });
-
-        if (res.data.success) {
-            window.location.href = "/faculty/dashboard";
-        } else {
-            alert("Login failed.");
-        }
+      if (res.data.success) {
+        window.location.href = "/faculty/dashboard";
+      } else {
+        alert("Login failed.");
+      }
     } catch (err) {
-        console.error(err);
-        alert("WebAuthn login failed.");
+      console.error(err);
+      alert("WebAuthn login failed.");
     }
-};
+  };
 
 
     return (

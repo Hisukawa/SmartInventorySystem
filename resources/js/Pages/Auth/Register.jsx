@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { Head, useForm } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
@@ -9,105 +9,99 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbSeparator,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-// 🔹 Helper function
+// Helpers
+function arrayBufferToBase64Url(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
 function base64urlToUint8Array(base64url) {
-    const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, "=");
-    const rawData = atob(padded);
-    return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+  const padding = "=".repeat((4 - (base64url.length % 4)) % 4);
+  const base64 = (base64url + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
 }
 
 export default function Register() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: "",
-        email: "",
-        password: "",
-        password_confirmation: "",
-        role: "guest", // default role
+  const { data, setData, post, processing, errors, reset } = useForm({
+    name: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+    role: "guest",
+  });
+
+  const submit = (e) => {
+    e.preventDefault();
+    post(route("register"), {
+      onFinish: () => reset("password", "password_confirmation"),
     });
+  };
 
-    const submit = (e) => {
-        e.preventDefault();
-        post(route("register"), {
-            onFinish: () => reset("password", "password_confirmation"),
-        });
-    };
-
-    // 🔹 WebAuthn Registration
-// 🔹 WebAuthn Registration
-const registerWithDevice = async () => {
+  // WebAuthn Registration
+  const registerWithDevice = async () => {
     try {
-        // Step 1: Create user in DB first
-        await axios.post("/register", {
-            name: data.name,
-            email: data.email,
-            password: data.password,
-            password_confirmation: data.password_confirmation,
-            role: data.role,
-        });
+      // Step 1: Create user first
+      await axios.post("/register", {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        password_confirmation: data.password_confirmation,
+        role: data.role,
+      });
 
-        // Step 2: Get challenge/options from backend
-        const { data: options } = await axios.post("/webauthn/register/options", {
-            email: data.email,
-        });
+      // Step 2: Request challenge/options
+      const { data: options } = await axios.post("/webauthn/register/options", {
+        email: data.email,
+      });
 
-        // Convert challenge and user.id
-        options.challenge = base64urlToUint8Array(options.challenge);
-        options.user.id = base64urlToUint8Array(options.user.id);
+      options.challenge = base64urlToUint8Array(options.challenge);
+      options.user.id = base64urlToUint8Array(options.user.id);
 
-        // Step 3: Ask authenticator (Force biometrics like Face Unlock / Fingerprint)
-        const credential = await navigator.credentials.create({
-            publicKey: {
-                ...options,
-                authenticatorSelection: {
-                    authenticatorAttachment: "platform", // built-in (phone, laptop)
-                    userVerification: "required",        // forces biometric/PIN
-                    residentKey: "preferred",            // allow passkey storage
-                },
-            },
-        });
+      // Step 3: Ask authenticator
+      const credential = await navigator.credentials.create({ publicKey: options });
 
-        // Step 4: Send credential to backend
-        await axios.post("/webauthn/register", {
-            email: data.email,
-            credential: JSON.stringify({
-                id: credential.id,
-                rawId: btoa(
-                    String.fromCharCode(...new Uint8Array(credential.rawId))
-                ),
-                type: credential.type,
-                response: {
-                    attestationObject: btoa(
-                        String.fromCharCode(...new Uint8Array(credential.response.attestationObject))
-                    ),
-                    clientDataJSON: btoa(
-                        String.fromCharCode(...new Uint8Array(credential.response.clientDataJSON))
-                    ),
-                },
-            }),
-        });
+      // Step 4: Send credential to backend
+      await axios.post("/webauthn/register", {
+        email: data.email,
+        credential: {
+          id: credential.id,
+          rawId: arrayBufferToBase64Url(credential.rawId),
+          type: credential.type,
+          response: {
+            attestationObject: arrayBufferToBase64Url(credential.response.attestationObject),
+            clientDataJSON: arrayBufferToBase64Url(credential.response.clientDataJSON),
+          },
+        },
+      });
 
-        alert("✅ Device registered successfully with Face Unlock / Fingerprint!");
-        window.location.href = "/admin/users";
+      alert("✅ Device registered successfully!");
+      window.location.href = "/admin/users";
     } catch (err) {
-        console.error("WebAuthn error:", err);
-
-        if (err.name === "NotAllowedError") {
-            alert("❌ Authentication was cancelled or no biometrics are set up.");
-        } else if (err.name === "InvalidStateError") {
-            alert("❌ This device is already registered.");
-        } else {
-            alert("⚠️ WebAuthn registration failed.");
-        }
+      console.error("WebAuthn error:", err);
+      if (err.name === "NotAllowedError") {
+        alert("❌ Authentication cancelled or no biometrics available.");
+      } else if (err.name === "InvalidStateError") {
+        alert("❌ This device is already registered.");
+      } else {
+        alert("⚠️ WebAuthn registration failed.");
+      }
     }
-};
+  };
+
 
     return (
         <>
