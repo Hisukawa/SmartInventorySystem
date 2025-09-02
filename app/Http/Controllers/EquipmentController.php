@@ -113,7 +113,11 @@ class EquipmentController extends Controller
     }
 
     public function showRoomEquipments(Room $room, Equipment $equipment)
-    {
+    { 
+        
+        if ($equipment->room_id !== $room->id) {
+           abort(404, 'Equipment not found in this room.');
+         }
         $room->load(['equipments', 'systemUnits', 'peripherals']);
 
         return Inertia::render('Faculty/FacultyEquipmentView', [

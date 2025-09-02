@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     // API endpoint to fetch rooms with status for Admin Dashboard
     Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
 
+    
     // Shared Dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
@@ -158,10 +159,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/rooms/{room}/peripherals/{peripheral}', [PeripheralController::class, 'showPeripherals'])->name('faculty.peripherals.show');
 
 
- Route::get('/rooms/{room}/equipments/{equipment}', [EquipmentController::class, 'showRoomEquipments'])
-    ->name('faculty.equipments.show');
+        Route::get('/rooms/{room}/equipments/{equipment}', [EquipmentController::class, 'showRoomEquipments'])
+            ->name('faculty.equipments.show');
 
 
+
+        //API endpoint to fetch which room is active and which faculty are there
+
+        Route::middleware('auth')->get('/faculty/rooms-status', [FacultyController::class, 'roomsStatus']);
 
         Route::resource('reports', Reports::class);
 
