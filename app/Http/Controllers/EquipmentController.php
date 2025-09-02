@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Equipment;
@@ -21,9 +22,9 @@ class EquipmentController extends Controller
         $rooms = Room::select('id', 'room_number')->get();
 
         return Inertia::render('Admin/Equipments/EquipmentsPage', [
-            'equipments' => $equipments,
-            'filters'    => $request->only(['type', 'condition', 'room_id']),
-            'existingRooms' => $rooms,
+            'equipments'     => $equipments,
+            'filters'        => $request->only(['type', 'condition', 'room_id']),
+            'existingRooms'  => $rooms,
         ]);
     }
 
@@ -40,11 +41,14 @@ class EquipmentController extends Controller
     {
         $validated = $request->validate([
             'equipment_name' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
-            'brand' => 'nullable|string|max:255',
-            'condition' => 'required|string',
-            'room_number' => 'required|string',
+            'type'           => 'required|string|max:255',
+            'brand'          => 'nullable|string|max:255',
+            'condition'      => 'required|string',
+            'room_id'        => 'required|exists:rooms,id',
         ]);
+
+        // Find the room
+        $room = Room::findOrFail($validated['room_id']);
 
         // Auto-generate Equipment Code
         $last = Equipment::latest('id')->first();
@@ -52,16 +56,20 @@ class EquipmentController extends Controller
 
         $validated['equipment_code'] = $nextCode;
 
-        Equipment::create($validated); // Now this works
+        // ✅ Generate QR code path like peripherals
+        $qrCodePath = strtolower("isu-ilagan/ict-department/room-{$room->room_number}/{$nextCode}");
+
+        $validated['qr_code'] = $qrCodePath;
+
+        Equipment::create($validated);
 
         return redirect()->route('equipments.index')->with('success', 'Equipment added successfully.');
     }
 
-
-
     public function show($equipment_code)
     {
-        $equipment = Equipment::where('equipment_code', $equipment_code)
+        $equipment = Equipment::with('room')
+            ->where('equipment_code', $equipment_code)
             ->firstOrFail();
 
         return Inertia::render('Admin/Equipments/ViewEquipment', [
@@ -75,7 +83,7 @@ class EquipmentController extends Controller
 
         return Inertia::render('Admin/Equipments/Edit', [
             'equipment' => $equipment,
-            'rooms' => $rooms,
+            'rooms'     => $rooms,
         ]);
     }
 
@@ -83,16 +91,19 @@ class EquipmentController extends Controller
     {
         $validated = $request->validate([
             'equipment_code' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
-            'condition' => 'required|string|max:255',
-            'room_id' => 'required|exists:rooms,id',
+            'type'           => 'required|string|max:255',
+            'condition'      => 'required|string|max:255',
+            'room_id'        => 'required|exists:rooms,id',
         ]);
+
+        // Update QR path if room changes
+        $room = Room::findOrFail($validated['room_id']);
+        $validated['qr_code_path'] = strtolower("isu-ilagan/ict-department/room-{$room->room_number}/{$equipment->equipment_code}");
 
         $equipment->update($validated);
 
         return redirect()->back()->with('success', 'Equipment updated successfully.');
     }
-
 
     public function destroy(Equipment $equipment)
     {
@@ -106,12 +117,24 @@ class EquipmentController extends Controller
         $room->load(['equipments', 'systemUnits', 'peripherals']);
 
         return Inertia::render('Faculty/FacultyEquipmentView', [
-            'room' => $room,
-            'equipment' => $equipment,
-            'user' => Auth::user(),
-            'equipments' => $room->equipments,
+            'room'        => $room,
+            'equipment'   => $equipment,
+            'user'        => Auth::user(),
+            'equipments'  => $room->equipments,
             'systemUnits' => $room->systemUnits,
             'peripherals' => $room->peripherals,
+        ]);
+    }
+
+    // ✅ Public equipment details by QR path
+    public function showEquipmentsDetails($equipment_code)
+    {
+        $equipment = Equipment::with('room')
+            ->where('equipment_code', $equipment_code)
+            ->firstOrFail();
+
+        return Inertia::render('OtherUser/EquipmentsDetails', [
+            'equipment' => $equipment,
         ]);
     }
 }

@@ -8,14 +8,20 @@ class Equipment extends Model
 {
     protected $table = 'equipments';
 
-    protected $fillable = [
+   protected $fillable = [
         'equipment_code',
         'equipment_name',
         'type',
         'brand',
         'condition',
-        'room_number',
+        'room_id',
+        'qr_code',
     ];
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class, 'room_id', 'id');
+    }
 
     public function getRouteKeyName()
     {
@@ -23,11 +29,7 @@ class Equipment extends Model
     }
 
 
-    // If you have a Room model
-    public function room()
-    {
-        return $this->belongsTo(Room::class, 'room_number', 'room_number');
-    }
+
 
     public static function availableConditions(){
 

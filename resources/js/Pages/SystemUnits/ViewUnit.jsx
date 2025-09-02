@@ -146,21 +146,23 @@ export default function ViewUnit({ unit }) {
                             <strong>Condition:</strong> {unit.condition}
                         </div>
                         <div className="col-span-2 flex flex-col items-center mt-4">
-                            <div
-                                className="bg-white p-2 rounded cursor-pointer hover:shadow-md transition"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleQRCodeClick(
-                                        `${window.location.origin}/equipment/${unit.unit_path}`,
-                                        unit.room_number || "room" // ensure room_number exists
-                                    );
-                                }}
-                            >
-                                <QRCode
-                                    value={`${window.location.origin}/equipment/${unit.unit_path}`}
-                                    size={128}
-                                />
-                            </div>
+               <div
+                        className="bg-white p-2 rounded cursor-pointer hover:shadow-md transition"
+                        onClick={() => {
+                            handleQRCodeClick(
+                            route("units.public.show", { unit_path: unit.unit_path }),
+                            unit.room?.room_number || "room"
+                            );
+                        }}
+                        >
+                        <QRCode
+                            value={route("units.public.show", { unit_path: unit.unit_path })}
+                            size={128}
+                        />
+                        </div>
+
+             
+
                             <span className="mt-2 text-sm text-muted-foreground">
                                 Scan to view public info
                             </span>

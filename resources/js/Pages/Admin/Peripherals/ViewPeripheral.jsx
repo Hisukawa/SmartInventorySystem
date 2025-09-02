@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react"; // ✅ added router
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import {
     SidebarProvider,
@@ -23,13 +23,14 @@ export default function ViewPeripheral({ peripheral }) {
     const [selectedRoomNumber, setSelectedRoomNumber] = useState("");
     const [copied, setCopied] = useState(false);
 
+    // ✅ QR Code value now uses peripheral_code instead of qr_code_path
     const handleQRCodeClick = (peripheral) => {
-        const qrValue = `${
-            window.location.origin
-        }/${peripheral.qr_code_path.toLowerCase()}`;
+        const qrValue = `${window.location.origin}/peripherals/${peripheral.peripheral_code}`;
         setSelectedQR(qrValue);
         setSelectedRoomNumber(peripheral.room?.room_number || "N/A");
         setCopied(false);
+
+     
     };
 
     const handleCopy = async () => {
@@ -100,7 +101,7 @@ export default function ViewPeripheral({ peripheral }) {
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
-                                    href={`/admin/peripherals/${peripheral.id}`}
+                                    href={`/admin/peripherals/${peripheral.peripheral_code}`}
                                     aria-current="page"
                                     className="font-semibold text-foreground"
                                 >
@@ -145,26 +146,16 @@ export default function ViewPeripheral({ peripheral }) {
 
                         {/* Clickable QR Code */}
                         <div className="col-span-2 flex flex-col items-center mt-4">
-                            {peripheral.qr_code_path ? (
-                                <div
-                                    className="w-32 h-32 bg-white p-2 rounded cursor-pointer"
-                                    onClick={() =>
-                                        handleQRCodeClick(peripheral)
-                                    }
-                                >
-                                    <QRCode
-                                        id="qr-download"
-                                        value={`${
-                                            window.location.origin
-                                        }/${peripheral.qr_code_path.toLowerCase()}`}
-                                        size={128}
-                                    />
-                                </div>
-                            ) : (
-                                <span className="mt-2 text-sm text-muted-foreground">
-                                    No QR Available
-                                </span>
-                            )}
+                            <div
+                                className="w-32 h-32 bg-white p-2 rounded cursor-pointer"
+                                onClick={() => handleQRCodeClick(peripheral)}
+                            >
+                                <QRCode
+                                    id="qr-download"
+                                    value={`${window.location.origin}/peripherals/${peripheral.peripheral_code}`}
+                                    size={128}
+                                />
+                            </div>
                             <span className="mt-2 text-sm text-muted-foreground">
                                 Click QR to enlarge
                             </span>

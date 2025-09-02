@@ -227,6 +227,7 @@ export default function FacultyRoomView({
     filters = {}, // ✅ default to empty object
     filterOptions = { conditions: [], unit_codes: [] }, // ✅ safe default
 }) {
+      
     const { auth } = usePage().props;
 
     const [activeSection, setActiveSection] = useState(
@@ -438,6 +439,7 @@ export default function FacultyRoomView({
                                     <TableBody className="divide-y divide-gray-200">
                                         {paginated.length > 0 ? (
                                             paginated.map((item, index) => (
+                                                   console.log("Equipment item:", item),
                                                 <TableRow key={item.id}>
                                                     <TableCell className="text-center">
                                                         {(page - 1) * pageSize +
@@ -507,13 +509,18 @@ export default function FacultyRoomView({
                                                         )}
                                                         {activeSection ===
                                                             "equipments" && (
+                                                                console.log("Room ID:", room.id, "Equipment ID:", item.id),
+
                                                             <Link
                                                                 href={route(
                                                                     "faculty.equipments.show",
                                                                     {
+                                                                        
                                                                         room: room.id,
                                                                         equipment:
-                                                                            item.id,
+                                                                        item.id,
+                                                                        
+                                                                   
                                                                     }
                                                                 )}
                                                             >
@@ -597,6 +604,7 @@ export default function FacultyRoomView({
             />
         </>
     );
+      
 }
 
 function ConditionBadge({ condition }) {

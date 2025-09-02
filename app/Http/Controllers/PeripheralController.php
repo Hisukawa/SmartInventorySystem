@@ -190,4 +190,16 @@ class PeripheralController extends Controller
     ]);
 }
 
+
+public function showPeripheralsDetails($peripheral_code)
+{
+    $peripheral = Peripheral::with(['room', 'unit'])
+        ->where('peripheral_code', $peripheral_code)
+        ->firstOrFail();
+
+    return Inertia::render('OtherUser/PeripheralsDetails', [
+        'peripheral' => $peripheral,
+    ]);
+}
+
 }
