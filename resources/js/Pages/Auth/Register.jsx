@@ -1,12 +1,13 @@
+import React, { useState, useRef } from "react";
+import axios from "axios";
+import { Head, useForm } from "@inertiajs/react";
+import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Head, Link, useForm } from "@inertiajs/react";
 import { Separator } from "@/components/ui/separator";
-import React, { useState, useRef } from "react";
-import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
-
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -15,11 +16,13 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-import {
-    SidebarInset,
-    SidebarProvider,
-    SidebarTrigger,
-} from "@/components/ui/sidebar";
+// 🔹 Helper function
+function base64urlToUint8Array(base64url) {
+    const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, "=");
+    const rawData = atob(padded);
+    return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+}
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -37,6 +40,32 @@ export default function Register() {
         });
     };
 
+    // 🔹 WebAuthn Registration
+    const registerWithDevice = async () => {
+        try {
+            // Step 1: get challenge/options from backend
+            const { data: options } = await axios.post("/webauthn/register/options");
+
+            // Convert challenge + user.id
+            options.challenge = base64urlToUint8Array(options.challenge);
+            options.user.id = base64urlToUint8Array(options.user.id);
+
+            // Step 2: request credential from authenticator
+            const credential = await navigator.credentials.create({
+                publicKey: options,
+            });
+
+            // Step 3: send credential back to backend
+            await axios.post("/webauthn/register", {
+                credential: JSON.stringify(credential),
+            });
+
+            alert("Device registered successfully!");
+        } catch (err) {
+            console.error(err);
+            alert("WebAuthn registration failed.");
+        }
+    };
     return (
         <>
             <SidebarProvider>
@@ -273,14 +302,15 @@ export default function Register() {
                                         >
                                             Register
                                         </Button>
-                                         <Button
-                                            type="submit"
-                                            className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white"
-                                            disabled={processing}
-                                        >
-                                            Register
-                                        </Button>
 
+
+                                              <Button
+                                        type="button"
+                                        className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white"
+                                        onClick={registerWithDevice}
+                                    >
+                                        Register with Device
+                                    </Button>
                                         {/* Link to Login */}
                                         {/* <div className="text-center text-sm mt-6">
                                 Already have an account?{" "}
