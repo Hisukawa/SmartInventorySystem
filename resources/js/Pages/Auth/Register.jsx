@@ -273,6 +273,13 @@ export default function Register() {
                                         >
                                             Register
                                         </Button>
+                                         <Button
+                                            type="submit"
+                                            className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white"
+                                            disabled={processing}
+                                        >
+                                            Register
+                                        </Button>
 
                                         {/* Link to Login */}
                                         {/* <div className="text-center text-sm mt-6">
