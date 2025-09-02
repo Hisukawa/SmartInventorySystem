@@ -41,31 +41,44 @@ export default function Register() {
     };
 
     // 🔹 WebAuthn Registration
-    const registerWithDevice = async () => {
-        try {
-            // Step 1: get challenge/options from backend
-            const { data: options } = await axios.post("/webauthn/register/options");
+const registerWithDevice = async () => {
+    try {
+        // Step 1: Create user in DB first
+        const userRes = await axios.post("/register", {
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            password_confirmation: data.password_confirmation,
+            role: data.role,
+        });
 
-            // Convert challenge + user.id
-            options.challenge = base64urlToUint8Array(options.challenge);
-            options.user.id = base64urlToUint8Array(options.user.id);
+        // Step 2: get challenge/options
+        const { data: options } = await axios.post("/webauthn/register/options", {
+            email: data.email, // so backend knows which user
+        });
 
-            // Step 2: request credential from authenticator
-            const credential = await navigator.credentials.create({
-                publicKey: options,
-            });
+        options.challenge = base64urlToUint8Array(options.challenge);
+        options.user.id = base64urlToUint8Array(options.user.id);
 
-            // Step 3: send credential back to backend
-            await axios.post("/webauthn/register", {
-                credential: JSON.stringify(credential),
-            });
+        // Step 3: ask authenticator
+        const credential = await navigator.credentials.create({
+            publicKey: options,
+        });
 
-            alert("Device registered successfully!");
-        } catch (err) {
-            console.error(err);
-            alert("WebAuthn registration failed.");
-        }
-    };
+        // Step 4: send credential to backend
+        await axios.post("/webauthn/register", {
+            email: data.email,
+            credential: JSON.stringify(credential),
+        });
+
+        alert("Device registered successfully!");
+        window.location.href = "/admin/users"; // go back to list
+    } catch (err) {
+        console.error(err);
+        alert("WebAuthn registration failed.");
+    }
+};
+
     return (
         <>
             <SidebarProvider>
