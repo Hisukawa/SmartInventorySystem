@@ -44,56 +44,67 @@ export default function Login({ status, canResetPassword }) {
     };
 
     // 🔹 WebAuthn Login with multiple authenticators
-    const loginWithDevice = async () => {
-        try {
-            // Step 1: Request login options from backend
-            const { data: options } = await axios.post("/webauthn/login/options", {
-                email: data.email,
-            });
+// 🔹 Inside loginWithDevice()
+const loginWithDevice = async () => {
+    try {
+        // Step 1: Request login options from backend
+        const { data: options } = await axios.post("/webauthn/login/options", {
+            email: data.email,
+        });
 
-            // Convert challenge + credentials to Uint8Array
-            options.challenge = base64urlToUint8Array(options.challenge);
-            options.allowCredentials = options.allowCredentials.map((cred) => ({
-                ...cred,
-                id: base64urlToUint8Array(cred.id),
-            }));
+        // Convert challenge + credentials to Uint8Array
+        options.challenge = base64urlToUint8Array(options.challenge);
+        options.allowCredentials = options.allowCredentials.map((cred) => ({
+            ...cred,
+            id: base64urlToUint8Array(cred.id),
+        }));
 
-            // Step 2: Request credential from authenticator
-            const assertion = await navigator.credentials.get({
-                publicKey: options,
-            });
+        // ✅ Force built-in authenticator (Face Unlock, fingerprint, Windows Hello, TouchID)
+        const publicKeyOptions = {
+            ...options,
+            authenticatorSelection: {
+                authenticatorAttachment: "platform", // only use device biometrics
+                userVerification: "required",        // enforce biometric verification
+            },
+        };
 
-            // Step 3: Prepare data for backend
-            const credential = {
-                id: assertion.id,
-                rawId: arrayBufferToBase64Url(assertion.rawId),
-                type: assertion.type,
-                response: {
-                    clientDataJSON: arrayBufferToBase64Url(assertion.response.clientDataJSON),
-                    authenticatorData: arrayBufferToBase64Url(assertion.response.authenticatorData),
-                    signature: arrayBufferToBase64Url(assertion.response.signature),
-                    userHandle: assertion.response.userHandle
-                        ? arrayBufferToBase64Url(assertion.response.userHandle)
-                        : null,
-                },
-            };
+        // Step 2: Request credential from authenticator
+        const assertion = await navigator.credentials.get({
+            publicKey: publicKeyOptions,
+        });
 
-            // Step 4: Send credential to backend
-            const res = await axios.post("/webauthn/login", {
-                email: data.email,
-                credential,
-            });
+        // Step 3: Prepare data for backend
+        const credential = {
+            id: assertion.id,
+            rawId: arrayBufferToBase64Url(assertion.rawId),
+            type: assertion.type,
+            response: {
+                clientDataJSON: arrayBufferToBase64Url(assertion.response.clientDataJSON),
+                authenticatorData: arrayBufferToBase64Url(assertion.response.authenticatorData),
+                signature: arrayBufferToBase64Url(assertion.response.signature),
+                userHandle: assertion.response.userHandle
+                    ? arrayBufferToBase64Url(assertion.response.userHandle)
+                    : null,
+            },
+        };
 
-            if (res.data.success) {
-                window.location.href = "/faculty/dashboard";
-            } else {
-                alert("Login failed.");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("WebAuthn login failed.");
+        // Step 4: Send credential to backend
+        const res = await axios.post("/webauthn/login", {
+            email: data.email,
+            credential,
+        });
+
+        if (res.data.success) {
+            window.location.href = "/faculty/dashboard";
+        } else {
+            alert("Login failed.");
         }
-    };
+    } catch (err) {
+        console.error(err);
+        alert("WebAuthn login failed.");
+    }
+};
+
 
     return (
         <>

@@ -26,29 +26,31 @@ class WebAuthnController extends Controller
                 ['type' => 'public-key', 'alg' => -7],    // ES256
                 ['type' => 'public-key', 'alg' => -257],  // RS256
             ],
+            'timeout' => 60000,
+            'attestation' => 'none',
         ]);
     }
 
     // Registration - Save credential
-  // Registration - Save credential
-public function register(Request $request)
-{
-    $user = User::where('email', $request->email)->firstOrFail();
+    public function register(Request $request)
+    {
+        $user = User::where('email', $request->email)->firstOrFail();
 
-    $credential = $request->credential;
+        $credential = $request->input('credential');
 
-    $user->webauthn_key = json_encode([
-        'id' => $credential['id'],
-        'rawId' => $credential['rawId'],
-        'type' => $credential['type'],
-        'response' => $credential['response'], // includes attestationObject + clientDataJSON
-    ]);
+        // Store essential info
+        $user->webauthn_key = json_encode([
+            'id' => $credential['id'] ?? null,
+            'rawId' => $credential['rawId'] ?? null,
+            'type' => $credential['type'] ?? null,
+            'attestationObject' => $credential['response']['attestationObject'] ?? null,
+            'clientDataJSON' => $credential['response']['clientDataJSON'] ?? null,
+        ]);
 
-    $user->save();
+        $user->save();
 
-    return response()->json(['success' => true]);
-}
-
+        return response()->json(['success' => true]);
+    }
 
     // Login - Generate challenge
     public function loginOptions(Request $request)
@@ -60,31 +62,31 @@ public function register(Request $request)
         return response()->json([
             'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
             'allowCredentials' => [[
-                'id' => $storedKey['rawId'],
+                'id' => $storedKey['rawId'] ?? null,
                 'type' => 'public-key',
             ]],
+            'userVerification' => 'required', // force Face Unlock/Fingerprint on login too
         ]);
     }
 
-    // Login - Verify (simplified)
-// Login - Verify (simplified)
-public function login(Request $request)
-{
-    $user = User::where('email', $request->email)->first();
+    // Login - Verify (⚠ simplified!)
+    public function login(Request $request)
+    {
+        $user = User::where('email', $request->email)->first();
 
-    if (!$user) {
+        if (!$user) {
+            return response()->json(['success' => false], 401);
+        }
+
+        $credential = $request->input('credential');
+        $storedKey = json_decode($user->webauthn_key, true);
+
+        // ⚠️ This is simplified. In production, use a WebAuthn PHP package to verify signatures.
+        if ($credential['id'] === ($storedKey['id'] ?? null)) {
+            Auth::login($user);
+            return response()->json(['success' => true]);
+        }
+
         return response()->json(['success' => false], 401);
     }
-
-    $credential = $request->input('credential');
-    $storedKey = json_decode($user->webauthn_key, true);
-
-    if ($credential['rawId'] === $storedKey['rawId']) {
-        Auth::login($user);
-        return response()->json(['success' => true]);
-    }
-
-    return response()->json(['success' => false], 401);
-}
-
 }
