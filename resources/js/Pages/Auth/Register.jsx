@@ -61,11 +61,16 @@ const registerWithDevice = async () => {
         options.user.id = base64urlToUint8Array(options.user.id);
 
         // Step 3: ask authenticator
+      
         const credential = await navigator.credentials.create({
-            publicKey: options,
-            
-        });
-
+           publicKey: {
+               ...options,
+                authenticatorSelection: {
+                   authenticatorAttachment: "platform", // only built-in device (phone biometrics/Windows Hello)
+                   userVerification: "required",        // forces biometric/Face Unlock
+               },
+            },
+       });
         // Step 4: send credential to backend
         await axios.post("/webauthn/register", {
             email: data.email,
