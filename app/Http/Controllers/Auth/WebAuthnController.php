@@ -109,26 +109,26 @@ class WebAuthnController extends Controller
         return response()->json(['success' => false, 'message' => 'Invalid credential payload.'], 422);
     }
 
-    $stored = WebauthnCredential::where('credential_id', $credential['id'])->first();
+   $stored = WebauthnCredential::where('credential_id', $credential['id'])->first();
 
-    if ($stored && $stored->public_key === $credential['rawId']) {
-        Auth::login($user, true); // persist login
-        $request->session()->regenerate(); // 🔹 important
+if ($stored) {
+    Auth::login($user, true);
+    $request->session()->regenerate();
 
-        // Redirect user based on role, same as AuthenticatedSessionController
-        switch ($user->role) {
-            case 'admin':
-                return response()->json(['success' => true, 'redirect' => route('admin.dashboard')]);
-            case 'faculty':
-                return response()->json(['success' => true, 'redirect' => route('faculty.dashboard')]);
-            case 'technician':
-                return response()->json(['success' => true, 'redirect' => url('/technician/dashboard')]);
-            case 'guest':
-                return response()->json(['success' => true, 'redirect' => url('/guest/dashboard')]);
-            default:
-                return response()->json(['success' => true, 'redirect' => route('dashboard')]);
-        }
+    switch ($user->role) {
+        case 'admin':
+            return response()->json(['success' => true, 'redirect' => route('admin.dashboard')]);
+        case 'faculty':
+            return response()->json(['success' => true, 'redirect' => route('faculty.dashboard')]);
+        case 'technician':
+            return response()->json(['success' => true, 'redirect' => url('/technician/dashboard')]);
+        case 'guest':
+            return response()->json(['success' => true, 'redirect' => url('/guest/dashboard')]);
+        default:
+            return response()->json(['success' => true, 'redirect' => route('dashboard')]);
     }
+}
+
 
     return response()->json(['success' => false, 'message' => 'Credential not recognized or invalid.'], 401);
 }
