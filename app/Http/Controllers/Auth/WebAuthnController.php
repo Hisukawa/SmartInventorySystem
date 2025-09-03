@@ -59,39 +59,37 @@ class WebAuthnController extends Controller
 
     /**
      * Login - Generate challenge for this user
-     */ public function loginOptions(Request $request)
-    {
-        $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            // keep shape predictable
-            return response()->json([
-                'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
-                'allowCredentials' => [],
-                'error' => 'User not found.',
-            ], 200);
-        }
 
-        // Get all registered authenticators for this user
-        $creds = WebauthnCredential::where('user_id', $user->id)->get();
-
-        return response()->json([
-            'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
-            'allowCredentials' => $creds->map(function ($c) {
-                // IMPORTANT: the front-end decodes allowCredentials[].id from base64url into bytes.
-                // Your stored "credential_id" (from JS "id") is already base64url in most browsers.
-                // If your authenticator/browser returns plain IDs, use $c->public_key instead.
-                return [
-                    'id'   => $c->credential_id, // if this fails, swap to $c->public_key
-                    'type' => 'public-key',
-                ];
-            })->values()->all(),
-        ]);
-    }
 
     /**
      * Login - verify (very simplified)
      * In production you must verify the signature with the stored public key.
      */
+
+    public function loginOptions(Request $request)
+{
+    $user = User::where('email', $request->email)->first();
+    $challenge = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+
+    if (!$user) {
+        return response()->json([
+            'challenge' => $challenge,
+            'allowCredentials' => [],
+            'error' => 'User not found.',
+        ]);
+    }
+
+    $creds = WebauthnCredential::where('user_id', $user->id)->get();
+
+    return response()->json([
+        'challenge' => $challenge,
+        'allowCredentials' => $creds->map(fn($c) => [
+            'id'   => $c->credential_id,
+            'type' => 'public-key',
+        ])->values()->all(),
+    ]);
+}
+
     public function login(Request $request)
     {
         $user = User::where('email', $request->email)->first();

@@ -77,7 +77,7 @@ export default function Login({ status, canResetPassword }) {
       ...options,
       // authenticatorSelection only applies to `create()`, not `get()`.
       // Keeping it here doesn't break, but it's not necessary.
-      userVerification: "required",
+      userVerification: "preferred",
     };
 
     const assertion = await navigator.credentials.get({ publicKey: publicKeyOptions });
