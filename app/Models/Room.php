@@ -9,14 +9,14 @@ class Room extends Model
 {
     use HasFactory;
 
-  protected $fillable = [
-    'room_number',
-    'room_path',
-    'status',
-    'is_active',
-    'last_scanned_by',
-    'last_scanned_at',
-];
+    protected $fillable = [
+        'room_number',
+        'room_path',
+        'status',
+        'is_active',
+        'last_scanned_by',
+        'last_scanned_at',
+    ];
 
 
     // A room has many system units

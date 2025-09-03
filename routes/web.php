@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +21,9 @@ use App\Http\Controllers\SystemUnitController;
 use App\Http\Controllers\Auth\WebAuthnController;
 
 use App\Http\Controllers\Reports;
+use App\Models\Equipment;
+use App\Models\Room;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -52,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
     // API endpoint to fetch rooms with status for Admin Dashboard
     Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
 
-    
+
     // Shared Dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
@@ -72,6 +77,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
+
+        Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
+        Route::get('/admin/rooms-status', [AdminController::class, 'roomsStatus']);
+
 
         // Admin Dashboard
         Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
@@ -133,9 +142,19 @@ Route::middleware(['auth'])->group(function () {
 
 
         // Viewing Faculty Reports
-
         Route::get('/faculty/reports', [Reports:: class, 'index'])->name('admin.reports.index');
 
+        // status for force logout
+        Route::put('/api/admin/rooms/{room}/status', [RoomController::class, 'updateStatus']);
+
+
+
+        Route::get('/admin/reports/{report}', [ReportController::class, 'show'])
+        ->name('admin.reports.show');
+
+        Route::get('/admin/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
+        Route::post('/admin/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+        Route::post('/admin/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('admin.notifications.readAll');
     });
 
 
@@ -151,7 +170,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/faculty/dashboard', [FacultyController::class, 'dashboard'])
             ->name('faculty.dashboard');
 
-         Route::get('/faculty-room-dashboard', [FacultyController::class, 'showRoom'])->name('faculty.rooms.dashboard');
+        Route::get('/faculty-room-dashboard', [FacultyController::class, 'showRoom'])->name('faculty.rooms.dashboard');
         // Faculty room view (QR scan)
         Route::get('/room/{roomPath}', [RoomController::class, 'show'])
             ->where('roomPath', '.*')
@@ -176,11 +195,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::resource('reports', Reports::class);
 
-    
+
 
     });
-
-
 
 
     // Technician-only routes
@@ -206,12 +223,11 @@ Route::get('/unit/{unit_path}', [SystemUnitController::class, 'showUnitsDetails'
     ->where('unit_path', '.*')
     ->name('units.public.show');
 
-
-    //Route to see all users peripherals details without logging in
+//Route to see all users peripherals details without logging in
 Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'showPeripheralsDetails'])
     ->name('peripherals.public.show');
 
-    //Route to see all users equipment details without logging in
+//Route to see all users equipment details without logging in
 Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
     ->name('equipment.public.show');
 

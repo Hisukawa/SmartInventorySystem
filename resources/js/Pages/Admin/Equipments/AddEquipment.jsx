@@ -99,7 +99,7 @@ export default function AddEquipment({ rooms }) {
                                 <BreadcrumbLink href="#">Assets</BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink href="/equipments">
-                                    Equipment List
+                                    Equipments
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink

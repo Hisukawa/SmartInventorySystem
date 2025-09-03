@@ -251,6 +251,25 @@ export default function EquipmentsPage({
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
+                <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
+                    <SidebarTrigger />
+                    <Separator orientation="vertical" className="h-6 mx-3" />
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="#">Assets</BreadcrumbLink>
+                                <BreadcrumbSeparator />
+                                <BreadcrumbLink
+                                    href="/equipments"
+                                    aria-current="page"
+                                    className="font-semibold text-foreground"
+                                >
+                                    Equipments
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </header>
                 {/* Header, Search, Table code same as before */}
                 <main className="w-full px-6 py-4">
                     <h1 className="text-2xl font-semibold mb-4">Equipments</h1>
@@ -386,10 +405,13 @@ export default function EquipmentsPage({
 
                     {/* Pagination */}
                     <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2">
+                        {/* Page Info */}
                         <span className="text-sm text-muted-foreground">
                             Page {currentPage} of {totalPages}
                         </span>
-                        <div className="flex gap-2">
+
+                        {/* Controls */}
+                        <div className="flex gap-2 items-center">
                             <Button
                                 size="sm"
                                 variant="outline"
@@ -400,6 +422,45 @@ export default function EquipmentsPage({
                             >
                                 Previous
                             </Button>
+
+                            {/* Page Numbers (show up to 5 around current page) */}
+                            {Array.from(
+                                { length: totalPages },
+                                (_, idx) => idx + 1
+                            )
+                                .filter((page) => {
+                                    // Always show first & last
+                                    if (page === 1 || page === totalPages)
+                                        return true;
+                                    // Show pages near current (±2 around)
+                                    return (
+                                        page >= currentPage - 2 &&
+                                        page <= currentPage + 2
+                                    );
+                                })
+                                .map((page, idx, arr) => (
+                                    <React.Fragment key={page}>
+                                        {/* Ellipsis if gap */}
+                                        {idx > 0 &&
+                                            arr[idx] - arr[idx - 1] > 1 && (
+                                                <span className="px-1">
+                                                    ...
+                                                </span>
+                                            )}
+                                        <Button
+                                            size="sm"
+                                            variant={
+                                                currentPage === page
+                                                    ? "default"
+                                                    : "outline"
+                                            }
+                                            onClick={() => setCurrentPage(page)}
+                                        >
+                                            {page}
+                                        </Button>
+                                    </React.Fragment>
+                                ))}
+
                             <Button
                                 size="sm"
                                 variant="outline"

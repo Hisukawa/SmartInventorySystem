@@ -59,10 +59,6 @@ export default function AdminDashboard({ children }) {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="#" aria-current="page">
-                                    Reports
-                                </BreadcrumbLink>
-                                <BreadcrumbSeparator />
                                 <BreadcrumbLink
                                     href="/admin/rooms"
                                     aria-current="page"

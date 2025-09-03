@@ -13,7 +13,7 @@ import {
     LayoutDashboard,
     Grid,
     Command,
-    Users
+    Users,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -63,7 +63,7 @@ const data = {
                     url: "/admin/peripherals",
                 },
                 {
-                    title: "Room Equipments",
+                    title: "Equipments",
                     url: "/equipments",
                 },
             ],
@@ -78,20 +78,16 @@ const data = {
                     title: "View Reports",
                     url: "/faculty/reports",
                 },
-        
             ],
-
-          
-
         },
         {
-        title: "Monitoring",
-        url : "/admin/monitoring",
-        icon: Users ,
-        isActive: true
+            title: "Monitoring",
+            url: "/admin/monitoring",
+            icon: Users,
+            isActive: true,
         },
-         
-         {
+
+        {
             title: "User Lists",
             url: "/admin/users",
             icon: User,
@@ -99,7 +95,6 @@ const data = {
     ],
 
     navSecondary: [
-       
         // {
         //     title: "Feedback",
         //     url: "#",

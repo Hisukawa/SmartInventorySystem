@@ -1,4 +1,4 @@
-import { Head, usePage, router  } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
@@ -30,18 +30,18 @@ export default function UserManagement({ users }) {
     const { props } = usePage();
     const currentUserId = props.auth.user.id;
 
-   const handleDelete = (id) => {
-    if (confirm("Are you sure?")) {
-        router.delete(route("admin.users.destroy", id), {
-            onSuccess: () => {
-                console.log("User deleted successfully");
-            },
-            onError: (errors) => {
-                console.error(errors);
-            },
-        });
-    }
-};
+    const handleDelete = (id) => {
+        if (confirm("Are you sure?")) {
+            router.delete(route("admin.users.destroy", id), {
+                onSuccess: () => {
+                    console.log("User deleted successfully");
+                },
+                onError: (errors) => {
+                    console.error(errors);
+                },
+            });
+        }
+    };
 
     return (
         <SidebarProvider>
@@ -83,6 +83,7 @@ export default function UserManagement({ users }) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>#</TableHead>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Role</TableHead>
@@ -90,8 +91,9 @@ export default function UserManagement({ users }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {users.map((user) => (
+                                {users.map((user, index) => (
                                     <TableRow key={user.id}>
+                                        <TableCell>{index + 1}</TableCell>
                                         <TableCell>{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>{user.role}</TableCell>

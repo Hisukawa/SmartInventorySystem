@@ -17,9 +17,20 @@ class RoomEquipmentsSeeder extends Seeder
         }
 
         $equipmentsList = [
-            ['name' => 'Chair',        'type' => 'Hardware', 'brand' => 'Uratex'],
-            ['name' => 'Wooden Table', 'type' => 'Hardware', 'brand' => 'Local'],
-            ['name' => 'Aircon',       'type' => 'Appliance','brand' => 'Carrier'],
+            ['name' => 'Chair',            'type' => 'Hardware',   'brand' => 'Uratex'],
+            ['name' => 'Wooden Table',     'type' => 'Hardware',   'brand' => 'Local'],
+            ['name' => 'Aircon',           'type' => 'Appliance',  'brand' => 'Carrier'],
+            ['name' => 'Projector',        'type' => 'Appliance',  'brand' => 'Epson'],
+            ['name' => 'Ceiling Fan',      'type' => 'Appliance',  'brand' => 'Panasonic'],
+            ['name' => 'Whiteboard',       'type' => 'Furniture',  'brand' => 'Universal'],
+            ['name' => 'Printer',          'type' => 'Peripheral', 'brand' => 'HP'],
+            ['name' => 'Scanner',          'type' => 'Peripheral', 'brand' => 'Canon'],
+            ['name' => 'Speaker System',   'type' => 'Appliance',  'brand' => 'Sony'],
+            ['name' => 'Router',           'type' => 'Networking', 'brand' => 'TP-Link'],
+            ['name' => 'Switch Hub',       'type' => 'Networking', 'brand' => 'Cisco'],
+            ['name' => 'Fire Extinguisher','type' => 'Safety',     'brand' => 'SafeGuard'],
+            ['name' => 'Electric Fan',     'type' => 'Appliance',  'brand' => 'Asahi'],
+            ['name' => 'Smart TV',         'type' => 'Appliance',  'brand' => 'Samsung'],
         ];
 
         $conditions = ['Functional', 'Defective', 'Needs Maintenance'];
@@ -28,23 +39,28 @@ class RoomEquipmentsSeeder extends Seeder
 
         foreach ($rooms as $room) {
             foreach ($equipmentsList as $equipment) {
-                $equipmentCode = 'EQP-' . str_pad($counter, 2, '0', STR_PAD_LEFT);
+                $quantity = rand(1, 5); // 1–5 items per equipment type
 
-                $equipments[] = [
-                    'equipment_code' => $equipmentCode,
-                    'equipment_name' => $equipment['name'],
-                    'type'           => $equipment['type'],
-                    'brand'          => $equipment['brand'],
-                    'condition'      => $conditions[array_rand($conditions)],
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                    'room_id'        => $room->id,
-                    'qr_code'        => 'isu-ilagan/ict-department/room-' . $room->room_number . '/' . strtolower($equipmentCode),
-                ];
+                for ($i = 0; $i < $quantity; $i++) {
+                    $equipmentCode = 'EQP-' . str_pad($counter, 3, '0', STR_PAD_LEFT);
 
-                $counter++;
+                    $equipments[] = [
+                        'equipment_code' => $equipmentCode,
+                        'equipment_name' => $equipment['name'],
+                        'type'           => $equipment['type'],
+                        'brand'          => $equipment['brand'],
+                        'condition'      => $conditions[array_rand($conditions)],
+                        'created_at'     => now(),
+                        'updated_at'     => now(),
+                        'room_id'        => $room->id,
+                        'qr_code'        => 'isu-ilagan/ict-department/room-' . $room->room_number . '/' . strtolower($equipmentCode),
+                    ];
+
+                    $counter++;
+                }
             }
         }
+
 
         DB::table('equipments')->insert($equipments);
 

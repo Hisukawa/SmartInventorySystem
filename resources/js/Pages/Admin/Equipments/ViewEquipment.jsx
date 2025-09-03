@@ -43,9 +43,8 @@ export default function ViewEquipment() {
     }
 
     // QR URL (fixed to use relation)
-  // QR URL (based on route)
-const qrValue = `${window.location.origin}/equipment/${equipment.equipment_code}`;
-
+    // QR URL (based on route)
+    const qrValue = `${window.location.origin}/equipment/${equipment.equipment_code}`;
 
     const handleQRCodeClick = (qrValue, roomNumber, equipmentCode) => {
         setSelectedQR(qrValue);
@@ -122,7 +121,7 @@ const qrValue = `${window.location.origin}/equipment/${equipment.equipment_code}
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink href="/equipments">
-                                    Equipment List
+                                    Equipments
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
@@ -223,7 +222,10 @@ const qrValue = `${window.location.origin}/equipment/${equipment.equipment_code}
                                         Copied to clipboard!
                                     </p>
                                 )}
-                                <Button className="mt-4" onClick={handleDownload}>
+                                <Button
+                                    className="mt-4"
+                                    onClick={handleDownload}
+                                >
                                     Download QR
                                 </Button>
                             </div>

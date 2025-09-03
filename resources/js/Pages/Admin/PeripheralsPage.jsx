@@ -465,44 +465,84 @@ export default function PeripheralsIndex({
                                     </TableBody>
                                 </Table>
 
-                                {/* Pagination */}
-                                <div className="flex justify-center mt-4 space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={currentPage === 1}
-                                        onClick={() =>
-                                            setCurrentPage(currentPage - 1)
-                                        }
-                                    >
-                                        Previous
-                                    </Button>
-                                    {[...Array(totalPages)].map((_, idx) => (
+                                {/* Pagination Controls */}
+                                <div className="flex justify-between items-center mt-4">
+                                    {/* Page Info */}
+                                    <span className="text-sm text-muted-foreground">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
+
+                                    {/* Buttons */}
+                                    <div className="flex gap-2">
                                         <Button
-                                            key={idx}
-                                            variant={
-                                                currentPage === idx + 1
-                                                    ? "default"
-                                                    : "outline"
-                                            }
                                             size="sm"
+                                            variant="outline"
+                                            disabled={currentPage === 1}
                                             onClick={() =>
-                                                setCurrentPage(idx + 1)
+                                                setCurrentPage(currentPage - 1)
                                             }
                                         >
-                                            {idx + 1}
+                                            Previous
                                         </Button>
-                                    ))}
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={currentPage === totalPages}
-                                        onClick={() =>
-                                            setCurrentPage(currentPage + 1)
-                                        }
-                                    >
-                                        Next
-                                    </Button>
+
+                                        {/* Page Numbers (max 5 visible) */}
+                                        {Array.from(
+                                            { length: totalPages },
+                                            (_, idx) => idx + 1
+                                        )
+                                            .filter((page) => {
+                                                // Always show first & last
+                                                if (
+                                                    page === 1 ||
+                                                    page === totalPages
+                                                )
+                                                    return true;
+                                                // Show pages near current (±2)
+                                                return (
+                                                    page >= currentPage - 2 &&
+                                                    page <= currentPage + 2
+                                                );
+                                            })
+                                            .map((page, idx, arr) => (
+                                                <React.Fragment key={page}>
+                                                    {/* Ellipsis if gap */}
+                                                    {idx > 0 &&
+                                                        arr[idx] -
+                                                            arr[idx - 1] >
+                                                            1 && (
+                                                            <span className="px-2">
+                                                                ...
+                                                            </span>
+                                                        )}
+                                                    <Button
+                                                        size="sm"
+                                                        variant={
+                                                            currentPage === page
+                                                                ? "default"
+                                                                : "outline"
+                                                        }
+                                                        onClick={() =>
+                                                            setCurrentPage(page)
+                                                        }
+                                                    >
+                                                        {page}
+                                                    </Button>
+                                                </React.Fragment>
+                                            ))}
+
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={
+                                                currentPage === totalPages
+                                            }
+                                            onClick={() =>
+                                                setCurrentPage(currentPage + 1)
+                                            }
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

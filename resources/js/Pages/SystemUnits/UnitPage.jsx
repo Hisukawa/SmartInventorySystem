@@ -632,10 +632,14 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
 
                     {/* Pagination Controls */}
                     <div className="flex justify-between items-center mt-4">
+                        {/* Page Info */}
                         <span className="text-sm text-muted-foreground">
                             Page {currentPage} of {totalPages}
                         </span>
-                        <div className="flex gap-2">
+
+                        {/* Buttons */}
+                        <div className="flex gap-2 items-center">
+                            {/* Previous */}
                             <Button
                                 size="sm"
                                 variant="outline"
@@ -646,6 +650,46 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                             >
                                 Previous
                             </Button>
+
+                            {/* Page Numbers (at least 5 visible) */}
+                            {Array.from(
+                                { length: totalPages },
+                                (_, idx) => idx + 1
+                            )
+                                .filter((page) => {
+                                    // Always show first & last
+                                    if (page === 1 || page === totalPages)
+                                        return true;
+                                    // Show sliding window around current page (±2 = 5 total)
+                                    return (
+                                        page >= currentPage - 2 &&
+                                        page <= currentPage + 2
+                                    );
+                                })
+                                .map((page, idx, arr) => (
+                                    <React.Fragment key={page}>
+                                        {/* Ellipsis if gap */}
+                                        {idx > 0 &&
+                                            arr[idx] - arr[idx - 1] > 1 && (
+                                                <span className="px-1">
+                                                    ...
+                                                </span>
+                                            )}
+                                        <Button
+                                            size="sm"
+                                            variant={
+                                                currentPage === page
+                                                    ? "default"
+                                                    : "outline"
+                                            }
+                                            onClick={() => setCurrentPage(page)}
+                                        >
+                                            {page}
+                                        </Button>
+                                    </React.Fragment>
+                                ))}
+
+                            {/* Next */}
                             <Button
                                 size="sm"
                                 variant="outline"

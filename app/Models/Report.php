@@ -15,7 +15,7 @@ class Report extends Model
         'room_id',
         'user_id',
         'condition',
-     
+
         'remarks',
         'photo_path',
     ];
@@ -43,5 +43,5 @@ class Report extends Model
     {
         return $this->belongsTo(Room::class);
     }
-    
+
 }

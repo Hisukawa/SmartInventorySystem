@@ -23,7 +23,7 @@ class UnitsSeeder extends Seeder
 
         foreach ($rooms as $room) {
             for ($i = 1; $i <= 15; $i++) {
-                $unitCode = 'UNIT-' . str_pad($i, 2, '0', STR_PAD_LEFT);
+                $unitCode = 'PC-' . str_pad($i, 2, '0', STR_PAD_LEFT);
 
                 $units[] = [
                     'unit_code'   => $unitCode,
