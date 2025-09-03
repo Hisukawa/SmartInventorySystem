@@ -36,13 +36,11 @@ Route::get('/login', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 })->name('login');
-Route::middleware('auth')->group(function () {
-    Route::post('/webauthn/register/options', [WebAuthnController::class, 'registerOptions']);
-    Route::post('/webauthn/register', [WebAuthnController::class, 'register']);
-});
 
 Route::post('/webauthn/login/options', [WebAuthnController::class, 'loginOptions']);
 Route::post('/webauthn/login', [WebAuthnController::class, 'login']);
+Route::post('/webauthn/register/options', [WebAuthnController::class, 'registerOptions']);
+Route::post('/webauthn/register', [WebAuthnController::class, 'register']);
 
 
 // Auth routes (Laravel Breeze/Fortify/etc.)
