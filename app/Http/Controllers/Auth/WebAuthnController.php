@@ -59,37 +59,46 @@ class WebAuthnController extends Controller
 
     /**
      * Login - Generate challenge for this user
+     */
+    public function loginOptions(Request $request)
+    {
+        $user = User::where('email', $request->email)->first();
+        $challenge = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
 
+        if (!$user) {
+            // Return a consistent structure even if user not found,
+            // but indicate the error.
+            return response()->json([
+                'challenge' => $challenge, // Still provide a challenge
+                'allowCredentials' => [],
+                'error' => 'User not found or no WebAuthn devices registered for this user.',
+            ]);
+        }
+
+        $creds = WebauthnCredential::where('user_id', $user->id)->get();
+
+        // If no credentials found for the user, return an error message
+        if ($creds->isEmpty()) {
+            return response()->json([
+                'challenge' => $challenge,
+                'allowCredentials' => [],
+                'error' => 'No registered WebAuthn device found for this user. Please register a device first.',
+            ]);
+        }
+
+        return response()->json([
+            'challenge' => $challenge,
+            'allowCredentials' => $creds->map(fn($c) => [
+                'id'   => $c->credential_id,
+                'type' => 'public-key',
+            ])->values()->all(),
+        ]);
+    }
 
     /**
      * Login - verify (very simplified)
      * In production you must verify the signature with the stored public key.
      */
-
-    public function loginOptions(Request $request)
-{
-    $user = User::where('email', $request->email)->first();
-    $challenge = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
-
-    if (!$user) {
-        return response()->json([
-            'challenge' => $challenge,
-            'allowCredentials' => [],
-            'error' => 'User not found.',
-        ]);
-    }
-
-    $creds = WebauthnCredential::where('user_id', $user->id)->get();
-
-    return response()->json([
-        'challenge' => $challenge,
-        'allowCredentials' => $creds->map(fn($c) => [
-            'id'   => $c->credential_id,
-            'type' => 'public-key',
-        ])->values()->all(),
-    ]);
-}
-
     public function login(Request $request)
     {
         $user = User::where('email', $request->email)->first();
@@ -105,11 +114,21 @@ class WebAuthnController extends Controller
         $stored = WebauthnCredential::where('credential_id', $credential['id'])->first();
 
         // Simplified: accept if rawId matches what we stored as "public_key"
-        if ($stored && hash_equals($stored->public_key, $credential['rawId'])) {
-            Auth::login($user);
-            return response()->json(['success' => true]);
+        // In a real application, you would perform a full WebAuthn verification
+        // which includes verifying the signature with the public key.
+        if ($stored) {
+            // Here, we are comparing the rawId from the assertion with the stored public_key.
+            // This is a very simplified comparison. In a production system,
+            // you'd need a robust WebAuthn verification library to properly
+            // validate the assertion (clientDataJSON, authenticatorData, signature).
+            // For a minimal working example, we'll keep your existing rawId comparison.
+            // However, be aware this is NOT cryptographically secure by itself.
+            if ($stored->public_key === $credential['rawId']) {
+                Auth::login($user);
+                return response()->json(['success' => true]);
+            }
         }
 
-        return response()->json(['success' => false, 'message' => 'Credential not recognized.'], 401);
+        return response()->json(['success' => false, 'message' => 'Credential not recognized or invalid.'], 401);
     }
 }
