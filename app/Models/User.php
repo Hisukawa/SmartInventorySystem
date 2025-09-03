@@ -20,7 +20,7 @@ class User extends Authenticatable
         'password',
         'role',
         'active_room_id',
-        'webauthn_key', // <--- Add this line
+
     ];
 
     /**
@@ -38,7 +38,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'webauthn_key' => 'array', // <--- Add this line
+     
     ];
 
     /**
@@ -46,5 +46,11 @@ class User extends Authenticatable
      * If you later move to a separate `webauthn_credentials` table,
      * this section would be updated with a proper `hasMany` relationship.
      */
+
+    public function webauthnCredentials()
+{
+    return $this->hasMany(WebauthnCredential::class);
+}
+  
 
 }
