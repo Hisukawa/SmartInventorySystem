@@ -60,21 +60,27 @@ class WebAuthnController extends Controller
     /**
      * Login - Generate challenge for this user
      */
-    public function loginOptions(Request $request)
-    {
-        $user = User::where('email', $request->email)->firstOrFail();
-        $credentials = $user->webauthnCredentials;
+   public function loginOptions(Request $request)
+{
+    $user = User::where('email', $request->email)->firstOrFail();
 
+    $storedKey = json_decode($user->webauthn_key, true);
+
+    if (!$storedKey || !isset($storedKey['rawId'])) {
         return response()->json([
-            'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
-            'allowCredentials' => $credentials->map(function ($cred) {
-                return [
-                    'id'   => $cred->credential_id,
-                    'type' => 'public-key',
-                ];
-            })->toArray(),
-        ]);
+            'error' => 'No WebAuthn credentials found for this user.'
+        ], 400);
     }
+
+    return response()->json([
+        'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
+        'allowCredentials' => [[
+            'id' => $storedKey['rawId'], // should be base64url string
+            'type' => 'public-key',
+        ]],
+    ]);
+}
+
 
     /**
      * Login - Verify (simplified)
