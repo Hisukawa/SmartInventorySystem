@@ -13,17 +13,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Default test user
-        User::factory()->create([
-            'name'     => 'Test User',
-            'email'    => 'test@example.com',
-            'password' => Hash::make('test123'),
-            'role'     => 'faculty',
-        ]);
 
         // Call all other seeders
         $this->call([
+            RoomSeeder::class,
             UserSeeder::class,
+            UnitsSeeder::class,
             PeripheralsSeeder::class,
             RoomEquipmentsSeeder::class,
         ]);
