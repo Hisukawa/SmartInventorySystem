@@ -59,48 +59,59 @@ class WebAuthnController extends Controller
 
     /**
      * Login - Generate challenge for this user
-     */
-   public function loginOptions(Request $request)
-{
-    $user = User::where('email', $request->email)->firstOrFail();
+     */ public function loginOptions(Request $request)
+    {
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            // keep shape predictable
+            return response()->json([
+                'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
+                'allowCredentials' => [],
+                'error' => 'User not found.',
+            ], 200);
+        }
 
-    $storedKey = json_decode($user->webauthn_key, true);
+        // Get all registered authenticators for this user
+        $creds = WebauthnCredential::where('user_id', $user->id)->get();
 
-    if (!$storedKey || !isset($storedKey['rawId'])) {
         return response()->json([
-            'error' => 'No WebAuthn credentials found for this user.'
-        ], 400);
+            'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
+            'allowCredentials' => $creds->map(function ($c) {
+                // IMPORTANT: the front-end decodes allowCredentials[].id from base64url into bytes.
+                // Your stored "credential_id" (from JS "id") is already base64url in most browsers.
+                // If your authenticator/browser returns plain IDs, use $c->public_key instead.
+                return [
+                    'id'   => $c->credential_id, // if this fails, swap to $c->public_key
+                    'type' => 'public-key',
+                ];
+            })->values()->all(),
+        ]);
     }
 
-    return response()->json([
-        'challenge' => rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='),
-        'allowCredentials' => [[
-            'id' => $storedKey['rawId'], // should be base64url string
-            'type' => 'public-key',
-        ]],
-    ]);
-}
-
-
     /**
-     * Login - Verify (simplified)
+     * Login - verify (very simplified)
+     * In production you must verify the signature with the stored public key.
      */
     public function login(Request $request)
     {
         $user = User::where('email', $request->email)->first();
         if (!$user) {
-            return response()->json(['success' => false], 401);
+            return response()->json(['success' => false, 'message' => 'Invalid user.'], 401);
         }
 
         $credential = $request->input('credential');
-        $storedCredential = WebauthnCredential::where('credential_id', $credential['id'])->first();
+        if (!$credential || empty($credential['id']) || empty($credential['rawId'])) {
+            return response()->json(['success' => false, 'message' => 'Invalid credential payload.'], 422);
+        }
 
-        // Simplified check (production: validate signature properly)
-        if ($storedCredential && $credential['rawId'] === $storedCredential->public_key) {
+        $stored = WebauthnCredential::where('credential_id', $credential['id'])->first();
+
+        // Simplified: accept if rawId matches what we stored as "public_key"
+        if ($stored && hash_equals($stored->public_key, $credential['rawId'])) {
             Auth::login($user);
             return response()->json(['success' => true]);
         }
 
-        return response()->json(['success' => false], 401);
+        return response()->json(['success' => false, 'message' => 'Credential not recognized.'], 401);
     }
 }

@@ -37,6 +37,7 @@ Route::get('/login', function () {
     ]);
 })->name('login');
 
+
 Route::post('/webauthn/register/options', [WebAuthnController::class, 'registerOptions']);
 Route::post('/webauthn/register', [WebAuthnController::class, 'register']);
 

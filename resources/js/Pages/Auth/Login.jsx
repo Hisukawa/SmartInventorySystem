@@ -8,13 +8,15 @@ import axios from "axios";
 
 // Helper to decode Base64URL → Uint8Array
 function base64urlToUint8Array(base64url) {
-    const padding = "=".repeat((4 - (base64url.length % 4)) % 4);
-    const base64 = (base64url + padding)
-        .replace(/-/g, "+")
-        .replace(/_/g, "/");
-    const raw = atob(base64);
-    return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
+  if (!base64url || typeof base64url !== "string") {
+    throw new Error("Expected base64url string.");
+  }
+  const padding = "=".repeat((4 - (base64url.length % 4)) % 4);
+  const base64 = (base64url + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
+
 
 // Helper to encode ArrayBuffer → Base64URL
 function arrayBufferToBase64Url(buffer) {
@@ -43,67 +45,75 @@ export default function Login({ status, canResetPassword }) {
         });
     };
 
-    // 🔹 WebAuthn Login with multiple authenticators
-// 🔹 Inside loginWithDevice()
-const loginWithDevice = async () => {
-    try {
-        // Step 1: Request login options from backend
-        const { data: options } = await axios.post("/webauthn/login/options", {
-            email: data.email,
-        });
+    // 🔹 WebAuthn Login with multiple authenticat
+    const loginWithDevice = async () => {
+  try {
+    const { data: options } = await axios.post("/webauthn/login/options", {
+      email: data.email,
+    });
 
-        // Convert challenge + credentials to Uint8Array
-        options.challenge = base64urlToUint8Array(options.challenge);
-        options.allowCredentials = options.allowCredentials.map((cred) => ({
-            ...cred,
-            id: base64urlToUint8Array(cred.id),
-        }));
-
-        // ✅ Force built-in authenticator (Face Unlock, fingerprint, Windows Hello, TouchID)
-        const publicKeyOptions = {
-            ...options,
-            authenticatorSelection: {
-                authenticatorAttachment: "platform", // only use device biometrics
-                userVerification: "required",        // enforce biometric verification
-            },
-        };
-
-        // Step 2: Request credential from authenticator
-        const assertion = await navigator.credentials.get({
-            publicKey: publicKeyOptions,
-        });
-
-        // Step 3: Prepare data for backend
-        const credential = {
-            id: assertion.id,
-            rawId: arrayBufferToBase64Url(assertion.rawId),
-            type: assertion.type,
-            response: {
-                clientDataJSON: arrayBufferToBase64Url(assertion.response.clientDataJSON),
-                authenticatorData: arrayBufferToBase64Url(assertion.response.authenticatorData),
-                signature: arrayBufferToBase64Url(assertion.response.signature),
-                userHandle: assertion.response.userHandle
-                    ? arrayBufferToBase64Url(assertion.response.userHandle)
-                    : null,
-            },
-        };
-
-        // Step 4: Send credential to backend
-        const res = await axios.post("/webauthn/login", {
-            email: data.email,
-            credential,
-        });
-
-        if (res.data.success) {
-            window.location.href = "/faculty/dashboard";
-        } else {
-            alert("Login failed.");
-        }
-    } catch (err) {
-        console.error(err);
-        alert("WebAuthn login failed.");
+    // Defensive checks
+    if (!options || !options.challenge) {
+      console.error("Bad login/options response:", options);
+      alert(options?.error || "No challenge received for this user.");
+      return;
     }
+
+    const allowCreds = Array.isArray(options.allowCredentials) ? options.allowCredentials : [];
+    if (allowCreds.length === 0) {
+      alert("No registered WebAuthn device found for this user. Please register a device first.");
+      return;
+    }
+
+    // Decode fields
+    options.challenge = base64urlToUint8Array(options.challenge);
+    options.allowCredentials = allowCreds.map((cred) => ({
+      ...cred,
+      id: base64urlToUint8Array(cred.id),
+    }));
+
+    // (Optional) you can keep these, but they aren't required by WebAuthn for get()
+    const publicKeyOptions = {
+      ...options,
+      // authenticatorSelection only applies to `create()`, not `get()`.
+      // Keeping it here doesn't break, but it's not necessary.
+      userVerification: "required",
+    };
+
+    const assertion = await navigator.credentials.get({ publicKey: publicKeyOptions });
+
+    const credential = {
+      id: assertion.id,
+      rawId: arrayBufferToBase64Url(assertion.rawId),
+      type: assertion.type,
+      response: {
+        clientDataJSON: arrayBufferToBase64Url(assertion.response.clientDataJSON),
+        authenticatorData: arrayBufferToBase64Url(assertion.response.authenticatorData),
+        signature: arrayBufferToBase64Url(assertion.response.signature),
+        userHandle: assertion.response.userHandle
+          ? arrayBufferToBase64Url(assertion.response.userHandle)
+          : null,
+      },
+    };
+
+    const res = await axios.post("/webauthn/login", {
+      email: data.email,
+      credential,
+    });
+
+    if (res.data?.success) {
+      window.location.href = "/faculty/dashboard";
+    } else {
+      alert(res.data?.message || "Login failed.");
+    }
+  } catch (err) {
+    console.error(err);
+    // Surface backend errors clearly
+    const msg = err.response?.data?.message || err.response?.data?.error || err.message;
+    alert(`WebAuthn login failed: ${msg}`);
+  }
 };
+
 
 
     return (
