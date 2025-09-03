@@ -103,13 +103,19 @@ const loginWithDevice = async () => {
             },
         };
 
-        const res = await axios.post("/webauthn/login", {
-            email: data.email,
-            credential,
-        });
+                const res = await axios.post(
+            "/webauthn/login",
+            {
+                email: data.email,
+                credential,
+            },
+            { withCredentials: true } // 🔹 ensure Laravel session cookie is sent/stored
+        );
 
-        if (res.data?.success) {
-            window.location.href = "/faculty/dashboard";
+
+   if (res.data?.success) {
+  window.location.href = res.data.redirect || "/dashboard";
+
         } else {
             alert(res.data?.message || "Login failed.");
         }
