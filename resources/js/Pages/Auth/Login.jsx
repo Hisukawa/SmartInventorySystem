@@ -45,74 +45,83 @@ export default function Login({ status, canResetPassword }) {
         });
     };
 
-    // 🔹 WebAuthn Login with multiple authenticat
-    const loginWithDevice = async () => {
-  try {
-    const { data: options } = await axios.post("/webauthn/login/options", {
-      email: data.email,
-    });
+// ... (rest of the code) ...
 
-    // Defensive checks
-    if (!options || !options.challenge) {
-      console.error("Bad login/options response:", options);
-      alert(options?.error || "No challenge received for this user.");
-      return;
+// 🔹 WebAuthn Login with multiple authenticat
+const loginWithDevice = async () => {
+    try {
+        const { data: options } = await axios.post("/webauthn/login/options", {
+            email: data.email,
+        });
+
+        // Defensive checks and error handling from backend
+        if (options.error) {
+            alert(options.error); // Display specific error message from the backend
+            return;
+        }
+
+        if (!options || !options.challenge) {
+            console.error("Bad login/options response:", options);
+            alert("Failed to get WebAuthn login options. No challenge received.");
+            return;
+        }
+
+        const allowCreds = Array.isArray(options.allowCredentials) ? options.allowCredentials : [];
+        if (allowCreds.length === 0) {
+            alert("No registered WebAuthn device found for this user. Please register a device first.");
+            return;
+        }
+
+        // Decode fields
+        options.challenge = base64urlToUint8Array(options.challenge);
+        options.allowCredentials = allowCreds.map((cred) => ({
+            ...cred,
+            id: base64urlToUint8Array(cred.id),
+        }));
+
+        // (Optional) you can keep these, but they aren't required by WebAuthn for get()
+        const publicKeyOptions = {
+            ...options,
+            // authenticatorSelection only applies to `create()`, not `get()`.
+            // Keeping it here doesn't break, but it's not necessary.
+            userVerification: "preferred",
+        };
+
+        const assertion = await navigator.credentials.get({ publicKey: publicKeyOptions });
+
+        const credential = {
+            id: assertion.id,
+            rawId: arrayBufferToBase64Url(assertion.rawId),
+            type: assertion.type,
+            response: {
+                clientDataJSON: arrayBufferToBase64Url(assertion.response.clientDataJSON),
+                authenticatorData: arrayBufferToBase64Url(assertion.response.authenticatorData),
+                signature: arrayBufferToBase64Url(assertion.response.signature),
+                userHandle: assertion.response.userHandle
+                    ? arrayBufferToBase64Url(assertion.response.userHandle)
+                    : null,
+            },
+        };
+
+        const res = await axios.post("/webauthn/login", {
+            email: data.email,
+            credential,
+        });
+
+        if (res.data?.success) {
+            window.location.href = "/faculty/dashboard";
+        } else {
+            alert(res.data?.message || "Login failed.");
+        }
+    } catch (err) {
+        console.error(err);
+        // Surface backend errors clearly
+        const msg = err.response?.data?.message || err.response?.data?.error || err.message;
+        alert(`WebAuthn login failed: ${msg}`);
     }
-
-    const allowCreds = Array.isArray(options.allowCredentials) ? options.allowCredentials : [];
-    if (allowCreds.length === 0) {
-      alert("No registered WebAuthn device found for this user. Please register a device first.");
-      return;
-    }
-
-    // Decode fields
-    options.challenge = base64urlToUint8Array(options.challenge);
-    options.allowCredentials = allowCreds.map((cred) => ({
-      ...cred,
-      id: base64urlToUint8Array(cred.id),
-    }));
-
-    // (Optional) you can keep these, but they aren't required by WebAuthn for get()
-    const publicKeyOptions = {
-      ...options,
-      // authenticatorSelection only applies to `create()`, not `get()`.
-      // Keeping it here doesn't break, but it's not necessary.
-      userVerification: "preferred",
-    };
-
-    const assertion = await navigator.credentials.get({ publicKey: publicKeyOptions });
-
-    const credential = {
-      id: assertion.id,
-      rawId: arrayBufferToBase64Url(assertion.rawId),
-      type: assertion.type,
-      response: {
-        clientDataJSON: arrayBufferToBase64Url(assertion.response.clientDataJSON),
-        authenticatorData: arrayBufferToBase64Url(assertion.response.authenticatorData),
-        signature: arrayBufferToBase64Url(assertion.response.signature),
-        userHandle: assertion.response.userHandle
-          ? arrayBufferToBase64Url(assertion.response.userHandle)
-          : null,
-      },
-    };
-
-    const res = await axios.post("/webauthn/login", {
-      email: data.email,
-      credential,
-    });
-
-    if (res.data?.success) {
-      window.location.href = "/faculty/dashboard";
-    } else {
-      alert(res.data?.message || "Login failed.");
-    }
-  } catch (err) {
-    console.error(err);
-    // Surface backend errors clearly
-    const msg = err.response?.data?.message || err.response?.data?.error || err.message;
-    alert(`WebAuthn login failed: ${msg}`);
-  }
 };
+
+// ... (rest of the code) ...
 
 
 
