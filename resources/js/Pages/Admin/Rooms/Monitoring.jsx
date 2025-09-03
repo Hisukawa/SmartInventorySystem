@@ -107,7 +107,7 @@ export default function AdminDashboard({ children }) {
                                     </p>
                                     {room.last_scanned_by && (
                                         <p className="text-sm mt-1">
-                                             Used By: {room.last_scanned_by}
+                                            Used By: {room.last_scanned_by}
                                         </p>
                                     )}
                                     {room.last_scanned_at && (
