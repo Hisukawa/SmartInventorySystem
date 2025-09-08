@@ -85,38 +85,65 @@ export default function AdminDashboard({ children }) {
                                     No rooms found.
                                 </p>
                             )}
-                            {rooms.map((room) => (
-                                <div
-                                    key={room.id}
-                                    className={`p-4 rounded-lg shadow-md cursor-pointer transition-colors duration-300 ${
-                                        room.is_active
-                                            ? "bg-green-500 text-white"
-                                            : "bg-gray-300 text-gray-700"
-                                    }`}
-                                >
-                                    <h2 className="text-lg font-semibold">
-                                        {room.name}
-                                    </h2>
-                                    <p>
-                                        Status:{" "}
-                                        {room.is_active ? "Active" : "Inactive"}
-                                    </p>
-                                    {room.last_scanned_by && (
-                                        <p className="text-sm mt-1">
-                                            Used By: {room.last_scanned_by}
-                                        </p>
-                                    )}
-                                    {room.last_scanned_at && (
-                                        <p className="text-sm mt-1">
-                                            Scanned at:{" "}
-                                            {new Date(
-                                                room.last_scanned_at
-                                            ).toLocaleString()}
-                                        </p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                  {rooms.map((room) => (
+                              <div
+                                  key={room.id}
+                                  className="p-4 rounded-lg shadow-md cursor-pointer transition-colors duration-300 bg-[#0B6623] border-2 text-white"
+                                  // Dark green card background (like logo), gold border
+                              >
+                                  {/* Faculty Photo */}
+                                  {room.last_scanned_user?.photo ? (
+                                      <div className="flex justify-center mb-3">
+                                          <img
+                                              src={room.last_scanned_user.photo}
+                                              alt={room.last_scanned_user.name}
+                                              className="w-40 h-40 rounded-full object-cover border-2 border-[#FFD700]" 
+                                              // Larger photo (40x40), gold border
+                                          />
+                                      </div>
+                                  ) : (
+                                      <div className="flex justify-center mb-3">
+                                          <div className="w-40 h-40 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 border-2 border-[#FFD700]">
+                                              No Photo
+                                          </div>
+                                      </div>
+                                  )}
+
+                                  {/* Room Name */}
+                                  <h2 className="text-center text-lg font-semibold mb-1 text-[#FFD700]">
+                                      {room.name}
+                                  </h2>
+
+                                  {/* Status */}
+                                  <p className="text-center text-sm">
+                                      Status:{" "}
+                                      <span
+                                          className={`font-semibold ${
+                                              room.is_active ? "text-[#FFD700]" : "text-[#FF4500]"
+                                          }`}
+                                      >
+                                          {room.is_active ? "Active" : "Inactive"}
+                                      </span>
+                                  </p>
+
+                                  {/* Faculty Name */}
+                                  {room.last_scanned_user && (
+                                      <p className="text-center text-sm mt-2">
+                                          Used By: {room.last_scanned_user.name} ({room.last_scanned_user.role})
+                                      </p>
+                                  )}
+
+                                  {/* Scan Time */}
+                                  {room.last_scanned_at && (
+                                      <p className="text-center text-xs text-gray-300 mt-1">
+                                          Scanned at: {new Date(room.last_scanned_at).toLocaleString()}
+                                      </p>
+                                  )}
+                              </div>
+                          ))}
+
+
+                           </div>
 
                         {/* Pagination */}
                         <div className="flex justify-center mt-6 space-x-2">
@@ -126,12 +153,12 @@ export default function AdminDashboard({ children }) {
                                         Math.max(prev - 1, 1)
                                     )
                                 }
-                                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                                className="px-4 py-2 bg-[#FFD700] text-[#006400] rounded hover:bg-[#DAA520]" // Yellow button, green text
                                 disabled={currentPage === 1}
                             >
                                 Prev
                             </button>
-                            <span className="px-4 py-2">
+                            <span className="px-4 py-2 text-white">
                                 Page {currentPage} of {totalPages}
                             </span>
                             <button
@@ -140,7 +167,7 @@ export default function AdminDashboard({ children }) {
                                         Math.min(prev + 1, totalPages)
                                     )
                                 }
-                                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                                className="px-4 py-2 bg-[#FFD700] text-[#006400] rounded hover:bg-[#DAA520]" // Yellow button, green text
                                 disabled={currentPage === totalPages}
                             >
                                 Next

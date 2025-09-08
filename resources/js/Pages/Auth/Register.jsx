@@ -30,28 +30,41 @@ export default function Register() {
         email: "",
         password: "",
         password_confirmation: "",
-        role: "guest", // default role
+        role: "guest",
+        photo: null,
     });
+const submit = (e) => {
+    e.preventDefault();
 
-    const submit = (e) => {
-        e.preventDefault();
-        post(route("register"), {
-            onFinish: () => reset("password", "password_confirmation"),
-        });
-    };
+  post(route("admin.users.store"), {
+    forceFormData: true,
+    onFinish: () => reset("password", "password_confirmation"),
+});
+    console.log("Submitting:", data);
+
+};
+
 
     // 🔹 WebAuthn Registration
 const registerWithDevice = async () => {
     try {
         // Step 1: Create user in DB first
-        const userRes = await axios.post("/register", {
-            name: data.name,
-            email: data.email,
-            password: data.password,
-            password_confirmation: data.password_confirmation,
-            role: data.role,
-        });
+         const formData = new FormData();
+        formData.append("name", data.name);
+        formData.append("email", data.email);
+        formData.append("password", data.password);
+        formData.append("password_confirmation", data.password_confirmation);
+        formData.append("role", data.role);
+        if (data.photo) {
+            formData.append("photo", data.photo); // Add photo here too
+        }
 
+        // Step 1: Create user in DB first
+        const userRes = await axios.post("/register", formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data' // Important for axios with FormData
+            }
+        });
         // Step 2: get challenge/options
         const { data: options } = await axios.post("/webauthn/register/options", {
             email: data.email, // so backend knows which user
@@ -305,6 +318,23 @@ const registerWithDevice = async () => {
                                                     {errors.role}
                                                 </p>
                                             )}
+
+
+                                            {/* Photo */}
+                                        <div className="space-y-1">
+                                            <Label htmlFor="photo">Profile Photo</Label>
+                                            <Input
+                                                id="photo"
+                                                type="file"
+                                                name="photo"
+                                                accept="image/*"
+                                                onChange={(e) => setData("photo", e.target.files[0])}
+                                            />
+                                            {errors.photo && (
+                                                <p className="text-sm text-red-500">{errors.photo}</p>
+                                            )}
+                                        </div>
+
                                         </div>
 
                                         {/* Submit */}

@@ -21,24 +21,35 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'role' => 'required|string'
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:8|confirmed',
+        'role' => 'required|string',
+        'photo' => 'nullable|image|max:2048',
+    ]);
 
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role
-        ]);
+    $photoPath = null;
 
-        return redirect()->back();
+    if ($request->hasFile('photo')) {
+        // Store file inside storage/app/public/photos
+        $photoPath = $request->file('photo')->store('photos', 'public');
     }
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => bcrypt($request->password),
+        'role' => $request->role,
+        'photo' => $photoPath, // ✅ Now we save it to DB
+    ]);
+
+    return redirect()->route('admin.users.index');
+}
+
+
 
     public function edit(User $user)
     {
@@ -54,6 +65,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|confirmed|min:8',
             'role' => 'required|string|in:admin,faculty,technician,guest',
+            
         ]);
 
         if ($validated['password']) {

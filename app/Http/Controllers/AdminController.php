@@ -28,6 +28,7 @@ class AdminController extends Controller
             'totalPeripherals' => Peripheral::count(),
             // ✅ Count all equipments except system units & peripherals
             'totalEquipments'  => Equipment::count(),
+            'occupiedRooms' => Room::where('is_active')->count(),
         ]);
     }
 
