@@ -15,19 +15,19 @@ import {
 } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
-
-import { Bell } from "lucide-react";
+import { Bell, HardDrive, Monitor, Mouse, Computer } from "lucide-react"; // Import new icons
 import { Link } from "@inertiajs/react";
+import { useSpring, animated } from '@react-spring/web'; // For number animation
 
 export default function AdminDashboard() {
     const [dashboardStats, setDashboardStats] = useState({
         totalRooms: 0,
         totalSystemUnits: 0,
         totalPeripherals: 0,
-        totalEquipments: 0, // ✅ renamed for clarity
+        totalEquipments: 0,
+        occupiedRooms: 0,
     });
 
-    // Fetch dashboard stats
     const fetchDashboardStats = async () => {
         try {
             const res = await axios.get(`/admin/dashboard-stats`);
@@ -39,11 +39,9 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         fetchDashboardStats();
-
         const interval = setInterval(() => {
             fetchDashboardStats();
         }, 5000);
-
         return () => clearInterval(interval);
     }, []);
 
@@ -55,6 +53,52 @@ export default function AdminDashboard() {
             setNotifications(res.data);
         });
     }, []);
+
+    // Animation for numbers
+    const animatedTotalRooms = useSpring({ totalRooms: dashboardStats.totalRooms, from: { totalRooms: 0 } });
+    const animatedTotalSystemUnits = useSpring({ totalSystemUnits: dashboardStats.totalSystemUnits, from: { totalSystemUnits: 0 } });
+    const animatedTotalPeripherals = useSpring({ totalPeripherals: dashboardStats.totalPeripherals, from: { totalPeripherals: 0 } });
+    const animatedTotalEquipments = useSpring({ totalEquipments: dashboardStats.totalEquipments, from: { totalEquipments: 0 } });
+    const animatedOccupiedRooms = useSpring({
+    occupiedRooms: dashboardStats.occupiedRooms,
+    from: { occupiedRooms: 0 },
+});
+
+    // Card data for easier rendering and linking
+    const cardData = [
+        {
+            title: "Total Rooms",
+            value: animatedTotalRooms.totalRooms,
+            icon: HardDrive, // Changed to a more appropriate icon for rooms
+            link: "/admin/rooms",
+        },
+        {
+            title: "Total System Units",
+            value: animatedTotalSystemUnits.totalSystemUnits,
+            icon: Computer,
+            link: "/admin/system-units",
+        },
+        {
+            title: "Total Peripherals",
+            value: animatedTotalPeripherals.totalPeripherals,
+            icon: Mouse, // Example icon for peripherals
+            link: "/admin/peripherals",
+        },
+        {
+            title: "Total Room Equipments",
+            value: animatedTotalEquipments.totalEquipments,
+            icon: Monitor, // Example icon for general equipment
+            link: "/admin/equipments",
+        },
+        {
+            title: 'Occupied Rooms',
+            value: animatedOccupiedRooms.occupiedRooms,
+            icon: HardDrive,
+            link: "/admin/monitoring",
+            
+
+        },
+    ];
 
     return (
         <SidebarProvider>
@@ -76,10 +120,7 @@ export default function AdminDashboard() {
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
-                    {/* Spacer to push bell to the right */}
                     <div className="flex-1" />
-
-                    {/* Bell + Dropdown */}
                     <div className="relative">
                         <button
                             onClick={() => setOpen(!open)}
@@ -92,8 +133,6 @@ export default function AdminDashboard() {
                                 </span>
                             )}
                         </button>
-
-                        {/* Dropdown */}
                         {open && (
                             <div className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg overflow-hidden z-50">
                                 <div className="p-3 border-b font-semibold">
@@ -143,54 +182,27 @@ export default function AdminDashboard() {
 
                 {/* Content */}
                 <main className="w-full px-6 py-6 space-y-6">
-                    {/* Title */}
-                    <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-
-                    {/* Stat Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Total Rooms</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-3xl font-bold">
-                                    {dashboardStats.totalRooms}
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Total System Units</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-3xl font-bold">
-                                    {dashboardStats.totalSystemUnits}
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Total Peripherals</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-3xl font-bold">
-                                    {dashboardStats.totalPeripherals}
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Total Room Equipments</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-3xl font-bold">
-                                    {dashboardStats.totalEquipments}
-                                </p>
-                            </CardContent>
-                        </Card>
+                    <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">
+                        Admin Dashboard
+                    </h1>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {cardData.map((card, index) => (
+                            <Link key={index} href={card.link} className="block">
+                                <Card className="hover:shadow-lg hover:border-blue-300 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <CardTitle className="text-lg font-medium text-gray-700 flex items-center gap-2">
+                                            <card.icon className="h-5 w-5 text-blue-600" />
+                                            {card.title}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <animated.p className="text-4xl font-extrabold text-gray-900">
+                                            {card.value.to((val) => Math.floor(val))}
+                                        </animated.p>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
                     </div>
                 </main>
             </SidebarInset>

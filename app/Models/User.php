@@ -20,6 +20,7 @@ class User extends Authenticatable
         'password',
         'role',
         'active_room_id',
+        'photo',
 
     ];
 

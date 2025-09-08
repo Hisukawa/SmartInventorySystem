@@ -25,7 +25,8 @@ export default function ViewPeripheral({ peripheral }) {
 
     // ✅ QR Code value now uses peripheral_code instead of qr_code_path
     const handleQRCodeClick = (peripheral) => {
-        const qrValue = `${window.location.origin}/peripherals/${peripheral.peripheral_code}`;
+    const qrValue = route("peripherals.public.show", peripheral.peripheral_code);
+
         setSelectedQR(qrValue);
         setSelectedRoomNumber(peripheral.room?.room_number || "N/A");
         setCopied(false);

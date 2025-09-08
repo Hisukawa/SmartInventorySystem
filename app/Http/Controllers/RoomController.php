@@ -253,23 +253,27 @@ $equipments = Equipment::with('room') // eager load room relation
     $perPage = $request->input('per_page', 10);
     $page    = $request->input('page', 1);
 
-    $rooms = Room::with('lastScannedUser') //  load related user
-        ->orderBy('id')
-        ->paginate($perPage, ['*'], 'page', $page)
-        ->through(fn ($room) => [
-            'id' => $room->id,
-            'name' => 'Room ' . $room->room_number,
-            'is_active' => (bool)$room->is_active,
-            'last_scanned_by' => $room->is_active && $room->lastScannedUser
-                ? $room->lastScannedUser->name // 👈 show faculty name
-                : null,
-            'role' => $room->is_active && $room->lastScannedUser
-                ? $room->lastScannedUser->role // 👈 show faculty role
-                : null,
-            'last_scanned_at' => $room->is_active
-                ? $room->last_scanned_at
-                : null,
-        ]);
+ $rooms = Room::with('lastScannedUser') // load related user
+    ->orderBy('id')
+    ->paginate($perPage, ['*'], 'page', $page)
+    ->through(fn ($room) => [
+        'id' => $room->id,
+        'name' => 'Room ' . $room->room_number,
+        'is_active' => (bool)$room->is_active,
+        'last_scanned_user' => $room->is_active && $room->lastScannedUser
+            ? [
+                'name' => $room->lastScannedUser->name,
+                'role' => $room->lastScannedUser->role,
+                'photo' => $room->lastScannedUser->photo
+                ? asset('storage/' . $room->lastScannedUser->photo)
+                :null, // ✅ include photo
+            ]
+            : null,
+        'last_scanned_at' => $room->is_active
+            ? $room->last_scanned_at
+            : null,
+    ]);
+
 
     return response()->json([
         'data' => $rooms->items(),
