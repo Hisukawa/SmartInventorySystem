@@ -90,8 +90,8 @@ class SystemUnitController extends Controller
 
         // 🔹 FIXED: Ensure unit_code is always in "UNIT-XX" format
         $unitCode = strtoupper($validated['unit_code']);
-        if (!str_starts_with($unitCode, 'UNIT-')) {
-            $unitCode = 'UNIT-' . $unitCode;
+        if (!str_starts_with($unitCode, 'PC-')) {
+            $unitCode = 'PC-' . $unitCode;
         }
         $validated['unit_code'] = $unitCode;
 
@@ -134,8 +134,8 @@ class SystemUnitController extends Controller
 
         // 🔹 FIXED: Apply the same UNIT-XX normalization as store()
         $unitCode = strtoupper($validated['unit_code']);
-        if (!str_starts_with($unitCode, 'UNIT-')) {
-            $unitCode = 'UNIT-' . $unitCode;
+        if (!str_starts_with($unitCode, 'PC-')) {
+            $unitCode = 'PC-' . $unitCode;
         }
         $validated['unit_code'] = $unitCode;
 

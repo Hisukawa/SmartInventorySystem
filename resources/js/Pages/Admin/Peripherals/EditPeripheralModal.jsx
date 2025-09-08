@@ -20,20 +20,16 @@ const CONDITION_OPTIONS = [
 
 export default function EditPeripheralModal({
     peripheral,
-    rooms = [], // fallback if undefined
-    units = [], // fallback if undefined
+    rooms = [],
+    units = [],
     onClose,
 }) {
-    // for debugging
-    // console.log("Rooms from Inertia:", rooms);
-    // console.log("Units from Inertia:", units);
-
     const { data, setData, put, processing, errors } = useForm({
         type: peripheral?.type || "",
         serial_number: peripheral?.serial_number || "",
         condition: peripheral?.condition || "",
         room_id: peripheral?.room_id || "",
-        unit_code: peripheral?.unit_code || "",
+        unit_id: peripheral?.unit_id || "", // <-- use unit_id
     });
 
     const handleSubmit = (e) => {
@@ -145,8 +141,7 @@ export default function EditPeripheralModal({
                             {rooms.length > 0 ? (
                                 rooms.map((room) => (
                                     <option key={room.id} value={room.id}>
-                                        {room.room_number}{" "}
-                                        {/* Display room number */}
+                                        {room.room_number}
                                     </option>
                                 ))
                             ) : (
@@ -160,35 +155,29 @@ export default function EditPeripheralModal({
                         )}
                     </div>
 
-                    {/* Unit Code */}
+                    {/* Unit */}
                     <div>
-                        <Label htmlFor="unit_code">Unit Code</Label>
+                        <Label htmlFor="unit_id">Unit</Label>
                         <select
-                            id="unit_code"
+                            id="unit_id"
                             className="w-full border rounded-md p-2"
-                            value={data.unit_code}
-                            onChange={(e) =>
-                                setData("unit_code", e.target.value)
-                            }
+                            value={data.unit_id}
+                            onChange={(e) => setData("unit_id", e.target.value)}
                         >
                             <option value="">Select Unit</option>
                             {units.length > 0 ? (
                                 units.map((unit) => (
-                                    <option
-                                        key={unit.unit_code}
-                                        value={unit.unit_code}
-                                    >
-                                        {unit.unit_code}{" "}
-                                        {/* Display unit code */}
+                                    <option key={unit.id} value={unit.id}>
+                                        {unit.unit_code}
                                     </option>
                                 ))
                             ) : (
                                 <option disabled>No units available</option>
                             )}
                         </select>
-                        {errors.unit_code && (
+                        {errors.unit_id && (
                             <p className="text-sm text-red-500">
-                                {errors.unit_code}
+                                {errors.unit_id}
                             </p>
                         )}
                     </div>

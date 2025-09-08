@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, router } from "@inertiajs/react"; // ✅ added router
+import { Head } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import {
     SidebarProvider,
@@ -23,15 +23,14 @@ export default function ViewPeripheral({ peripheral }) {
     const [selectedRoomNumber, setSelectedRoomNumber] = useState("");
     const [copied, setCopied] = useState(false);
 
-    // ✅ QR Code value now uses peripheral_code instead of qr_code_path
     const handleQRCodeClick = (peripheral) => {
-    const qrValue = route("peripherals.public.show", peripheral.peripheral_code);
-
+        const qrValue = route(
+            "peripherals.public.show",
+            peripheral.peripheral_code
+        );
         setSelectedQR(qrValue);
         setSelectedRoomNumber(peripheral.room?.room_number || "N/A");
         setCopied(false);
-
-     
     };
 
     const handleCopy = async () => {
@@ -42,7 +41,6 @@ export default function ViewPeripheral({ peripheral }) {
         }
     };
 
-    // Download QR as PNG
     const handleDownload = () => {
         const svg = document.getElementById("qr-download");
         if (!svg) return;
@@ -68,14 +66,11 @@ export default function ViewPeripheral({ peripheral }) {
                 .toDataURL("image/png")
                 .replace("image/png", "image/octet-stream");
 
-            const link = document.createElement("a");
-
-            // Use room number, unit code, and peripheral code in filename
             const roomNumber = selectedRoomNumber || "N/A";
-            const unitCode = peripheral.unit_code || "N/A";
+            const unitCode = peripheral.unit?.unit_code || "N/A";
             const peripheralCode = peripheral.peripheral_code || "N/A";
+            const link = document.createElement("a");
             link.download = `ROOM-${roomNumber}_${unitCode}_${peripheralCode}-QR.png`;
-
             link.href = imgURI;
             document.body.appendChild(link);
             link.click();
@@ -113,7 +108,6 @@ export default function ViewPeripheral({ peripheral }) {
                     </Breadcrumb>
                 </header>
 
-                {/* Main Content */}
                 <Head title={`View ${peripheral.peripheral_code}`} />
                 <main className="p-6">
                     <h1 className="text-2xl font-bold mb-4">
@@ -142,7 +136,10 @@ export default function ViewPeripheral({ peripheral }) {
                                 : "N/A"}
                         </div>
                         <div>
-                            <strong>Unit Code:</strong> {peripheral.unit_code}
+                            <strong>Unit Code:</strong>{" "}
+                            {peripheral.unit
+                                ? peripheral.unit.unit_code
+                                : "N/A"}
                         </div>
 
                         {/* Clickable QR Code */}

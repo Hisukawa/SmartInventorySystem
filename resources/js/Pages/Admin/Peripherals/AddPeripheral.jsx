@@ -33,53 +33,35 @@ export default function AddPeripheral({
         model: "",
         serial_number: "",
         condition: "Working",
-        room_number: "",
-        unit_code: "",
+        room_id: "", // <-- send room_id to backend
+        unit_id: "", // <-- send unit_id to backend
     });
 
     const [filteredUnits, setFilteredUnits] = useState([]);
 
-    // Update filtered units whenever room_number changes
+    // Update filtered units whenever room_id changes
     useEffect(() => {
-        if (data.room_number) {
-            const matchedRoom = existingRooms.find(
-                (room) => String(room.room_number) === String(data.room_number)
+        if (data.room_id) {
+            // filter units that belong to the selected room
+            const unitsForRoom = existingUnits.filter(
+                (unit) => String(unit.room_id) === String(data.room_id)
             );
+            setFilteredUnits(unitsForRoom);
 
-            if (matchedRoom) {
-                const unitsForRoom = existingUnits
-                    .filter(
-                        (unit) =>
-                            String(unit.room_id) === String(matchedRoom.id)
-                    )
-                    .map((unit) => unit.unit_code);
-
-                setFilteredUnits(unitsForRoom);
-
-                if (!unitsForRoom.includes(data.unit_code)) {
-                    setData("unit_code", "");
-                }
-            } else {
-                setFilteredUnits([]);
-                setData("unit_code", "");
+            // if currently selected unit is not in the new filtered list, reset it
+            if (!unitsForRoom.find((u) => u.id === data.unit_id)) {
+                setData("unit_id", "");
             }
         } else {
             setFilteredUnits([]);
-            setData("unit_code", "");
+            setData("unit_id", "");
         }
-    }, [data.room_number, existingRooms, existingUnits]);
+    }, [data.room_id, existingUnits]);
 
     function handleSubmit(e) {
         e.preventDefault();
-        console.log("Submitting:", data);
         post("/admin/peripherals");
     }
-
-    // DEBUG LOGGING
-    console.log("Rooms:", existingRooms);
-    console.log("Units:", existingUnits);
-    console.log("Selected Room:", data.room_number);
-    console.log("Filtered Units:", filteredUnits);
 
     return (
         <SidebarProvider>
@@ -92,20 +74,14 @@ export default function AddPeripheral({
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="#" aria-current="page">
-                                    Assets
-                                </BreadcrumbLink>
+                                <BreadcrumbLink href="#">Assets</BreadcrumbLink>
                                 <BreadcrumbSeparator />
-                                <BreadcrumbLink
-                                    href="/admin/peripherals"
-                                    aria-current="page"
-                                >
+                                <BreadcrumbLink href="/admin/peripherals">
                                     Peripherals
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
                                     href="/admin/peripherals/create"
-                                    aria-current="page"
                                     className="font-semibold text-foreground"
                                 >
                                     Add Peripheral
@@ -114,10 +90,12 @@ export default function AddPeripheral({
                         </BreadcrumbList>
                     </Breadcrumb>
                 </header>
+
                 <main className="p-6">
                     <h1 className="text-2xl font-bold mb-5 text-center">
-                        Add Peripherals
+                        Add Peripheral
                     </h1>
+
                     <Card className="max-w-xl mx-auto">
                         <CardContent>
                             <form
@@ -154,18 +132,34 @@ export default function AddPeripheral({
                                         id="room_number"
                                         list="roomOptions"
                                         value={
-                                            data.room_number
-                                                ? `ROOM ${data.room_number}`
+                                            data.room_id
+                                                ? `ROOM ${
+                                                      existingRooms.find(
+                                                          (r) =>
+                                                              r.id ===
+                                                              data.room_id
+                                                      )?.room_number
+                                                  }`
                                                 : ""
                                         }
                                         onChange={(e) => {
                                             const val = e.target.value;
+                                            // extract number if it starts with "ROOM "
                                             const roomNum = val.startsWith(
                                                 "ROOM "
                                             )
                                                 ? val.slice(5)
                                                 : val;
-                                            setData("room_number", roomNum);
+                                            // find room_id by room_number
+                                            const room = existingRooms.find(
+                                                (r) =>
+                                                    String(r.room_number) ===
+                                                    roomNum
+                                            );
+                                            setData(
+                                                "room_id",
+                                                room ? room.id : ""
+                                            );
                                         }}
                                         placeholder="Select or type room"
                                         className="w-full border rounded px-2 py-1"
@@ -178,9 +172,9 @@ export default function AddPeripheral({
                                             />
                                         ))}
                                     </datalist>
-                                    {errors.room_number && (
+                                    {errors.room_id && (
                                         <div className="text-red-500 text-sm">
-                                            {errors.room_number}
+                                            {errors.room_id}
                                         </div>
                                     )}
                                 </div>
@@ -190,21 +184,39 @@ export default function AddPeripheral({
                                     <Label>Unit Code</Label>
                                     <input
                                         list="unitOptions"
-                                        value={data.unit_code}
-                                        onChange={(e) =>
-                                            setData("unit_code", e.target.value)
+                                        value={
+                                            data.unit_id
+                                                ? filteredUnits.find(
+                                                      (u) =>
+                                                          u.id === data.unit_id
+                                                  )?.unit_code || ""
+                                                : ""
                                         }
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            const unit = filteredUnits.find(
+                                                (u) => u.unit_code === val
+                                            );
+                                            setData(
+                                                "unit_id",
+                                                unit ? unit.id : ""
+                                            ); // store the id, not the code
+                                        }}
                                         placeholder="Select or type unit code"
                                         className="w-full border rounded px-2 py-1"
+                                        disabled={!data.room_id}
                                     />
                                     <datalist id="unitOptions">
                                         {filteredUnits.map((unit) => (
-                                            <option key={unit} value={unit} />
+                                            <option
+                                                key={unit.id}
+                                                value={unit.unit_code}
+                                            />
                                         ))}
                                     </datalist>
-                                    {errors.unit_code && (
+                                    {errors.unit_id && (
                                         <div className="text-red-500 text-sm">
-                                            {errors.unit_code}
+                                            {errors.unit_id}
                                         </div>
                                     )}
                                 </div>
@@ -300,7 +312,7 @@ export default function AddPeripheral({
                                     )}
                                 </div>
 
-                                {/* Submit button */}
+                                {/* Submit */}
                                 <div className="flex justify-center">
                                     <Button type="submit" disabled={processing}>
                                         Submit

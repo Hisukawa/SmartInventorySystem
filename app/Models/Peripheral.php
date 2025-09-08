@@ -15,7 +15,7 @@ class Peripheral extends Model
         'serial_number',
         'condition',
         'room_id',  // if applicable
-        'unit_code',
+        'unit_id',
         'qr_code_path',
     ];
 
@@ -24,12 +24,12 @@ class Peripheral extends Model
         return $this->belongsTo(Room::class);
     }
 
-     public function unit()
+    public function unit()
     {
-        return $this->belongsTo(SystemUnit::class, 'unit_code', 'unit_code');
+        return $this->belongsTo(SystemUnit::class);
     }
-    
-     public static function availableConditions(){
+
+    public static function availableConditions(){
 
         return static::select('condition')->distinct()->pluck('condition');
     }

@@ -8,47 +8,46 @@ use App\Models\Room;
 use App\Models\SystemUnit;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+
 class PeripheralController extends Controller
 {
-  public function index(Request $request)
-{
-    $peripherals = Peripheral::with('room')
-        ->when($request->search, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('peripheral_code', 'like', "%{$search}%")
-                  ->orWhere('type', 'like', "%{$search}%")
-                  ->orWhere('serial_number', 'like', "%{$search}%")
-                  ->orWhere('condition', 'like', "%{$search}%")
-                  ->orWhereHas('room', fn($qr) => $qr->where('room_number', 'like', "%{$search}%"))
-                  ->orWhere('unit_code', 'like', "%{$search}%");
-            });
-        })
-        ->when($request->filled('type'), fn($q) => $q->where('type', $request->type))
-        ->when($request->filled('serial_number'), fn($q) => $q->where('serial_number', $request->serial_number))
-        ->when($request->filled('condition'), fn($q) => $q->where('condition', $request->condition))
-        ->when($request->filled('room_id'), fn($q) => $q->where('room_id', $request->room_id))
-        ->when($request->filled('unit_code'), fn($q) => $q->where('unit_code', $request->unit_code))
-        ->get();
+    public function index(Request $request)
+    {
+        $peripherals = Peripheral::with(['room', 'unit'])
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('peripheral_code', 'like', "%{$search}%")
+                        ->orWhere('type', 'like', "%{$search}%")
+                        ->orWhere('serial_number', 'like', "%{$search}%")
+                        ->orWhere('condition', 'like', "%{$search}%")
+                        ->orWhereHas('room', fn($qr) => $qr->where('room_number', 'like', "%{$search}%"))
+                        ->orWhere('unit_id', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->filled('type'), fn($q) => $q->where('type', $request->type))
+            ->when($request->filled('serial_number'), fn($q) => $q->where('serial_number', $request->serial_number))
+            ->when($request->filled('condition'), fn($q) => $q->where('condition', $request->condition))
+            ->when($request->filled('room_id'), fn($q) => $q->where('room_id', $request->room_id))
+            ->when($request->filled('unit_id'), fn($q) => $q->where('unit_id', $request->unit_id))
+            ->get();
 
-    $rooms = Room::select('id', 'room_number')->get();
-    $units = SystemUnit::select('id', 'unit_code')->get();
+        $rooms = Room::select('id', 'room_number')->get();
+        $units = SystemUnit::select('id', 'unit_code as unit_id', 'room_id')->get();
 
-    return Inertia::render('Admin/PeripheralsPage', [
-        'peripherals'    => $peripherals,
-        'search'         => $request->search,
-        'existingRooms'  => $rooms,
-        'existingUnits'  => $units,
-        'filters'        => $request->only(['type','serial_number','condition','room_id','unit_code']),
-    ]);
-}
-
+        return Inertia::render('Admin/PeripheralsPage', [
+            'peripherals'    => $peripherals,
+            'search'         => $request->search,
+            'existingRooms'  => $rooms,
+            'existingUnits'  => $units,
+            'filters'        => $request->only(['type', 'serial_number', 'condition', 'room_id', 'unit_id']),
+        ]);
+    }
 
     public function create()
     {
         $rooms = Room::select('id', 'room_number')->get();
         $units = SystemUnit::select('id', 'unit_code', 'room_id')->get();
 
-        // For simplicity, brands and models can come from Peripheral distinct columns
         $brands = Peripheral::distinct()->pluck('brand')->filter()->values()->all();
         $models = Peripheral::distinct()->pluck('model')->filter()->values()->all();
 
@@ -68,22 +67,21 @@ class PeripheralController extends Controller
             'model'         => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
             'condition'     => 'required|string|max:255',
-            'room_number'   => 'required|string|max:255',
-            'unit_code'     => 'required|string|max:255',
+            'room_id'       => 'required|exists:rooms,id',
+            'unit_id'       => 'required|exists:system_units,id',
         ]);
 
-        // Find or create the room by room_number
-        $room = Room::firstOrCreate(['room_number' => $validated['room_number']]);
+        $room = Room::findOrFail($validated['room_id']);
 
         // Restriction: No duplicate peripheral type in the same unit of the same room
         $existingPeripheral = Peripheral::where('room_id', $room->id)
-            ->where('unit_code', $validated['unit_code'])
+            ->where('unit_id', $validated['unit_id'])
             ->where('type', $validated['type'])
             ->first();
 
         if ($existingPeripheral) {
             return redirect()->back()->withErrors([
-                'type' => "A {$validated['type']} already exists in Room {$validated['room_number']} Unit {$validated['unit_code']}."
+                'type' => "A {$validated['type']} already exists in Room {$room->room_number} Unit {$validated['unit_id']}."
             ])->withInput();
         }
 
@@ -98,36 +96,31 @@ class PeripheralController extends Controller
 
         $peripheralCode = 'PRF-' . $newNumber;
 
-        // Generate QR code path in the hierarchical format and convert to lowercase
-        $qrCodePath = strtolower("isu-ilagan/ict-department/room-{$validated['room_number']}/{$validated['unit_code']}/{$peripheralCode}");
+        // QR code path in hierarchical format
+        $qrCodePath = strtolower("isu-ilagan/ict-department/room-{$room->room_number}/{$validated['unit_id']}/{$peripheralCode}");
 
-        // Create the peripheral
         Peripheral::create([
-            'type'           => $validated['type'],
-            'brand'          => $validated['brand'] ?? null,
-            'model'          => $validated['model'] ?? null,
-            'serial_number'  => $validated['serial_number'] ?? null,
-            'condition'      => $validated['condition'],
-            'room_id'        => $room->id,
-            'room_number'    => $validated['room_number'],
-            'unit_code'      => $validated['unit_code'],
-            'peripheral_code'=> $peripheralCode,
-            'qr_code_path'   => $qrCodePath, // store hierarchical path in lowercase
+            'type'            => $validated['type'],
+            'brand'           => $validated['brand'] ?? null,
+            'model'           => $validated['model'] ?? null,
+            'serial_number'   => $validated['serial_number'] ?? null,
+            'condition'       => $validated['condition'],
+            'room_id'         => $room->id,
+            'unit_id'         => $validated['unit_id'],
+            'peripheral_code' => $peripheralCode,
+            'qr_code_path'    => $qrCodePath,
         ]);
 
         return redirect()->route('peripherals.index')->with('success', 'Peripheral added successfully.');
     }
 
-
-
     public function edit($id)
     {
-        $peripheral = Peripheral::with('room')->findOrFail($id);
+        $peripheral = Peripheral::with(['room', 'unit'])->findOrFail($id);
+
 
         $rooms = Room::select('id', 'room_number')->get();
         $units = SystemUnit::select('id', 'unit_code', 'room_id')->get();
-        // dd($rooms);
-        // dd($units);
 
         return Inertia::render('Admin/Peripherals/EditPeripheral', [
             'peripheral' => $peripheral,
@@ -147,7 +140,7 @@ class PeripheralController extends Controller
             'serial_number' => 'nullable|string|max:255',
             'condition'     => 'required|string|max:255',
             'room_id'       => 'required|exists:rooms,id',
-            'unit_code'     => 'required|string|max:255',
+            'unit_id'       => 'required|exists:system_units,id',
         ]);
 
         $peripheral->update($validated);
@@ -165,7 +158,8 @@ class PeripheralController extends Controller
     // ✅ Admin view
     public function show($id)
     {
-        $peripheral = Peripheral::with('room')->findOrFail($id);
+        $peripheral = Peripheral::with(['room', 'unit'])->findOrFail($id);
+
 
         return Inertia::render('Admin/Peripherals/ViewPeripheral', [
             'peripheral' => $peripheral
@@ -174,32 +168,28 @@ class PeripheralController extends Controller
 
     // ✅ Faculty view
     public function showPeripherals(Room $room, $peripheralId)
-{
-    $room->load(['equipments', 'systemUnits', 'peripherals']);
+    {
+        $room->load(['equipments', 'systemUnits', 'peripherals']);
+        $peripheral = Peripheral::findOrFail($peripheralId);
 
-    // Explicitly load the peripheral by ID
-    $peripheral = Peripheral::findOrFail($peripheralId);
+        return Inertia::render('Faculty/FacultyPeripheralsView', [
+            'room'        => $room,
+            'peripheral'  => $peripheral,
+            'user'        => Auth::user(),
+            'equipments'  => $room->equipments,
+            'systemUnits' => $room->systemUnits,
+            'peripherals' => $room->peripherals,
+        ]);
+    }
 
-    return Inertia::render('Faculty/FacultyPeripheralsView', [
-        'room'        => $room,
-        'peripheral'  => $peripheral, // now guaranteed to have unit_code
-        'user'        => Auth::user(),
-        'equipments'  => $room->equipments,
-        'systemUnits' => $room->systemUnits,
-        'peripherals' => $room->peripherals,
-    ]);
-}
+    public function showPeripheralsDetails($peripheral_code)
+    {
+        $peripheral = Peripheral::with(['room', 'unit'])
+            ->where('peripheral_code', $peripheral_code)
+            ->firstOrFail();
 
-
-public function showPeripheralsDetails($peripheral_code)
-{
-    $peripheral = Peripheral::with(['room', 'unit'])
-        ->where('peripheral_code', $peripheral_code)
-        ->firstOrFail();
-
-    return Inertia::render('OtherUser/PeripheralsDetails', [
-        'peripheral' => $peripheral,
-    ]);
-}
-
+        return Inertia::render('OtherUser/PeripheralsDetails', [
+            'peripheral' => $peripheral,
+        ]);
+    }
 }

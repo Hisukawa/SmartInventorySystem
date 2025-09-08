@@ -301,7 +301,17 @@ export default function PeripheralsIndex({
             confirmButtonText: "Yes, delete it!",
         }).then((result) => {
             if (result.isConfirmed) {
-                router.delete(`/admin/peripherals/${id}`);
+                router.delete(`/admin/peripherals/${id}`, {
+                    onSuccess: () => {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Deleted!",
+                            text: "Peripheral deleted successfully.",
+                            timer: 2000,
+                            showConfirmButton: false,
+                        });
+                    },
+                });
             }
         });
     }
@@ -414,7 +424,9 @@ export default function PeripheralsIndex({
                                                             : "N/A"}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {p.unit_code}
+                                                        {p.unit
+                                                            ? p.unit.unit_code
+                                                            : "N/A"}
                                                     </TableCell>
                                                     <TableCell className="space-x-2">
                                                         <Link

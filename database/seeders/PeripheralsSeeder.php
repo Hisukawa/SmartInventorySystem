@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class PeripheralsSeeder extends Seeder
 {
@@ -13,15 +12,15 @@ class PeripheralsSeeder extends Seeder
         $units = DB::table('system_units')->get();
 
         if ($units->isEmpty()) {
-            $this->command->error('No system units found! Please seed units first.');
+            $this->command->error('No system units found! Please seed system_units first.');
             return;
         }
 
         $peripheralTypes = [
-            ['type' => 'Mouse',     'brand' => 'Keytech', 'model' => 'KM-001'],
-            ['type' => 'Keyboard',  'brand' => 'A4Tech',  'model' => 'KB-001'],
-            ['type' => 'Monitor',   'brand' => 'Dell',    'model' => 'DE-001'],
-            ['type' => 'Headset',   'brand' => 'Logitech','model' => 'LH-100'],
+            ['type' => 'Mouse',     'brand' => 'Keytech',  'model' => 'KM-001'],
+            ['type' => 'Keyboard',  'brand' => 'A4Tech',   'model' => 'KB-001'],
+            ['type' => 'Monitor',   'brand' => 'Dell',     'model' => 'DE-001'],
+            ['type' => 'Headset',   'brand' => 'Logitech', 'model' => 'LH-100'],
         ];
 
         $conditions = ['Working', 'Defective', 'Needs Replacement'];
@@ -41,7 +40,7 @@ class PeripheralsSeeder extends Seeder
                     'serial_number'   => strtoupper(substr($peripheral['type'], 0, 1)) . '-' . str_pad($counter, 4, '0', STR_PAD_LEFT),
                     'condition'       => $conditions[array_rand($conditions)],
                     'room_id'         => $unit->room_id,
-                    'unit_code'       => $unit->unit_code,
+                    'unit_id'         => $unit->id,
                     'qr_code_path'    => $unit->unit_path . '/' . strtolower($peripheralCode),
                     'created_at'      => now(),
                     'updated_at'      => now(),

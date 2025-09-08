@@ -2,7 +2,7 @@ import { Head, usePage, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
 import {
     Table,
@@ -26,21 +26,51 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+import { Input } from "@/components/ui/input"; // ✅ Fix: Import Input
+import Swal from "sweetalert2"; // ✅ Fix: Import Swal for delete confirmation
+
 export default function UserManagement({ users }) {
     const { props } = usePage();
     const currentUserId = props.auth.user.id;
 
-    const handleDelete = (id) => {
-        if (confirm("Are you sure?")) {
-            router.delete(route("admin.users.destroy", id), {
-                onSuccess: () => {
-                    console.log("User deleted successfully");
-                },
-                onError: (errors) => {
-                    console.error(errors);
-                },
-            });
+    // ✅ State for search + pagination
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    // ✅ Filter users based on search input
+    const filteredUsers = useMemo(() => {
+        return users.filter(
+            (user) =>
+                user.name.toLowerCase().includes(search.toLowerCase()) ||
+                user.email.toLowerCase().includes(search.toLowerCase())
+        );
+    }, [users, search]);
+
+    // ✅ Pagination
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
+    const paginatedUsers = filteredUsers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // ✅ Handle Enter key in search
+    const handleSearchKey = (e) => {
+        if (e.key === "Enter") {
+            setCurrentPage(1);
         }
+    };
+
+    // ✅ Delete user
+    const handleDelete = (id) => {
+        router.delete(route("admin.users.destroy", id), {
+            onSuccess: () => {
+                console.log("User deleted successfully");
+            },
+            onError: (errors) => {
+                console.error(errors);
+            },
+        });
     };
 
     return (
@@ -69,83 +99,162 @@ export default function UserManagement({ users }) {
                     </Breadcrumb>
                 </header>
 
-                <main>
-                    <div className="p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h1 className="text-2xl font-bold">
-                                User Management
-                            </h1>
-                            <Button asChild>
-                                <a href={route("register")}>Register User</a>
-                            </Button>
+                <main className="w-full px-6 py-4">
+                    <h1 className="text-2xl font-semibold mb-4">
+                        User Management
+                    </h1>
+
+                    {/* Search + Add User */}
+                    <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between mb-4">
+                        <div className="flex gap-2 items-center">
+                            <Input
+                                placeholder="Search Name or Email"
+                                value={search}
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                onKeyDown={handleSearchKey}
+                                className="w-64"
+                            />
                         </div>
 
-                        <Table>
+                        <Button asChild>
+                            <a href={route("register")}>Register User</a>
+                        </Button>
+                    </div>
+
+                    {/* Table with rounded corners & clean UI */}
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <Table className="w-full">
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>#</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead>Actions</TableHead>
+                                <TableRow className="bg-gray-50">
+                                    <TableHead className="w-12 px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                                        #
+                                    </TableHead>
+                                    <TableHead className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                                        Name
+                                    </TableHead>
+                                    <TableHead className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                                        Email
+                                    </TableHead>
+                                    <TableHead className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                                        Role
+                                    </TableHead>
+                                    <TableHead className="px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide text-center">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
+
                             <TableBody>
-                                {users.map((user, index) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell>{user.name}</TableCell>
-                                        <TableCell>{user.email}</TableCell>
-                                        <TableCell>{user.role}</TableCell>
-                                        <TableCell className="space-x-2">
-                                            {user.id !== currentUserId && (
-                                                <>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        asChild
-                                                    >
-                                                        <a
-                                                            href={route(
-                                                                "admin.users.show",
-                                                                user.id
-                                                            )}
+                                {paginatedUsers.length > 0 ? (
+                                    paginatedUsers.map((user, index) => (
+                                        <TableRow
+                                            key={user.id}
+                                            className="hover:bg-gray-50 even:bg-gray-50/50 transition-colors"
+                                        >
+                                            <TableCell className="px-4 py-3 text-sm text-gray-700">
+                                                {(currentPage - 1) *
+                                                    itemsPerPage +
+                                                    index +
+                                                    1}
+                                            </TableCell>
+                                            <TableCell className="px-4 py-3 text-sm font-medium text-gray-900">
+                                                {user.name}
+                                            </TableCell>
+                                            <TableCell className="px-4 py-3 text-sm text-gray-700">
+                                                {user.email}
+                                            </TableCell>
+                                            <TableCell className="px-4 py-3 text-sm capitalize text-gray-700">
+                                                {user.role}
+                                            </TableCell>
+                                            <TableCell className="px-4 py-3 text-center">
+                                                {user.id !== currentUserId && (
+                                                    <div className="flex justify-center gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="px-3"
+                                                            asChild
                                                         >
-                                                            View
-                                                        </a>
-                                                    </Button>
-
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        asChild
-                                                    >
-                                                        <a
-                                                            href={route(
-                                                                "admin.users.edit",
-                                                                user.id
-                                                            )}
+                                                            <a
+                                                                href={route(
+                                                                    "admin.users.show",
+                                                                    user.id
+                                                                )}
+                                                            >
+                                                                View
+                                                            </a>
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="px-3"
+                                                            asChild
                                                         >
-                                                            Edit
-                                                        </a>
-                                                    </Button>
-
-                                                    <Button
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                user.id
-                                                            )
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </>
-                                            )}
+                                                            <a
+                                                                href={route(
+                                                                    "admin.users.edit",
+                                                                    user.id
+                                                                )}
+                                                            >
+                                                                Edit
+                                                            </a>
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            className="px-3"
+                                                            onClick={() => {
+                                                                Swal.fire({
+                                                                    title: `Delete ${user.name}?`,
+                                                                    text: "This action cannot be undone!",
+                                                                    icon: "warning",
+                                                                    showCancelButton: true,
+                                                                    confirmButtonColor:
+                                                                        "#d33",
+                                                                    cancelButtonColor:
+                                                                        "#3085d6",
+                                                                    confirmButtonText:
+                                                                        "Yes, delete it!",
+                                                                }).then(
+                                                                    (
+                                                                        result
+                                                                    ) => {
+                                                                        if (
+                                                                            result.isConfirmed
+                                                                        ) {
+                                                                            handleDelete(
+                                                                                user.id
+                                                                            );
+                                                                            Swal.fire(
+                                                                                "Deleted!",
+                                                                                `${user.name} has been deleted.`,
+                                                                                "success"
+                                                                            );
+                                                                        }
+                                                                    }
+                                                                );
+                                                            }}
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={5}
+                                            className="text-center py-6 px-4 text-gray-500"
+                                        >
+                                            No users found.
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )}
                             </TableBody>
                         </Table>
                     </div>
