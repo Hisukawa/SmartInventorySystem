@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
 import { Bell, HardDrive, Monitor, Mouse, Computer } from "lucide-react"; // Import new icons
 import { Link } from "@inertiajs/react";
-import { useSpring, animated } from '@react-spring/web'; // For number animation
+import { useSpring, animated } from "@react-spring/web"; // For number animation
 
 export default function AdminDashboard() {
     const [dashboardStats, setDashboardStats] = useState({
@@ -55,14 +55,26 @@ export default function AdminDashboard() {
     }, []);
 
     // Animation for numbers
-    const animatedTotalRooms = useSpring({ totalRooms: dashboardStats.totalRooms, from: { totalRooms: 0 } });
-    const animatedTotalSystemUnits = useSpring({ totalSystemUnits: dashboardStats.totalSystemUnits, from: { totalSystemUnits: 0 } });
-    const animatedTotalPeripherals = useSpring({ totalPeripherals: dashboardStats.totalPeripherals, from: { totalPeripherals: 0 } });
-    const animatedTotalEquipments = useSpring({ totalEquipments: dashboardStats.totalEquipments, from: { totalEquipments: 0 } });
+    const animatedTotalRooms = useSpring({
+        totalRooms: dashboardStats.totalRooms,
+        from: { totalRooms: 0 },
+    });
+    const animatedTotalSystemUnits = useSpring({
+        totalSystemUnits: dashboardStats.totalSystemUnits,
+        from: { totalSystemUnits: 0 },
+    });
+    const animatedTotalPeripherals = useSpring({
+        totalPeripherals: dashboardStats.totalPeripherals,
+        from: { totalPeripherals: 0 },
+    });
+    const animatedTotalEquipments = useSpring({
+        totalEquipments: dashboardStats.totalEquipments,
+        from: { totalEquipments: 0 },
+    });
     const animatedOccupiedRooms = useSpring({
-    occupiedRooms: dashboardStats.occupiedRooms,
-    from: { occupiedRooms: 0 },
-});
+        occupiedRooms: dashboardStats.occupiedRooms,
+        from: { occupiedRooms: 0 },
+    });
 
     // Card data for easier rendering and linking
     const cardData = [
@@ -91,12 +103,10 @@ export default function AdminDashboard() {
             link: "/admin/equipments",
         },
         {
-            title: 'Occupied Rooms',
+            title: "Occupied Rooms",
             value: animatedOccupiedRooms.occupiedRooms,
             icon: HardDrive,
             link: "/admin/monitoring",
-            
-
         },
     ];
 
@@ -187,7 +197,11 @@ export default function AdminDashboard() {
                     </h1>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {cardData.map((card, index) => (
-                            <Link key={index} href={card.link} className="block">
+                            <Link
+                                key={index}
+                                href={card.link}
+                                className="block"
+                            >
                                 <Card className="hover:shadow-lg hover:border-blue-300 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                         <CardTitle className="text-lg font-medium text-gray-700 flex items-center gap-2">
@@ -197,7 +211,9 @@ export default function AdminDashboard() {
                                     </CardHeader>
                                     <CardContent>
                                         <animated.p className="text-4xl font-extrabold text-gray-900">
-                                            {card.value.to((val) => Math.floor(val))}
+                                            {card.value.to((val) =>
+                                                Math.floor(val)
+                                            )}
                                         </animated.p>
                                     </CardContent>
                                 </Card>
