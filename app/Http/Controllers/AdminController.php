@@ -41,20 +41,20 @@ class AdminController extends Controller
 
     //============================================================================================
     // for checking IP address in the console delete if youre displaying it in the ui
-    public function showIp()
-    {
-        $ip = request()->ip();
-        $userAgent = request()->userAgent();
+    // public function showIp()
+    // {
+    //     $ip = request()->ip();
+    //     $userAgent = request()->userAgent();
 
-        // Use imported Log facade
-        Log::info("User IP: " . $ip);
-        Log::info("User Agent: " . $userAgent);
+    //     // Use imported Log facade
+    //     Log::info("User IP: " . $ip);
+    //     Log::info("User Agent: " . $userAgent);
 
-        return response()->json([
-            'ip' => $ip,
-            'user_agent' => $userAgent,
-        ]);
-    }
+    //     return response()->json([
+    //         'ip' => $ip,
+    //         'user_agent' => $userAgent,
+    //     ]);
+    // }
     //============================================================================================
 
 
