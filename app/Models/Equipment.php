@@ -8,7 +8,7 @@ class Equipment extends Model
 {
     protected $table = 'equipments';
 
-   protected $fillable = [
+    protected $fillable = [
         'equipment_code',
         'equipment_name',
         'type',
@@ -23,12 +23,14 @@ class Equipment extends Model
         return $this->belongsTo(Room::class, 'room_id', 'id');
     }
 
-
-
-
-
     public static function availableConditions(){
 
         return static::select('condition')->distinct()->pluck('condition');
     }
+
+    public function getRouteKeyName()
+    {
+        return 'equipment_code';
+    }
+
 }
