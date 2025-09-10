@@ -54,15 +54,17 @@ export default function AdminDashboard() {
         });
     }, []);
 
-    // for checking IP address in the console
+    //============================================================================================
+    // for checking IP address in the console delete if youre displaying it in the ui
     useEffect(() => {
-        fetch("/test-ip")
+        fetch(`${window.location.origin}/test-ip`)
             .then((res) => res.json())
             .then((data) => {
                 console.log("User IP:", data.ip);
                 console.log("User Agent:", data.user_agent);
             });
     }, []);
+    //============================================================================================
 
     // Animation for numbers
     const animatedTotalRooms = useSpring({

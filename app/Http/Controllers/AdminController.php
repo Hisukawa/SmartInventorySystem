@@ -39,7 +39,8 @@ class AdminController extends Controller
         return response()->json($rooms);
     }
 
-    // for checking IP address in the console
+    //============================================================================================
+    // for checking IP address in the console delete if youre displaying it in the ui
     public function showIp()
     {
         $ip = request()->ip();
@@ -54,6 +55,7 @@ class AdminController extends Controller
             'user_agent' => $userAgent,
         ]);
     }
+    //============================================================================================
 
 
 
