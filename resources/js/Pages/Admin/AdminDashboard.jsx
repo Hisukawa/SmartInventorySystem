@@ -56,13 +56,16 @@ export default function AdminDashboard() {
 
     //============================================================================================
     // for checking IP address in the console delete if youre displaying it in the ui
+    const [userInfo, setUserInfo] = useState({ ip: "", user_agent: "" });
     useEffect(() => {
         fetch(`${window.location.origin}/test-ip`)
             .then((res) => res.json())
-            .then((data) => {
-                console.log("User IP:", data.ip);
-                console.log("User Agent:", data.user_agent);
-            });
+
+            .then((data) => setUserInfo(data));
+        // .then((data) => {
+        //     console.log("User IP:", data.ip);
+        //     console.log("User Agent:", data.user_agent);
+        // });
     }, []);
     //============================================================================================
 
@@ -205,7 +208,11 @@ export default function AdminDashboard() {
                 {/* Content */}
                 <main className="w-full px-6 py-6 space-y-6">
                     <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">
-                        Admin Dashboard
+                        Admin Dashboard{" "}
+                        <div>
+                            <p>IP Address: {userInfo.ip}</p>
+                            <p>User Agent: {userInfo.user_agent}</p>
+                        </div>
                     </h1>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {cardData.map((card, index) => (
