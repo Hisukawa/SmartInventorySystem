@@ -54,6 +54,16 @@ export default function AdminDashboard() {
         });
     }, []);
 
+    // for checking IP address in the console
+    useEffect(() => {
+        fetch("/test-ip")
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("User IP:", data.ip);
+                console.log("User Agent:", data.user_agent);
+            });
+    }, []);
+
     // Animation for numbers
     const animatedTotalRooms = useSpring({
         totalRooms: dashboardStats.totalRooms,

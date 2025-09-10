@@ -75,6 +75,9 @@ Route::middleware(['auth'])->group(function () {
     //Route::get('/room/{roomPath}', [RoomController::class, 'show'])->where('roomPath', '.*') // <-- this allows slashes in parameter
                                                                     //->name('room.show');
 
+    // for checking IP address in the console
+    Route::get('/test-ip', [AdminController::class, 'showIp']);
+
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
 

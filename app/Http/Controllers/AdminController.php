@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Contracts\Foundation\MaintenanceMode;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -37,5 +38,23 @@ class AdminController extends Controller
         $rooms = Room::all(); // no pagination yet
         return response()->json($rooms);
     }
+
+    // for checking IP address in the console
+    public function showIp()
+    {
+        $ip = request()->ip();
+        $userAgent = request()->userAgent();
+
+        // Use imported Log facade
+        Log::info("User IP: " . $ip);
+        Log::info("User Agent: " . $userAgent);
+
+        return response()->json([
+            'ip' => $ip,
+            'user_agent' => $userAgent,
+        ]);
+    }
+
+
 
 }
