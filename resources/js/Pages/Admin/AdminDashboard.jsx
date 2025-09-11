@@ -338,23 +338,7 @@ export default function AdminDashboard() {
                                 <ul className="space-y-3 max-h-64 overflow-y-auto">
                                     {(activityLogs.length > 0
                                         ? activityLogs
-                                        : [
-                                              {
-                                                  user: "Admin",
-                                                  action: "added Room 101",
-                                                  timestamp: "2025-09-10 14:23",
-                                              },
-                                              {
-                                                  user: "Technician",
-                                                  action: "updated System Unit PC-01",
-                                                  timestamp: "2025-09-11 09:15",
-                                              },
-                                              {
-                                                  user: "Faculty",
-                                                  action: "reported issue on Projector",
-                                                  timestamp: "2025-09-11 16:40",
-                                              },
-                                          ]
+                                        : []
                                     ).map((log, idx) => (
                                         <li
                                             key={idx}
@@ -385,18 +369,7 @@ export default function AdminDashboard() {
                                 <ul className="space-y-3 max-h-64 overflow-y-auto">
                                     {(maintenanceRequests.length > 0
                                         ? maintenanceRequests
-                                        : [
-                                              {
-                                                  equipment: "PC-03",
-                                                  issue: "Not booting",
-                                                  reported_by: "Mr. Santos",
-                                              },
-                                              {
-                                                  equipment: "Printer-02",
-                                                  issue: "Paper jam",
-                                                  reported_by: "Ms. Dela Cruz",
-                                              },
-                                          ]
+                                        : []
                                     ).map((req, idx) => (
                                         <li
                                             key={idx}
