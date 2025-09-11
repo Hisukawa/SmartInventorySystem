@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
-import { Head } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import {
     Breadcrumb,
@@ -15,9 +15,24 @@ import {
 } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
-import { Bell, HardDrive, Monitor, Mouse, Computer } from "lucide-react"; // Import new icons
-import { Link } from "@inertiajs/react";
-import { useSpring, animated } from "@react-spring/web"; // For number animation
+import {
+    Bell,
+    HardDrive,
+    Monitor,
+    Mouse,
+    Computer,
+    ClipboardList,
+    Activity,
+} from "lucide-react";
+import { useSpring, animated } from "@react-spring/web";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+} from "recharts";
 
 export default function AdminDashboard() {
     const [dashboardStats, setDashboardStats] = useState({
@@ -26,7 +41,14 @@ export default function AdminDashboard() {
         totalPeripherals: 0,
         totalEquipments: 0,
         occupiedRooms: 0,
+        pendingRequests: 0,
+        forRepair: 0,
+        availablePeripherals: 0,
+        activeUsers: 0,
     });
+
+    const { auth } = usePage().props;
+    const user = auth.user;
 
     const fetchDashboardStats = async () => {
         try {
@@ -54,22 +76,28 @@ export default function AdminDashboard() {
         });
     }, []);
 
-    //============================================================================================
-    // for checking IP address in the console delete if youre displaying it in the ui
-    // const [userInfo, setUserInfo] = useState({ ip: "", user_agent: "" });
-    // useEffect(() => {
-    //     fetch(`${window.location.origin}/test-ip`)
-    //         .then((res) => res.json())
+    const [activityLogs, setActivityLogs] = useState([]);
+    useEffect(() => {
+        axios.get("/admin/activity-logs").then((res) => {
+            setActivityLogs(res.data);
+        });
+    }, []);
 
-    //         .then((data) => setUserInfo(data));
-    //     // .then((data) => {
-    //     //     console.log("User IP:", data.ip);
-    //     //     console.log("User Agent:", data.user_agent);
-    //     // });
-    // }, []);
-    //============================================================================================
+    const [maintenanceRequests, setMaintenanceRequests] = useState([]);
+    useEffect(() => {
+        axios.get("/admin/maintenance-requests").then((res) => {
+            setMaintenanceRequests(res.data);
+        });
+    }, []);
 
-    // Animation for numbers
+    const [reportData, setReportData] = useState([]);
+    useEffect(() => {
+        axios.get("/admin/report-stats").then((res) => {
+            setReportData(res.data);
+        });
+    }, []);
+
+    // Animation for numbers (springs)
     const animatedTotalRooms = useSpring({
         totalRooms: dashboardStats.totalRooms,
         from: { totalRooms: 0 },
@@ -90,13 +118,29 @@ export default function AdminDashboard() {
         occupiedRooms: dashboardStats.occupiedRooms,
         from: { occupiedRooms: 0 },
     });
+    const animatedPendingRequests = useSpring({
+        pendingRequests: dashboardStats.pendingRequests,
+        from: { pendingRequests: 0 },
+    });
+    const animatedForRepair = useSpring({
+        forRepair: dashboardStats.forRepair,
+        from: { forRepair: 0 },
+    });
+    const animatedAvailablePeripherals = useSpring({
+        availablePeripherals: dashboardStats.availablePeripherals,
+        from: { availablePeripherals: 0 },
+    });
+    const animatedActiveUsers = useSpring({
+        activeUsers: dashboardStats.activeUsers,
+        from: { activeUsers: 0 },
+    });
 
-    // Card data for easier rendering and linking
+    // Card data (now 9 cards for 3x3)
     const cardData = [
         {
             title: "Total Rooms",
             value: animatedTotalRooms.totalRooms,
-            icon: HardDrive, // Changed to a more appropriate icon for rooms
+            icon: HardDrive,
             link: "/admin/rooms",
         },
         {
@@ -108,13 +152,13 @@ export default function AdminDashboard() {
         {
             title: "Total Peripherals",
             value: animatedTotalPeripherals.totalPeripherals,
-            icon: Mouse, // Example icon for peripherals
+            icon: Mouse,
             link: "/admin/peripherals",
         },
         {
             title: "Total Room Equipments",
             value: animatedTotalEquipments.totalEquipments,
-            icon: Monitor, // Example icon for general equipment
+            icon: Monitor,
             link: "/admin/equipments",
         },
         {
@@ -123,7 +167,47 @@ export default function AdminDashboard() {
             icon: HardDrive,
             link: "/admin/monitoring",
         },
+        {
+            title: "Pending Requests",
+            value: animatedPendingRequests.pendingRequests,
+            icon: ClipboardList,
+            link: "/admin/maintenance-requests",
+        },
+        {
+            title: "For Repair",
+            value: animatedForRepair.forRepair,
+            icon: Activity,
+            link: "/admin/repairs",
+        },
+        {
+            title: "Available Peripherals",
+            value: animatedAvailablePeripherals.availablePeripherals,
+            icon: Mouse,
+            link: "/admin/peripherals",
+        },
+        {
+            title: "Active Users",
+            value: animatedActiveUsers.activeUsers,
+            icon: Monitor,
+            link: "/admin/users",
+        },
     ];
+
+    // Helper to render value (handles animated & plain numbers)
+    const renderCardValue = (value) => {
+        // Animated value from react-spring exposes .to()
+        if (value && typeof value.to === "function") {
+            return (
+                <animated.p className="text-4xl font-extrabold text-gray-900">
+                    {value.to((val) => Math.floor(val))}
+                </animated.p>
+            );
+        }
+
+        // Plain number / string fallback
+        const num = Math.floor(Number(value) || 0);
+        return <p className="text-4xl font-extrabold text-gray-900">{num}</p>;
+    };
 
     return (
         <SidebarProvider>
@@ -207,15 +291,18 @@ export default function AdminDashboard() {
 
                 {/* Content */}
                 <main className="w-full px-6 py-6 space-y-6">
-                    <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">
-                        Admin Dashboard
-                        {/* {" "}
-                        <div>
-                            <p>IP Address: {userInfo.ip}</p>
-                            <p>User Agent: {userInfo.user_agent}</p>
-                        </div> */}
-                    </h1>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Welcome Banner */}
+                    <div className="relative rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6 text-white shadow-lg">
+                        <h1 className="text-3xl font-bold">
+                            Welcome back, {user.name.split(" ")[0]}.
+                        </h1>
+                        <p className="text-sm opacity-90 mt-1">
+                            Here’s a summary of recent reports and activities.
+                        </p>
+                    </div>
+
+                    {/* Cards Section (3x3 Grid) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {cardData.map((card, index) => (
                             <Link
                                 key={index}
@@ -230,16 +317,136 @@ export default function AdminDashboard() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <animated.p className="text-4xl font-extrabold text-gray-900">
-                                            {card.value.to((val) =>
-                                                Math.floor(val)
-                                            )}
-                                        </animated.p>
+                                        {renderCardValue(card.value)}
                                     </CardContent>
                                 </Card>
                             </Link>
                         ))}
                     </div>
+
+                    {/* Extra Features Section */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Activity Logs */}
+                        <Card className="lg:col-span-1">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Activity className="w-5 h-5 text-blue-600" />
+                                    Recent Activity
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ul className="space-y-3 max-h-64 overflow-y-auto">
+                                    {(activityLogs.length > 0
+                                        ? activityLogs
+                                        : [
+                                              {
+                                                  user: "Admin",
+                                                  action: "added Room 101",
+                                                  timestamp: "2025-09-10 14:23",
+                                              },
+                                              {
+                                                  user: "Technician",
+                                                  action: "updated System Unit PC-01",
+                                                  timestamp: "2025-09-11 09:15",
+                                              },
+                                              {
+                                                  user: "Faculty",
+                                                  action: "reported issue on Projector",
+                                                  timestamp: "2025-09-11 16:40",
+                                              },
+                                          ]
+                                    ).map((log, idx) => (
+                                        <li
+                                            key={idx}
+                                            className="text-sm border-b pb-2"
+                                        >
+                                            <span className="font-semibold">
+                                                {log.user}
+                                            </span>{" "}
+                                            {log.action}
+                                            <span className="block text-xs text-gray-500">
+                                                {log.timestamp}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                        </Card>
+
+                        {/* Maintenance Requests */}
+                        <Card className="lg:col-span-1">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <ClipboardList className="w-5 h-5 text-yellow-600" />
+                                    Pending Maintenance
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ul className="space-y-3 max-h-64 overflow-y-auto">
+                                    {(maintenanceRequests.length > 0
+                                        ? maintenanceRequests
+                                        : [
+                                              {
+                                                  equipment: "PC-03",
+                                                  issue: "Not booting",
+                                                  reported_by: "Mr. Santos",
+                                              },
+                                              {
+                                                  equipment: "Printer-02",
+                                                  issue: "Paper jam",
+                                                  reported_by: "Ms. Dela Cruz",
+                                              },
+                                          ]
+                                    ).map((req, idx) => (
+                                        <li
+                                            key={idx}
+                                            className="text-sm border-b pb-2"
+                                        >
+                                            <span className="font-semibold">
+                                                {req.equipment}
+                                            </span>{" "}
+                                            - {req.issue}
+                                            <span className="block text-xs text-gray-500">
+                                                Reported by {req.reported_by}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    {/* Reports Snapshot */}
+                    <Card className="lg:col-span-1">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Monitor className="w-5 h-5 text-green-600" />
+                                Reports Snapshot
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-96">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={
+                                        reportData.length > 0 ? reportData : []
+                                    }
+                                >
+                                    <XAxis dataKey="day" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Bar
+                                        dataKey="equipments"
+                                        fill="#3b82f6"
+                                        name="Equipments Added"
+                                    />
+                                    <Bar
+                                        dataKey="issues"
+                                        fill="#ef4444"
+                                        name="Issues Reported"
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
                 </main>
             </SidebarInset>
         </SidebarProvider>
