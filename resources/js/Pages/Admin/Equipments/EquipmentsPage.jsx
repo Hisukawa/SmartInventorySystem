@@ -8,6 +8,8 @@ import Swal from "sweetalert2";
 import { Input } from "@/components/ui/input";
 import { Menu } from "@headlessui/react";
 import { X } from "lucide-react";
+import Notification from "@/Components/AdminComponents/Notification";
+
 import {
     Table,
     TableHeader,
@@ -269,6 +271,8 @@ export default function EquipmentsPage({
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
+                    <div className="flex-1" />
+                    <Notification />
                 </header>
                 {/* Header, Search, Table code same as before */}
                 <main className="w-full px-6 py-4">

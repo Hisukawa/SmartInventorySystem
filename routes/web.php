@@ -58,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
 
 
+
     // Shared Dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
@@ -160,8 +161,13 @@ Route::middleware(['auth'])->group(function () {
         ->name('admin.reports.show');
 
         Route::get('/admin/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
-        Route::post('/admin/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
-        Route::post('/admin/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('admin.notifications.readAll');
+        // Route::post('/admin/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+        // Route::post('/admin/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('admin.notifications.readAll');
+
+        // Notification
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
     });
 
 

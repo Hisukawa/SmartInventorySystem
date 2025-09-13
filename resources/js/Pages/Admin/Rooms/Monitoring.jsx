@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Head } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
+import Notification from "@/Components/AdminComponents/Notification";
 
 import {
     Breadcrumb,
@@ -69,6 +70,8 @@ export default function AdminDashboard({ children }) {
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
+                    <div className="flex-1" />
+                    <Notification />
                 </header>
 
                 {/* Content */}

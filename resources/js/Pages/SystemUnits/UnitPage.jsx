@@ -9,6 +9,7 @@ import { useForm as useInertiaForm } from "@inertiajs/react";
 import Swal from "sweetalert2";
 import { router } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
+import Notification from "@/Components/AdminComponents/Notification";
 
 import {
     Table,
@@ -431,6 +432,8 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
+                    <div className="flex-1" />
+                    <Notification />
                 </header>
 
                 <main className="w-full px-6 py-4">

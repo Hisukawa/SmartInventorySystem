@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
 import QRCode from "react-qr-code";
 import Swal from "sweetalert2";
+import Notification from "@/Components/AdminComponents/Notification";
 
 import {
     Table,
@@ -224,6 +225,8 @@ export default function RoomPage({ rooms, search }) {
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
+                    <div className="flex-1" />
+                    <Notification />
                 </header>
 
                 <main className="w-full px-6 py-4 pt-20 overflow-y-auto">

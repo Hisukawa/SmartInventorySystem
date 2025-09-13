@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Swal from "sweetalert2";
+import Notification from "@/Components/AdminComponents/Notification";
+
 import {
     Table,
     TableBody,
@@ -310,6 +312,8 @@ export default function FacultyReportsIndex({
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
+                    <div className="flex-1" />
+                    <Notification />
                 </header>
 
                 <main>

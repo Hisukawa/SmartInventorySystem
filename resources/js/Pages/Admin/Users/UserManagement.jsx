@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import React, { useState, useMemo } from "react";
+import Notification from "@/Components/AdminComponents/Notification";
 
 import {
     Table,
@@ -97,6 +98,8 @@ export default function UserManagement({ users }) {
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>
+                    <div className="flex-1" />
+                    <Notification />
                 </header>
 
                 <main className="w-full px-6 py-4">

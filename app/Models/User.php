@@ -49,9 +49,9 @@ class User extends Authenticatable
      */
 
     public function webauthnCredentials()
-{
-    return $this->hasMany(WebauthnCredential::class);
-}
+    {
+        return $this->hasMany(WebauthnCredential::class);
+    }
 
 
 }
