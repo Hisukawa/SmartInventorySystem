@@ -8,10 +8,9 @@ use App\Models\Report;
 use App\Models\Room;
 use App\Models\SystemUnit;
 use App\Models\User;
-use Illuminate\Contracts\Foundation\MaintenanceMode;
+use App\Models\RoomStatus;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -29,11 +28,14 @@ class AdminController extends Controller
             'totalSystemUnits' => SystemUnit::count(),
             'totalPeripherals' => Peripheral::count(),
             'totalEquipments'  => Equipment::count(),
-            'occupiedRooms'    => Room::where('is_active', true)->count(),
+
+            // ✅ now using latestStatus instead of rooms.is_active
+            'occupiedRooms'    => Room::whereHas('latestStatus', function ($q) {
+                $q->where('is_active', true);
+            })->count(),
+
             'pendingRequests'  => Report::where('condition', '!=', 'Resolved')->count(),
-            'forRepair' => Report::whereIn('condition', ['For Repair', 'Defective'])->count(),
-            // 'availablePeripherals' => Peripheral::where('status', 'Available')->count(),
-            // 'activeUsers'      => User::where('is_active', true)->count(), //ADD COLUMN FOR THE STATUS OF THE USER
+            'forRepair'        => Report::whereIn('condition', ['For Repair', 'Defective'])->count(),
         ]);
     }
 
@@ -45,7 +47,7 @@ class AdminController extends Controller
             ->get()
             ->map(function ($report) {
                 return [
-                    'user'      => $report->user ? $report->user->name : 'Unknown',
+                    'user'      => $report->user?->name ?? 'Unknown',
                     'action'    => $report->condition . ' - ' . ($report->remarks ?? 'No remarks'),
                     'timestamp' => $report->created_at->format('Y-m-d H:i'),
                 ];
@@ -65,7 +67,7 @@ class AdminController extends Controller
                 return [
                     'equipment'   => 'EQP-' . $report->reportable_id,
                     'issue'       => $report->condition,
-                    'reported_by' => $report->user ? $report->user->name : 'Unknown',
+                    'reported_by' => $report->user?->name ?? 'Unknown',
                 ];
             });
 
@@ -90,28 +92,18 @@ class AdminController extends Controller
 
     public function roomsStatus()
     {
-        $rooms = Room::all(); // no pagination yet
+        // ✅ include latest status & user
+        $rooms = Room::with(['latestStatus.user'])
+            ->get()
+            ->map(fn ($room) => [
+                'id'              => $room->id,
+                'room_number'     => $room->room_number,
+                'room_path'       => $room->room_path,
+                'is_active'       => (bool) ($room->latestStatus?->is_active ?? 0),
+                'last_scanned_by' => $room->latestStatus?->user?->name,
+                'last_scanned_at' => $room->latestStatus?->created_at,
+            ]);
+
         return response()->json($rooms);
     }
-
-    //============================================================================================
-    // for checking IP address in the console delete if youre displaying it in the ui
-    // public function showIp()
-    // {
-    //     $ip = request()->ip();
-    //     $userAgent = request()->userAgent();
-
-    //     // Use imported Log facade
-    //     Log::info("User IP: " . $ip);
-    //     Log::info("User Agent: " . $userAgent);
-
-    //     return response()->json([
-    //         'ip' => $ip,
-    //         'user_agent' => $userAgent,
-    //     ]);
-    // }
-    //============================================================================================
-
-
-
 }

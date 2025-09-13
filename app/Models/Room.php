@@ -45,9 +45,18 @@ class Room extends Model
         }
 
 
-public function lastScannedUser()
+
+
+
+
+public function statuses()
 {
-    return $this->belongsTo(User::class, 'last_scanned_by');
+    return $this->hasMany(RoomStatus::class);
+}
+
+public function latestStatus()
+{
+    return $this->hasOne(RoomStatus::class)->latestOfMany();
 }
 
 
