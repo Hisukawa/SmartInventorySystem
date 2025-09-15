@@ -32,10 +32,11 @@ export function NavMain({ items }) {
                     >
                         <SidebarMenuItem>
                             <SidebarMenuButton asChild tooltip={item.title}>
-                                <a href={item.url}>
-                                    <item.icon />
-                                    <span>{item.title}</span>
+                            <a href={item.url} className="flex items-center gap-2">
+                                <item.icon className="text-teal-700" />  {/* teal/blue-green to complement */}
+                                <span>{item.title}</span>
                                 </a>
+
                             </SidebarMenuButton>
                             {item.items?.length ? (
                                 <>

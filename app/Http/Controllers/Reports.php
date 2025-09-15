@@ -84,7 +84,7 @@ class Reports extends Controller
     {
         // ✅ Validate request first
         $validated = $request->validate([
-            'reportable_type' => 'required|string',
+          'reportable_type' => 'required|in:equipment,peripheral,system_unit',
             'reportable_id'   => 'required|integer',
             'room_id'         => 'required|integer',
             'condition'       => 'required|string|max:255',
