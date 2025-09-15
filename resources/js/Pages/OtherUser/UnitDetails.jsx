@@ -1,8 +1,5 @@
-"use client";
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Cpu, HardDrive, MemoryStick, Monitor, Building, ShieldCheck, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Cpu, HardDrive, MemoryStick, Monitor, Building, ShieldCheck } from "lucide-react";
 
 export default function UnitDetails({ unit }) {
   return (
@@ -27,9 +24,6 @@ export default function UnitDetails({ unit }) {
               <DetailItem icon={HardDrive} label="Motherboard" value={unit.motherboard} />
               <DetailItem icon={ShieldCheck} label="Condition" value={unit.condition} />
             </div>
-
-            {/* Back Button */}
-           
           </CardContent>
         </Card>
       </div>
@@ -37,7 +31,7 @@ export default function UnitDetails({ unit }) {
   );
 }
 
-// Reusable detail item with icon
+// ✅ Reusable detail item with icon
 function DetailItem({ icon: Icon, label, value }) {
   return (
     <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 bg-white hover:bg-green-50 transition">

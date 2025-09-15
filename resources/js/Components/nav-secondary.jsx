@@ -16,10 +16,11 @@ export function NavSecondary({ items, ...props }) {
                     {items.map((item) => (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild size="sm">
-                                <a href={item.url}>
-                                    <item.icon />
-                                    <span>{item.title}</span>
-                                </a>
+                              <a href={item.url} className="flex items-center gap-2">
+                            <item.icon className="text-teal-700" />  {/* teal/blue-green to complement */}
+                            <span>{item.title}</span>
+                            </a>
+
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}

@@ -28,16 +28,19 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
-  ;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%}
+    --radius: 0.5rem;
+
+    /* 🌿 Sidebar (light mode) */
+    --sidebar-background: 146 65% 85%;
+    --sidebar-foreground: 158 32% 20%;
+    --sidebar-primary: 158 42% 30%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 146 38% 92%;
+    --sidebar-accent-foreground: 158 42% 20%;
+    --sidebar-border: 146 24% 80%;
+    --sidebar-ring: 158 42% 45%;
+  }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -62,16 +65,18 @@
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
-  ;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --chart-5: 340 75% 55%;
+
+    /* 🌑 Sidebar (dark mode) */
+    --sidebar-background: 158 42% 12%;
+    --sidebar-foreground: 146 38% 90%;
+    --sidebar-primary: 158 42% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%}
+    --sidebar-accent: 158 42% 20%;
+    --sidebar-accent-foreground: 146 38% 95%;
+    --sidebar-border: 158 42% 25%;
+    --sidebar-ring: 158 42% 50%;
+  }
 }
 
 @layer base {
@@ -81,4 +86,32 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* 🎨 Sidebar wrapper gradient */
+[data-sidebar="sidebar"] {
+  background: linear-gradient(
+    to bottom right,
+    hsl(146 56% 85%),
+    hsl(96 52% 90%)
+  );
+}
+
+.dark [data-sidebar="sidebar"] {
+  background: linear-gradient(
+    to bottom right,
+    hsl(158 42% 12%),
+    hsl(158 42% 20%)
+  );
+}
+
+/* 🌟 Sidebar menu hover + active */
+[data-sidebar="menu-button"]:hover {
+  background: hsl(146 38% 92%);
+  color: hsl(158 42% 20%);
+}
+
+[data-sidebar="menu-button"][data-active="true"] {
+  background: hsl(158 42% 30%);
+  color: hsl(0 0% 100%);
 }
