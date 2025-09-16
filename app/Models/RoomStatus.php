@@ -20,7 +20,7 @@ class RoomStatus extends Model
         'is_active' => 'boolean',
     ];
 
-    /* 
+    /*
     function for Relationship for room and users
     */
 

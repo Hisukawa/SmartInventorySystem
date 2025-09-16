@@ -93,6 +93,10 @@ Route::middleware(['auth'])->group(function () {
     // for checking IP address in the console
     Route::get('/test-ip', [AdminController::class, 'showIp']);
 
+    Route::post('/logout', [MonitoringController::class, 'deactivateOnLogout'])
+    ->name('logout');
+
+
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
 

@@ -115,12 +115,10 @@ export default function AdminDashboard({ children }) {
                                             </div>
                                         </div>
                                     )}
-
                                     {/* Room Name */}
                                     <h2 className="text-center text-lg font-semibold mb-1 text-[#FFD700]">
                                         {room.name}
                                     </h2>
-
                                     {/* Status */}
                                     <p className="text-center text-sm">
                                         Status:{" "}
@@ -136,24 +134,54 @@ export default function AdminDashboard({ children }) {
                                                 : "Inactive"}
                                         </span>
                                     </p>
-
-                                    {/* Faculty Name */}
-                                    {room.last_scanned_user && (
+                                    {/* Previous Code */}
+                                    {/* Faculty Name */}{" "}
+                                    {/* {room.last_scanned_user && (
                                         <p className="text-center text-sm mt-2">
+                                            {" "}
                                             Used By:{" "}
-                                            {room.last_scanned_user.name} (
-                                            {room.last_scanned_user.role})
+                                            {room.last_scanned_user.name} ({" "}
+                                            {room.last_scanned_user.role}){" "}
                                         </p>
-                                    )}
-
-                                    {/* Scan Time */}
-                                    {room.last_scanned_at && (
+                                    )}{" "} */}
+                                    {/* Scan Time */}{" "}
+                                    {/* {room.last_scanned_at && (
                                         <p className="text-center text-xs text-gray-300 mt-1">
+                                            {" "}
                                             Scanned at:{" "}
                                             {new Date(
                                                 room.last_scanned_at
-                                            ).toLocaleString()}
+                                            ).toLocaleString()}{" "}
                                         </p>
+                                    )} */}
+                                    {/* Show Faculty + Time only if Active */}
+                                    {room.is_active && (
+                                        <>
+                                            {room.last_scanned_user && (
+                                                <p className="text-center text-sm mt-2">
+                                                    Used By:{" "}
+                                                    {
+                                                        room.last_scanned_user
+                                                            .name
+                                                    }{" "}
+                                                    (
+                                                    {
+                                                        room.last_scanned_user
+                                                            .role
+                                                    }
+                                                    )
+                                                </p>
+                                            )}
+
+                                            {room.last_scanned_at && (
+                                                <p className="text-center text-xs text-gray-300 mt-1">
+                                                    Scanned at:{" "}
+                                                    {new Date(
+                                                        room.last_scanned_at
+                                                    ).toLocaleString()}
+                                                </p>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             ))}
