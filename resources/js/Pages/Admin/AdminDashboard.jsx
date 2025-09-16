@@ -23,15 +23,23 @@ import {
   Computer,
   ClipboardList,
   Activity,
+  Users,
+  PieChart,
+  BarChart as BarChartIcon,
 } from "lucide-react";
 import { useSpring, animated } from "@react-spring/web";
+
 import {
+  PieChart as RePieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
 } from "recharts";
 
 export default function AdminDashboard() {
@@ -61,94 +69,121 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchDashboardStats();
-    const interval = setInterval(() => {
-      fetchDashboardStats();
-    }, 5000);
+    const interval = setInterval(fetchDashboardStats, 5000);
     return () => clearInterval(interval);
   }, []);
 
   const [activityLogs, setActivityLogs] = useState([]);
-  useEffect(() => {
-    axios.get("/admin/activity-logs").then((res) => {
-      setActivityLogs(res.data);
-    });
-  }, []);
+  const [roomsStatus, setRoomsStatus] = useState([]);
+  const [conditionData, setConditionData] = useState({
+    system_units: {},
+    peripherals: {},
+    equipments: {},
+  });
 
-  const [maintenanceRequests, setMaintenanceRequests] = useState([]);
-  useEffect(() => {
-    axios.get("/admin/maintenance-requests").then((res) => {
-      setMaintenanceRequests(res.data);
-    });
-  }, []);
+  // new dynamic equipment-condition-by-room
+  const [roomConditionData, setRoomConditionData] = useState([]);
+  const [conditions, setConditions] = useState([]);
 
-  const [reportData, setReportData] = useState([]);
   useEffect(() => {
-    axios.get("/admin/report-stats").then((res) => {
-      setReportData(res.data);
+    axios.get("/admin/activity-logs").then((res) => setActivityLogs(res.data));
+    axios.get("/admin/rooms-status").then((res) => setRoomsStatus(res.data));
+
+    // old endpoint for pie charts
+    axios.get("/admin/equipment-condition").then((res) =>
+      setConditionData(res.data)
+    );
+
+    // new endpoint for bar chart
+    axios.get("/admin/equipment-condition-by-room").then((res) => {
+        console.log("Raw roomConditionData:", res.data); // Add this
+      setRoomConditionData(res.data);
+        if (res.data.length > 0) {
+            const keys = Object.keys(res.data[0]).filter((k) => k !== "room");
+            console.log("Detected conditions:", keys); // Add this
+            setConditions(keys);
+        } else {
+            console.log("No data returned for equipment-condition-by-room.");
+        }
+    }).catch(error => {
+        console.error("Error fetching equipment-condition-by-room:", error); // Add error handling
     });
   }, []);
 
   // Animation for numbers
-  const animatedTotalRooms = useSpring({
-    totalRooms: dashboardStats.totalRooms,
-    from: { totalRooms: 0 },
-  });
-  const animatedTotalSystemUnits = useSpring({
-    totalSystemUnits: dashboardStats.totalSystemUnits,
-    from: { totalSystemUnits: 0 },
-  });
-  const animatedTotalPeripherals = useSpring({
-    totalPeripherals: dashboardStats.totalPeripherals,
-    from: { totalPeripherals: 0 },
-  });
-  const animatedTotalEquipments = useSpring({
-    totalEquipments: dashboardStats.totalEquipments,
-    from: { totalEquipments: 0 },
-  });
-  const animatedOccupiedRooms = useSpring({
-    occupiedRooms: dashboardStats.occupiedRooms,
-    from: { occupiedRooms: 0 },
-  });
-  const animatedPendingRequests = useSpring({
-    pendingRequests: dashboardStats.pendingRequests,
-    from: { pendingRequests: 0 },
-  });
-  const animatedForRepair = useSpring({
-    forRepair: dashboardStats.forRepair,
-    from: { forRepair: 0 },
-  });
-  const animatedAvailablePeripherals = useSpring({
-    availablePeripherals: dashboardStats.availablePeripherals,
-    from: { availablePeripherals: 0 },
-  });
-  const animatedActiveUsers = useSpring({
-    activeUsers: dashboardStats.activeUsers,
-    from: { activeUsers: 0 },
-  });
+  const animatedValue = (val) =>
+    useSpring({ val, from: { val: 0 } });
+
+  const renderCardValue = (anim) => (
+    <animated.p className="text-4xl font-extrabold text-gray-900">
+      {anim.val.to((val) => Math.floor(val))}
+    </animated.p>
+  );
 
   const cardData = [
-    { title: "Total Rooms", value: animatedTotalRooms.totalRooms, icon: HardDrive, link: "/admin/rooms" },
-    { title: "Total System Units", value: animatedTotalSystemUnits.totalSystemUnits, icon: Computer, link: "/admin/system-units" },
-    { title: "Total Peripherals", value: animatedTotalPeripherals.totalPeripherals, icon: Mouse, link: "/admin/peripherals" },
-    { title: "Total Room Equipments", value: animatedTotalEquipments.totalEquipments, icon: Monitor, link: "/admin/equipments" },
-    { title: "Occupied Rooms", value: animatedOccupiedRooms.occupiedRooms, icon: HardDrive, link: "/admin/monitoring" },
-    { title: "Pending Requests", value: animatedPendingRequests.pendingRequests, icon: ClipboardList, link: "/admin/maintenance-requests" },
-    { title: "For Repair", value: animatedForRepair.forRepair, icon: Activity, link: "/admin/repairs" },
-    { title: "Available Peripherals", value: animatedAvailablePeripherals.availablePeripherals, icon: Mouse, link: "/admin/peripherals" },
-    { title: "Active Users", value: animatedActiveUsers.activeUsers, icon: Monitor, link: "/admin/users" },
+    {
+      title: "Total Rooms",
+      value: animatedValue(dashboardStats.totalRooms),
+      icon: HardDrive,
+      link: "/admin/rooms",
+    },
+    {
+      title: "System Units",
+      value: animatedValue(dashboardStats.totalSystemUnits),
+      icon: Computer,
+      link: "/admin/system-units",
+    },
+    {
+      title: "Peripherals",
+      value: animatedValue(dashboardStats.totalPeripherals),
+      icon: Mouse,
+      link: "/admin/peripherals",
+    },
+    {
+      title: "Room Equipments",
+      value: animatedValue(dashboardStats.totalEquipments),
+      icon: Monitor,
+      link: "/admin/equipments",
+    },
+    {
+      title: "Occupied Rooms",
+      value: animatedValue(dashboardStats.occupiedRooms),
+      icon: Users,
+      link: "/admin/monitoring",
+    },
+    {
+      title: "Pending Requests",
+      value: animatedValue(dashboardStats.pendingRequests),
+      icon: ClipboardList,
+      link: "/admin/maintenance-requests",
+    },
+    {
+      title: "For Repair",
+      value: animatedValue(dashboardStats.forRepair),
+      icon: Activity,
+      link: "/admin/repairs",
+    },
+    {
+      title: "Available Peripherals",
+      value: animatedValue(dashboardStats.availablePeripherals),
+      icon: Mouse,
+      link: "/admin/peripherals",
+    },
+    {
+      title: "Active Users",
+      value: animatedValue(dashboardStats.activeUsers),
+      icon: Monitor,
+      link: "/admin/users",
+    },
   ];
 
-  const renderCardValue = (value) => {
-    if (value && typeof value.to === "function") {
-      return (
-        <animated.p className="text-4xl font-extrabold text-gray-900">
-          {value.to((val) => Math.floor(val))}
-        </animated.p>
-      );
-    }
-    const num = Math.floor(Number(value) || 0);
-    return <p className="text-4xl font-extrabold text-gray-900">{num}</p>;
-  };
+  const COLORS = ["#16a34a", "#facc15", "#dc2626", "#3b82f6", "#9333ea"];
+
+  const prepareData = (obj) =>
+    Object.entries(obj).map(([name, value]) => ({
+      name,
+      value,
+    }));
 
   return (
     <SidebarProvider>
@@ -182,14 +217,14 @@ export default function AdminDashboard() {
               Welcome back, {user.name.split(" ")[0]}.
             </h1>
             <p className="text-sm opacity-90 mt-1">
-              Here’s a summary of recent reports and activities.
+              Here’s a summary of your ICT inventory system.
             </p>
           </div>
 
-          {/* Cards Section */}
+          {/* KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cardData.map((card, index) => (
-              <Link key={index} href={card.link} className="block">
+            {cardData.map((card, idx) => (
+              <Link key={idx} href={card.link} className="block">
                 <Card className="hover:shadow-lg hover:border-green-300 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-lg font-medium text-gray-700 flex items-center gap-2">
@@ -203,18 +238,168 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          {/* Activity + Maintenance */}
+          {/* Room Occupancy + Equipment Condition by Room */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="lg:col-span-1">
+            {/* Room Occupancy */}
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-green-600" />
-                  Recent Activity
+                  <Users className="w-5 h-5 text-blue-600" />
+                  Room Occupancy Overview
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-3 max-h-64 overflow-y-auto">
-                  {(activityLogs.length > 0 ? activityLogs : []).map((log, idx) => (
+                <ul className="space-y-3 max-h-72 overflow-y-auto">
+                  {roomsStatus.length > 0 ? (
+                    roomsStatus.map((room) => (
+                      <li
+                        key={room.id}
+                        className="text-sm border-b pb-2 flex justify-between"
+                      >
+                        <div>
+                          <span className="font-semibold">
+                            {room.room_number}
+                          </span>{" "}
+                          -{" "}
+                          {room.is_active ? (
+                            <span className="text-green-600 font-medium">
+                              Occupied
+                            </span>
+                          ) : (
+                            <span className="text-gray-500">Available</span>
+                          )}
+                          <div className="text-xs text-gray-500">
+                            {room.last_scanned_by
+                              ? `Last scanned by ${room.last_scanned_by}`
+                              : "No recent scans"}
+                          </div>
+                        </div>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-gray-500">No room status data</li>
+                  )}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Equipment Condition by Room (Dynamic) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChartIcon className="w-5 h-5 text-purple-600" />
+                  Equipment Condition by Room
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={roomConditionData}>
+                    <XAxis dataKey="room" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    {conditions.map((cond, idx) => (
+                      <Bar
+                        key={cond}
+                        dataKey={cond}
+                        stackId="a"
+                        fill={COLORS[idx % COLORS.length]}
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Equipment Condition by Type (Pie Charts) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-emerald-600" />
+                Equipment Condition by Type
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-72">
+                {/* System Units */}
+                <div>
+                  <h3 className="text-center font-semibold mb-2">System Units</h3>
+                  <ResponsiveContainer width="100%" height="90%">
+                    <RePieChart>
+                      <Pie
+                        data={prepareData(conditionData.system_units)}
+                        dataKey="value"
+                        nameKey="name"
+                        outerRadius={70}
+                        label
+                      >
+                        {prepareData(conditionData.system_units).map((_, idx) => (
+                          <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </RePieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Peripherals */}
+                <div>
+                  <h3 className="text-center font-semibold mb-2">Peripherals</h3>
+                  <ResponsiveContainer width="100%" height="90%">
+                    <RePieChart>
+                      <Pie
+                        data={prepareData(conditionData.peripherals)}
+                        dataKey="value"
+                        nameKey="name"
+                        outerRadius={70}
+                        label
+                      >
+                        {prepareData(conditionData.peripherals).map((_, idx) => (
+                          <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </RePieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Equipments */}
+                <div>
+                  <h3 className="text-center font-semibold mb-2">Equipments</h3>
+                  <ResponsiveContainer width="100%" height="90%">
+                    <RePieChart>
+                      <Pie
+                        data={prepareData(conditionData.equipments)}
+                        dataKey="value"
+                        nameKey="name"
+                        outerRadius={70}
+                        label
+                      >
+                        {prepareData(conditionData.equipments).map((_, idx) => (
+                          <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </RePieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-green-600" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3 max-h-72 overflow-y-auto">
+                {activityLogs.length > 0 ? (
+                  activityLogs.map((log, idx) => (
                     <li key={idx} className="text-sm border-b pb-2">
                       <span className="font-semibold">{log.user}</span>{" "}
                       {log.action}
@@ -222,52 +407,11 @@ export default function AdminDashboard() {
                         {log.timestamp}
                       </span>
                     </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ClipboardList className="w-5 h-5 text-yellow-600" />
-                  Pending Maintenance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3 max-h-64 overflow-y-auto">
-                  {(maintenanceRequests.length > 0 ? maintenanceRequests : []).map((req, idx) => (
-                    <li key={idx} className="text-sm border-b pb-2">
-                      <span className="font-semibold">{req.equipment}</span>{" "}
-                      - {req.issue}
-                      <span className="block text-xs text-gray-500">
-                        Reported by {req.reported_by}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Reports Snapshot */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Monitor className="w-5 h-5 text-green-600" />
-                Reports Snapshot
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={reportData.length > 0 ? reportData : []}>
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="equipments" fill="#10b981" name="Equipments Added" />
-                  <Bar dataKey="issues" fill="#ef4444" name="Issues Reported" />
-                </BarChart>
-              </ResponsiveContainer>
+                  ))
+                ) : (
+                  <li className="text-gray-500">No activity logs found</li>
+                )}
+              </ul>
             </CardContent>
           </Card>
         </main>

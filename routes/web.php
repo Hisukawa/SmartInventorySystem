@@ -100,8 +100,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
         Route::get('/admin/activity-logs', [AdminController::class, 'activityLogs']);
         Route::get('/admin/maintenance-requests', [AdminController::class, 'maintenanceRequests']);
-        Route::get('/admin/report-stats', [AdminController::class, 'reportStats']);
+  
         Route::get('/admin/rooms-status', [AdminController::class, 'roomsStatus']);
+        Route::get('/admin/equipment-condition', [AdminController::class, 'equipmentCondition']);
+        Route::get('/admin/equipment-condition-by-room' ,[AdminController::class, 'equipmentConditionByRoom']);
 
 
         // Admin Dashboard
