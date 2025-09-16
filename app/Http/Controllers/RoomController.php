@@ -83,7 +83,7 @@ class RoomController extends Controller
         $user = Auth::user();
 
         // ✅ Save new scan into room_statuses table
-                RoomStatus::updateOrCreate(
+        RoomStatus::updateOrCreate(
             [
                 'room_id'    => $room->id,      // Find by room
             ],
@@ -91,7 +91,7 @@ class RoomController extends Controller
                 'scanned_by' => $user?->id,
                 'is_active'  => 1,
             ]
-);
+        );
 
         // ✅ Filters
         $condition = $request->query('condition');

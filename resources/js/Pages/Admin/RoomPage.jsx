@@ -209,7 +209,7 @@ export default function RoomPage({ rooms, search }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="fixed top-0 left-[var(--sidebar-width,16rem)] right-0 z-50 flex h-16 items-center gap-2 px-4 border-b bg-white">
+                <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
                     <SidebarTrigger />
                     <Separator orientation="vertical" className="h-6 mx-3" />
                     <Breadcrumb className="">
@@ -229,7 +229,7 @@ export default function RoomPage({ rooms, search }) {
                     <Notification />
                 </header>
 
-                <main className="w-full px-6 py-4 pt-20 overflow-y-auto">
+                <main className="w-full px-6 py-4 overflow-y-auto">
                     <div className="flex items-center justify-between mb-4">
                         <h1 className="text-xl font-bold">Room Management</h1>
                     </div>
