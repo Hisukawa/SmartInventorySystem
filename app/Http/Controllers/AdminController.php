@@ -77,38 +77,38 @@ class AdminController extends Controller
     }
 
     // 🏫 Room occupancy widget
- public function roomsStatus()
-{
-    $rooms = Room::with(['latestStatus.user'])->get();
+    public function roomsStatus()
+    {
+        $rooms = Room::with(['latestStatus.user'])->get();
 
-    $occupiedCount = 0;
-    $availableCount = 0;
-    $details = [];
+        $occupiedCount = 0;
+        $availableCount = 0;
+        $details = [];
 
-    foreach ($rooms as $room) {
-        $isActive = (bool) ($room->latestStatus->is_active ?? false);
+        foreach ($rooms as $room) {
+            $isActive = (bool) ($room->latestStatus->is_active ?? false);
 
-        if ($isActive) {
-            $occupiedCount++;
-        } else {
-            $availableCount++;
+            if ($isActive) {
+                $occupiedCount++;
+            } else {
+                $availableCount++;
+            }
+
+            $details[] = [
+                'id'              => $room->id,
+                'room_number'     => $room->room_number,
+                'is_active'       => $isActive,
+                'last_scanned_by' => $room->latestStatus?->user?->name,
+                'last_scanned_at' => $room->latestStatus?->created_at,
+            ];
         }
 
-        $details[] = [
-            'id'              => $room->id,
-            'room_number'     => $room->room_number,
-            'is_active'       => $isActive,
-            'last_scanned_by' => $room->latestStatus?->user?->name,
-            'last_scanned_at' => $room->latestStatus?->created_at,
-        ];
+        return response()->json([
+            'occupied'  => $occupiedCount,
+            'available' => $availableCount,
+            'details'   => $details,
+        ]);
     }
-
-    return response()->json([
-        'occupied'  => $occupiedCount,
-        'available' => $availableCount,
-        'details'   => $details,
-    ]);
-}
 
     // 🖥 Equipment condition breakdown by type
     public function equipmentCondition()
@@ -134,47 +134,48 @@ class AdminController extends Controller
             'equipments'   => $equipments,
         ]);
     }
-public function equipmentConditionByRoom()
-{
-    try {
-        $rooms = Room::all();
 
-        $data = $rooms->map(function ($room) {
-            $systemUnits = SystemUnit::where('room_id', $room->id)
-                ->selectRaw('`condition`, COUNT(*) as total')
-                ->groupBy('condition')
-                ->pluck('total', 'condition')
-                ->toArray();
+    public function equipmentConditionByRoom()
+    {
+        try {
+            $rooms = Room::all();
 
-            $peripherals = Peripheral::where('room_id', $room->id)
-                ->selectRaw('`condition`, COUNT(*) as total')
-                ->groupBy('condition')
-                ->pluck('total', 'condition')
-                ->toArray();
+            $data = $rooms->map(function ($room) {
+                $systemUnits = SystemUnit::where('room_id', $room->id)
+                    ->selectRaw('`condition`, COUNT(*) as total')
+                    ->groupBy('condition')
+                    ->pluck('total', 'condition')
+                    ->toArray();
 
-            $equipments = Equipment::where('room_id', $room->id)
-                ->selectRaw('`condition`, COUNT(*) as total')
-                ->groupBy('condition')
-                ->pluck('total', 'condition')
-                ->toArray();
+                $peripherals = Peripheral::where('room_id', $room->id)
+                    ->selectRaw('`condition`, COUNT(*) as total')
+                    ->groupBy('condition')
+                    ->pluck('total', 'condition')
+                    ->toArray();
 
-            $merged = [];
+                $equipments = Equipment::where('room_id', $room->id)
+                    ->selectRaw('`condition`, COUNT(*) as total')
+                    ->groupBy('condition')
+                    ->pluck('total', 'condition')
+                    ->toArray();
 
-            foreach ([$systemUnits, $peripherals, $equipments] as $dataset) {
-                foreach ($dataset as $condition => $count) {
-                    $merged[$condition] = ($merged[$condition] ?? 0) + $count;
+                $merged = [];
+
+                foreach ([$systemUnits, $peripherals, $equipments] as $dataset) {
+                    foreach ($dataset as $condition => $count) {
+                        $merged[$condition] = ($merged[$condition] ?? 0) + $count;
+                    }
                 }
-            }
 
-            return array_merge(['room' => $room->room_number], $merged);
-        });
+                return array_merge(['room' => $room->room_number], $merged);
+            });
 
-        return response()->json($data);
-    } catch (\Throwable $e) {
-        \Log::error("equipmentConditionByRoom error: " . $e->getMessage());
-        return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json($data);
+        } catch (\Throwable $e) {
+            \Log::error("equipmentConditionByRoom error: " . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
-}
 
 
 }
