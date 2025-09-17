@@ -97,15 +97,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [MonitoringController::class, 'deactivateOnLogout'])
     ->name('logout');
 
+    // QR logout (GET, since QR scanning usually sends GET)
+    Route::get('/qr-logout', [MonitoringController::class, 'qrLogout'])
+        ->name('qr.logout.qr');
+
     // Logout QR code
-    Route::get('/qr-logout', function () {
-        Auth::logout();
+    // Route::get('/qr-logout', function () {
+    //     Auth::logout();
 
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
+    //     request()->session()->invalidate();
+    //     request()->session()->regenerateToken();
 
-        return redirect('/login'); // or inertia login route
-    })->name('qr.logout');
+    //     return redirect('/login'); // or inertia login route
+    // })->name('qr.logout');
 
 
     // Admin-only routes
