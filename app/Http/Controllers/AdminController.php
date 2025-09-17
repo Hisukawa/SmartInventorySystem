@@ -10,7 +10,6 @@ use App\Models\SystemUnit;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AdminController extends Controller
 {
@@ -41,16 +40,6 @@ class AdminController extends Controller
             // Extra stats
             'availablePeripherals' => Peripheral::where('condition', 'Good')->count(),
             'activeUsers'          => User::whereNotNull('email_verified_at')->count(),
-        ]);
-    }
-
-
-    public function showLogoutQr()
-    {
-        $qrCode = QrCode::size(200)->generate(route('qr.logout'));
-
-        return inertia('Admin/LogoutQr', [
-            'qrCode' => $qrCode
         ]);
     }
 
