@@ -26,6 +26,7 @@ import {
     Users,
     PieChart,
     BarChart as BarChartIcon,
+    Building,
 } from "lucide-react";
 import { useSpring, animated } from "@react-spring/web";
 
@@ -137,7 +138,7 @@ export default function AdminDashboard() {
         {
             title: "Total Rooms",
             value: animatedValue(dashboardStats.totalRooms),
-            icon: HardDrive,
+            icon: Building,
             link: "/admin/rooms",
         },
         {
@@ -235,13 +236,14 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* KPI Cards */}
+                    
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {cardData.map((card, idx) => (
                             <Link key={idx} href={card.link} className="block">
                                 <Card className="hover:shadow-lg hover:border-green-300 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                         <CardTitle className="text-lg font-medium text-gray-700 flex items-center gap-2">
-                                            <card.icon className="h-5 w-5 text-green-600" />
+                                            <card.icon className="h-5 w-5 text-[#006400]" /> {/* Changed color here */}
                                             {card.title}
                                         </CardTitle>
                                     </CardHeader>
