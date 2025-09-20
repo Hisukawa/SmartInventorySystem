@@ -19,7 +19,7 @@ use App\Http\Controllers\PeripheralController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SystemUnitController;
 use App\Http\Controllers\Auth\WebAuthnController;
-
+use App\Http\Controllers\Technician\TechnicianController;
 use App\Http\Controllers\Reports;
 use App\Models\Equipment;
 use App\Models\Room;
@@ -236,10 +236,54 @@ Route::middleware(['auth'])->group(function () {
 
     // Technician-only routes
     Route::middleware('role:technician')->group(function () {
-        Route::get('/technician/dashboard', function () {
-            return Inertia::render('TechnicianDashboard');
-        });
-    })->name('technician.dashboard');
+          Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])
+            ->name('technician.dashboard');
+
+              Route::get('/technician/rooms', [TechnicianController::class, 'showRooms'])
+        ->name('technician.rooms');
+
+        Route::get('/technician/units', [TechnicianController::class, 'showAllUnits'])->name('technicia.units');
+
+        Route::get('technician/peripherals', [TechnicianController::class , 'showAllPeripherals'])->name('technician.peripherals');
+
+        Route::get('/technician/peripherals/create', [TechnicianController::class, 'createPeripherals'])->name('techncian.createPeripherals');
+        Route::get('/technician/equipments', [TechnicianController::class, 'showAllRoomEquipments'])->name('technician.equipments');
+
+        //Route For Adding Rooms
+        Route::post('/technician/rooms/create', [TechnicianController::class, 'createRoom'])->name('technician.create.rooms');
+        Route::put('/technician/rooms/{id}', [TechnicianController::class, 'editRoom'])
+    ->name('technician.rooms.edit');
+
+        Route::delete('/technician/rooms/{id}', [TechnicianController::class, 'deleteRoom'])
+        ->name('technician.rooms.delete');
+
+            // Add system unit
+            Route::post('/technician/units/create', [TechnicianController::class, 'addSystemUnit'])->name('units.create');
+
+        // Edit / Update System Unit
+        Route::put('/technician/units/{id}', [TechnicianController::class, 'editSystemUnit'])->name('units.update');
+
+        // Delete System Unit
+        Route::delete('/technician/units/{id}', [TechnicianController::class, 'deleteSystemUnit'])->name('units.delete');
+
+        //Add for Peripherals
+        Route::post('/technician/peripherals/create', [TechnicianController::class, 'addPeripheral'])->name('peripherals.create');
+
+        Route::put('/peripherals/{id}/update', [TechnicianController::class, 'updatePeripheral'])->name('technician.update');
+        Route::delete('/technician/peripherals/{id}', [TechnicianController::class, 'deletePeripheral'])->name('technician.destroy');
+
+        //Adding For Room Equipments
+    // Show the form
+        Route::get('/technician/equipments/create', [TechnicianController::class, 'createEquipments'])
+            ->name('technician.createEquipments');
+
+        // Handle the form submit
+        Route::post('/technician/equipments', [TechnicianController::class, 'addEquipment'])
+            ->name('technician.storeEquipments');
+        Route::put('/equipments/{id}/update', [TechnicianController::class, 'updateEquipment'])->name('technician.equipments.update');
+        Route::delete('/technician/equipments/{id}', [TechnicianController::class, 'deleteEquipment'])->name('technician.equipment.delete');
+
+    });
 
     // Guest-only routes
     Route::middleware('role:guest')->group(function () {
