@@ -30,13 +30,13 @@ export default function Page() {
                             <BreadcrumbList>
                                 <BreadcrumbItem className="hidden md:block">
                                     <BreadcrumbLink href="#">
-                                        Building Your Applications
+                                        Hello World!
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
                                 <BreadcrumbSeparator className="hidden md:block" />
                                 <BreadcrumbItem>
                                     <BreadcrumbPage>
-                                        Data Fetching
+                                        Testing Git Pull Origin Main
                                     </BreadcrumbPage>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
