@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link, router } from "@inertiajs/react";
+import { Link, router, useForm } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -30,7 +30,6 @@ import {
 import { TechnicianAppSidebar } from "@/Components/TechnicianComponent/technician-app-sidebar";
 
 import { Input } from "@/components/ui/input";
-import EditEquipmentModal from "@/Components/TechnicianComponent/EditEquipmets";
 
 import {
     Popover,
@@ -182,6 +181,7 @@ export default function EquipmentIndex({
     equipments,
     search,
     existingRooms,
+       conditions,
     filters = {},
 }) {
     const [searchTerm, setSearchTerm] = useState(search || "");
@@ -290,7 +290,6 @@ export default function EquipmentIndex({
                         </BreadcrumbList>
                     </Breadcrumb>
                     <div className="flex-1" />
-                   
                 </header>
 
                 <main>
@@ -328,8 +327,7 @@ export default function EquipmentIndex({
                                             <TableHead>Equipment Code</TableHead>
                                             <TableHead>Type</TableHead>
                                             <TableHead>Brand</TableHead>
-                                            <TableHead>Model</TableHead>
-                                            <TableHead>Serial Number</TableHead>
+                                         
                                             <TableHead>Condition</TableHead>
                                             <TableHead>Room</TableHead>
                                             <TableHead>Actions</TableHead>
@@ -347,8 +345,7 @@ export default function EquipmentIndex({
                                                     <TableCell>{e.equipment_code}</TableCell>
                                                     <TableCell>{e.type}</TableCell>
                                                     <TableCell>{e.brand}</TableCell>
-                                                    <TableCell>{e.model}</TableCell>
-                                                    <TableCell>{e.serial_number}</TableCell>
+                                                 
                                                     <TableCell>{e.condition}</TableCell>
                                                     <TableCell>
                                                         {e.room ? `ROOM ${e.room.room_number}` : "N/A"}
@@ -429,14 +426,110 @@ export default function EquipmentIndex({
                     </div>
                 </main>
 
+                {/* ✅ Inline Edit Modal */}
                 {editEquipment && (
                     <EditEquipmentModal
                         equipment={editEquipment}
                         rooms={existingRooms}
+                         conditions={conditions}
                         onClose={() => setEditEquipment(null)}
                     />
                 )}
             </SidebarInset>
         </SidebarProvider>
+    );
+}
+
+/* ✅ Edit Equipment Modal Component */
+/* ✅ Edit Equipment Modal Component */
+function EditEquipmentModal({ equipment, rooms, conditions, onClose }) {
+    const { data, setData, put, processing } = useForm({
+        equipment_code: equipment.equipment_code || "",
+        type: equipment.type || "",
+        brand: equipment.brand || "",
+        condition: equipment.condition || "",
+        room_id: equipment.room_id || "",
+        isCustomCondition: false,
+    });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        put(route("technician.equipments.update", equipment.id), {
+            onSuccess: () => {
+                Swal.fire("Updated!", "Equipment updated successfully.", "success");
+                onClose();
+            },
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">Edit Equipment</h2>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <Input
+                        placeholder="Equipment Code"
+                        value={data.equipment_code}
+                        onChange={(e) => setData("equipment_code", e.target.value)}
+                    />
+                    <Input
+                        placeholder="Type"
+                        value={data.type}
+                        onChange={(e) => setData("type", e.target.value)}
+                    />
+                    <Input
+                        placeholder="Brand"
+                        value={data.brand}
+                        onChange={(e) => setData("brand", e.target.value)}
+                    />
+
+                        <input
+                            type="text"
+                            list="conditionOptions"
+                            className="w-full border rounded p-2"
+                            placeholder="Enter or select condition"
+                            value={data.condition}
+                            onChange={(e) => setData("condition", e.target.value)}
+                        />
+                        <datalist id="conditionOptions">
+                            <option value="Good" />
+                            <option value="Fair" />
+                            <option value="Needs Repair" />
+                            <option value="Broken" />
+                        </datalist>
+                    {/* ✅ Room dropdown */}
+                    <Select
+                        value={String(data.room_id)}
+                        onValueChange={(value) => setData("room_id", value)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select Room" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {rooms.map((room) => (
+                                <SelectItem key={room.id} value={String(room.id)}>
+                                    Room {room.room_number}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onClose}
+                            disabled={processing}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={processing}>
+                            Save
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }

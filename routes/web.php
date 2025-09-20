@@ -266,6 +266,22 @@ Route::middleware(['auth'])->group(function () {
         // Delete System Unit
         Route::delete('/technician/units/{id}', [TechnicianController::class, 'deleteSystemUnit'])->name('units.delete');
 
+        //Add for Peripherals
+        Route::post('/technician/peripherals/create', [TechnicianController::class, 'addPeripheral'])->name('peripherals.create');
+
+        Route::put('/peripherals/{id}/update', [TechnicianController::class, 'updatePeripheral'])->name('technician.update');
+        Route::delete('/technician/peripherals/{id}', [TechnicianController::class, 'deletePeripheral'])->name('technician.destroy');
+
+        //Adding For Room Equipments
+    // Show the form
+        Route::get('/technician/equipments/create', [TechnicianController::class, 'createEquipments'])
+            ->name('technician.createEquipments');
+
+        // Handle the form submit
+        Route::post('/technician/equipments', [TechnicianController::class, 'addEquipment'])
+            ->name('technician.storeEquipments');
+        Route::put('/equipments/{id}/update', [TechnicianController::class, 'updateEquipment'])->name('technician.equipments.update');
+        Route::delete('/technician/equipments/{id}', [TechnicianController::class, 'deleteEquipment'])->name('technician.equipment.delete');
 
     });
 

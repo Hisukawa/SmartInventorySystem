@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, usePage } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { TechnicianAppSidebar } from "@/Components/TechnicianComponent/technician-app-sidebar";
+
+import Swal from "sweetalert2";
 
 import {
     SidebarProvider,
@@ -27,28 +29,40 @@ export default function AddPeripheral({
     existingBrands = [],
     existingModels = [],
 }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, reset, processing, errors } = useForm({
         type: "",
         brand: "",
         model: "",
         serial_number: "",
         condition: "Working",
-        room_id: "", // <-- send room_id to backend
-        unit_id: "", // <-- send unit_id to backend
+        room_id: "",
+        unit_id: "",
     });
 
     const [filteredUnits, setFilteredUnits] = useState([]);
+    const { flash } = usePage().props;
 
-    // Update filtered units whenever room_id changes
+    // Handle flash success message for Swal
+    useEffect(() => {
+        if (flash?.success) {
+            Swal.fire({
+                icon: "success",
+                title: "Peripheral Added",
+                text: flash.success,
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        }
+    }, [flash]);
+
+    // Filter units whenever room_id changes
     useEffect(() => {
         if (data.room_id) {
-            // filter units that belong to the selected room
             const unitsForRoom = existingUnits.filter(
                 (unit) => String(unit.room_id) === String(data.room_id)
             );
             setFilteredUnits(unitsForRoom);
 
-            // if currently selected unit is not in the new filtered list, reset it
             if (!unitsForRoom.find((u) => u.id === data.unit_id)) {
                 setData("unit_id", "");
             }
@@ -60,7 +74,20 @@ export default function AddPeripheral({
 
     function handleSubmit(e) {
         e.preventDefault();
-        post("/admin/peripherals");
+
+        post("/technician/peripherals/create", data, {
+            onSuccess: () => {
+                // Reset form and close modal if any
+                reset();
+            },
+            onError: (errors) => {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: errors?.type || "Failed to add peripheral. Please check your input.",
+                });
+            },
+        });
     }
 
     return (
@@ -81,7 +108,7 @@ export default function AddPeripheral({
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
-                                    href="/admin/peripherals/create"
+                                    href="/technician/peripherals/create"
                                     className="font-semibold text-foreground"
                                 >
                                     Add Peripheral
@@ -98,19 +125,14 @@ export default function AddPeripheral({
 
                     <Card className="max-w-xl mx-auto">
                         <CardContent>
-                            <form
-                                onSubmit={handleSubmit}
-                                className="space-y-4 mt-4"
-                            >
+                            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                                 {/* Type */}
                                 <div>
                                     <Label>Type</Label>
                                     <input
                                         list="typeOptions"
                                         value={data.type}
-                                        onChange={(e) =>
-                                            setData("type", e.target.value)
-                                        }
+                                        onChange={(e) => setData("type", e.target.value)}
                                         placeholder="Select or type peripheral type"
                                         className="w-full border rounded px-2 py-1"
                                     />
@@ -119,9 +141,7 @@ export default function AddPeripheral({
                                         <option value="Keyboard" />
                                     </datalist>
                                     {errors.type && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.type}
-                                        </div>
+                                        <div className="text-red-500 text-sm">{errors.type}</div>
                                     )}
                                 </div>
 
@@ -135,47 +155,29 @@ export default function AddPeripheral({
                                             data.room_id
                                                 ? `ROOM ${
                                                       existingRooms.find(
-                                                          (r) =>
-                                                              r.id ===
-                                                              data.room_id
+                                                          (r) => r.id === data.room_id
                                                       )?.room_number
                                                   }`
                                                 : ""
                                         }
                                         onChange={(e) => {
                                             const val = e.target.value;
-                                            // extract number if it starts with "ROOM "
-                                            const roomNum = val.startsWith(
-                                                "ROOM "
-                                            )
-                                                ? val.slice(5)
-                                                : val;
-                                            // find room_id by room_number
+                                            const roomNum = val.startsWith("ROOM ") ? val.slice(5) : val;
                                             const room = existingRooms.find(
-                                                (r) =>
-                                                    String(r.room_number) ===
-                                                    roomNum
+                                                (r) => String(r.room_number) === roomNum
                                             );
-                                            setData(
-                                                "room_id",
-                                                room ? room.id : ""
-                                            );
+                                            setData("room_id", room ? room.id : "");
                                         }}
                                         placeholder="Select or type room"
                                         className="w-full border rounded px-2 py-1"
                                     />
                                     <datalist id="roomOptions">
                                         {existingRooms.map((room) => (
-                                            <option
-                                                key={room.id}
-                                                value={`ROOM ${room.room_number}`}
-                                            />
+                                            <option key={room.id} value={`ROOM ${room.room_number}`} />
                                         ))}
                                     </datalist>
                                     {errors.room_id && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.room_id}
-                                        </div>
+                                        <div className="text-red-500 text-sm">{errors.room_id}</div>
                                     )}
                                 </div>
 
@@ -187,20 +189,14 @@ export default function AddPeripheral({
                                         value={
                                             data.unit_id
                                                 ? filteredUnits.find(
-                                                      (u) =>
-                                                          u.id === data.unit_id
+                                                      (u) => u.id === data.unit_id
                                                   )?.unit_code || ""
                                                 : ""
                                         }
                                         onChange={(e) => {
                                             const val = e.target.value;
-                                            const unit = filteredUnits.find(
-                                                (u) => u.unit_code === val
-                                            );
-                                            setData(
-                                                "unit_id",
-                                                unit ? unit.id : ""
-                                            ); // store the id, not the code
+                                            const unit = filteredUnits.find((u) => u.unit_code === val);
+                                            setData("unit_id", unit ? unit.id : "");
                                         }}
                                         placeholder="Select or type unit code"
                                         className="w-full border rounded px-2 py-1"
@@ -208,16 +204,11 @@ export default function AddPeripheral({
                                     />
                                     <datalist id="unitOptions">
                                         {filteredUnits.map((unit) => (
-                                            <option
-                                                key={unit.id}
-                                                value={unit.unit_code}
-                                            />
+                                            <option key={unit.id} value={unit.unit_code} />
                                         ))}
                                     </datalist>
                                     {errors.unit_id && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.unit_id}
-                                        </div>
+                                        <div className="text-red-500 text-sm">{errors.unit_id}</div>
                                     )}
                                 </div>
 
@@ -227,9 +218,7 @@ export default function AddPeripheral({
                                     <input
                                         list="brandOptions"
                                         value={data.brand}
-                                        onChange={(e) =>
-                                            setData("brand", e.target.value)
-                                        }
+                                        onChange={(e) => setData("brand", e.target.value)}
                                         placeholder="Select or type brand"
                                         className="w-full border rounded px-2 py-1"
                                     />
@@ -239,9 +228,7 @@ export default function AddPeripheral({
                                         ))}
                                     </datalist>
                                     {errors.brand && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.brand}
-                                        </div>
+                                        <div className="text-red-500 text-sm">{errors.brand}</div>
                                     )}
                                 </div>
 
@@ -251,9 +238,7 @@ export default function AddPeripheral({
                                     <input
                                         list="modelOptions"
                                         value={data.model}
-                                        onChange={(e) =>
-                                            setData("model", e.target.value)
-                                        }
+                                        onChange={(e) => setData("model", e.target.value)}
                                         placeholder="Select or type model"
                                         className="w-full border rounded px-2 py-1"
                                     />
@@ -263,9 +248,7 @@ export default function AddPeripheral({
                                         ))}
                                     </datalist>
                                     {errors.model && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.model}
-                                        </div>
+                                        <div className="text-red-500 text-sm">{errors.model}</div>
                                     )}
                                 </div>
 
@@ -274,12 +257,7 @@ export default function AddPeripheral({
                                     <Label>Serial Number</Label>
                                     <Input
                                         value={data.serial_number}
-                                        onChange={(e) =>
-                                            setData(
-                                                "serial_number",
-                                                e.target.value
-                                            )
-                                        }
+                                        onChange={(e) => setData("serial_number", e.target.value)}
                                         placeholder="Enter serial number"
                                         className="w-full border rounded px-2 py-1"
                                     />
@@ -290,25 +268,15 @@ export default function AddPeripheral({
                                     <Label>Condition</Label>
                                     <select
                                         value={data.condition}
-                                        onChange={(e) =>
-                                            setData("condition", e.target.value)
-                                        }
+                                        onChange={(e) => setData("condition", e.target.value)}
                                         className="w-full border rounded px-2 py-1"
                                     >
-                                        <option value="Working">
-                                            🟢 Working
-                                        </option>
-                                        <option value="Defective">
-                                            🔴 Defective
-                                        </option>
-                                        <option value="Maintenance">
-                                            🟡 Maintenance
-                                        </option>
+                                        <option value="Working">🟢 Working</option>
+                                        <option value="Defective">🔴 Defective</option>
+                                        <option value="Maintenance">🟡 Maintenance</option>
                                     </select>
                                     {errors.condition && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.condition}
-                                        </div>
+                                        <div className="text-red-500 text-sm">{errors.condition}</div>
                                     )}
                                 </div>
 

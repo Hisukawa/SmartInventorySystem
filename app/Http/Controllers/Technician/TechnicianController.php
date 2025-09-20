@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Room;
 use App\Models\Peripheral;
 use App\Models\Equipment;
-
+use App\Models\UserAddedPeripherals;
+use App\Models\UserAddedEquipments;
 use App\Models\SystemUnit;
 use Illuminate\Validation\Rule;
 
@@ -88,16 +89,23 @@ public function createPeripherals(){
 }
 
 
-public function showAllRoomEquipments(){
-   $equipments = Equipment::with('room')->get();
-   $room = Room::all();
+public function showAllRoomEquipments()
+{
+    $equipments = Equipment::with('room')->get();
+    $room = Room::all();
 
-   return  Inertia::render('Technician/Technician-show-all-equipments', [
-    'equipments' => $equipments,
-    'existingRooms' => $room,
-   ]);
+    // ✅ get all distinct condition values from equipments table
+    $conditions = Equipment::select('condition')
+        ->distinct()
+        ->pluck('condition');
 
+    return Inertia::render('Technician/Technician-show-all-equipments', [
+        'equipments'     => $equipments,
+        'existingRooms'  => $room,
+        'conditions'     => $conditions, 
+    ]);
 }
+
 
 public function createRoom(Request $request)
 {
@@ -304,4 +312,252 @@ public function addSystemUnit(Request $request)
         }
     }
 
+
+  
+public function addPeripheral(Request $request)
+{
+    $validated = $request->validate([
+        'type'          => 'required|string|max:255',
+        'brand'         => 'nullable|string|max:255',
+        'model'         => 'nullable|string|max:255',
+        'serial_number' => 'nullable|string|max:255',
+        'condition'     => 'required|string|max:255',
+        'room_id'       => 'required|exists:rooms,id',
+        'unit_id'       => 'required|exists:system_units,id',
+    ]);
+
+    $room = Room::findOrFail($validated['room_id']);
+
+    $existingPeripheral = Peripheral::where('room_id', $room->id)
+        ->where('unit_id', $validated['unit_id'])
+        ->where('type', $validated['type'])
+        ->first();
+
+    if ($existingPeripheral) {
+        return back()->withErrors([
+            'type' => "A {$validated['type']} already exists in Room {$room->room_number} Unit {$validated['unit_id']}."
+        ])->withInput();
+    }
+
+    // Generate peripheral code
+    $lastPeripheral = Peripheral::orderBy('id', 'desc')->first();
+    $newNumber = $lastPeripheral && preg_match('/PRF-(\d+)/', $lastPeripheral->peripheral_code, $matches)
+        ? str_pad((int)$matches[1] + 1, 3, '0', STR_PAD_LEFT)
+        : '001';
+    $peripheralCode = 'PRF-' . $newNumber;
+
+    $qrCodePath = strtolower("isu-ilagan/ict-department/room-{$room->room_number}/{$validated['unit_id']}/{$peripheralCode}");
+
+    try {
+        UserAddedPeripherals::create([
+            'peripheral_code' => $peripheralCode,
+            'type'            => $validated['type'],
+            'brand'           => $validated['brand'] ?? null,
+            'model'           => $validated['model'] ?? null,
+            'serial_number'   => $validated['serial_number'] ?? null,
+            'condition'       => $validated['condition'],
+            'room_id'         => $room->id,
+            'unit_id'         => $validated['unit_id'],
+            'added_by'        => Auth::id(),
+            'qr_code_path'    => $qrCodePath,
+        ]);
+
+        Peripheral::create([
+            'peripheral_code' => $peripheralCode,
+            'type'            => $validated['type'],
+            'brand'           => $validated['brand'] ?? null,
+            'model'           => $validated['model'] ?? null,
+            'serial_number'   => $validated['serial_number'] ?? null,
+            'condition'       => $validated['condition'],
+            'room_id'         => $room->id,
+            'unit_id'         => $validated['unit_id'],
+            'qr_code_path'    => $qrCodePath,
+        ]);
+
+        // ✅ Return Inertia with a flash message
+        return Inertia::render('Technician/Technician-Add-Peripherals', [
+            'flash' => [
+                'success' => 'Peripheral added successfully!',
+            ],
+            'existingRooms'  => Room::all(),
+            'existingUnits'  => SystemUnit::all(),
+            'existingBrands' => Peripheral::distinct()->pluck('brand'),
+            'existingModels' => Peripheral::distinct()->pluck('model'),
+        ]);
+    } catch (\Exception $e) {
+        return back()->withErrors(['type' => 'Failed to add peripheral. Please check your input.']);
+    }
+}
+// Edit / Update peripheral
+public function updatePeripheral(Request $request, $id)
+{
+    $peripheral = Peripheral::findOrFail($id);
+    $userPeripheral = UserAddedPeripherals::where('peripheral_code', $peripheral->peripheral_code)->first();
+
+    $validated = $request->validate([
+        'type'          => 'required|string|max:255',
+        'brand'         => 'nullable|string|max:255',
+        'model'         => 'nullable|string|max:255',
+        'serial_number' => 'nullable|string|max:255',
+        'condition'     => 'required|string|max:255',
+        'room_id'       => 'required|exists:rooms,id',
+        'unit_id'       => 'required|exists:system_units,id',
+    ]);
+
+    try {
+        // Update main table
+        $peripheral->update($validated);
+
+        // Update user added table if exists
+        if ($userPeripheral) {
+            $userPeripheral->update($validated);
+        }
+
+      
+    return redirect()->back()->with('success', 'Peripheral updated successfully!');
+    } catch (\Exception $e) {
+        return back()->withErrors(['type' => 'Failed to update peripheral.']);
+    }
+}
+
+// Delete peripheral
+public function deletePeripheral($id)
+{
+    $peripheral = Peripheral::findOrFail($id);
+    $userPeripheral = UserAddedPeripherals::where('peripheral_code', $peripheral->peripheral_code)->first();
+
+    try {
+        // Delete main table
+        $peripheral->delete();
+
+        // Delete user added table if exists
+        if ($userPeripheral) {
+            $userPeripheral->delete();
+        }
+
+           return redirect()->back()->with('success', 'Peripheral deleted successfully!');
+    } catch (\Exception $e) {
+        return back()->withErrors(['type' => 'Failed to delete peripheral.']);
+    }
+}
+
+
+public function createEquipments()
+{
+    return Inertia::render('Technician/Technician-Add-Equipment', [
+        'existingRooms'     => Room::all(),
+     
+    ]);
+}
+
+public function addEquipment(Request $request)
+{
+    $validated = $request->validate([
+        'equipment_name' => 'required|string|max:255',
+        'type'           => 'required|string|max:255',
+        'brand'          => 'nullable|string|max:255',
+        'condition'      => 'required|string|max:255',
+        'room_id'        => 'nullable|exists:rooms,id',
+    ]);
+
+   $room = Room::findOrFail($validated['room_id']);
+    // Generate equipment code
+$lastEquipment = Equipment::orderByRaw("CAST(SUBSTRING(equipment_code, 5) AS UNSIGNED) DESC")->first();
+
+$lastNumber = $lastEquipment
+    ? (int) preg_replace('/[^0-9]/', '', $lastEquipment->equipment_code) // extract just the number
+    : 0;
+
+$newNumber = $lastNumber + 1;
+
+$equipmentCode = 'EQP-' . $newNumber;
+
+
+
+    // Generate QR code path
+    $qrCodePath = $room 
+        ? strtolower("isu-ilagan/ict-department/room-{$room->room_number}/{$equipmentCode}") 
+        : strtolower("isu-ilagan/ict-department/{$equipmentCode}");
+
+    try {
+        // Save to UserAddedEquipments
+        UserAddedEquipments::create([
+            'equipment_code' => $equipmentCode,
+            'equipment_name' => $validated['equipment_name'],
+            'type'           => $validated['type'],
+            'brand'          => $validated['brand'] ?? null,
+            'condition'      => $validated['condition'],
+            'room_id'        => $validated['room_id'] ?? null,
+            'added_by'       => Auth::id(), // fallback if no auth
+            'qr_code'        => $qrCodePath,
+        ]);
+
+        // Save to Equipment
+        Equipment::create([
+            'equipment_code' => $equipmentCode,
+            'equipment_name' => $validated['equipment_name'],
+            'type'           => $validated['type'],
+            'brand'          => $validated['brand'] ?? null,
+            'condition'      => $validated['condition'],
+            'room_id'        => $validated['room_id'] ?? null,
+            'qr_code'        => $qrCodePath,
+        ]);
+
+        // Redirect with success flash
+        return redirect()
+            ->route('technician.createEquipments')
+            ->with('success', 'Equipment added successfully!');
+    } catch (\Exception $e) {
+        return back()->withErrors([
+            'equipment_name' => 'Failed to add equipment: ' . $e->getMessage(),
+        ]);
+    }
+}
+
+    /**
+     * Update equipment
+     */
+    public function updateEquipment(Request $request, $id)
+    {
+        $equipment = Equipment::findOrFail($id);
+        $validated = $request->validate([
+            'equipment_code' => 'required|string|max:255',
+            'type'           => 'required|string|max:255',
+            'brand'          => 'nullable|string|max:255',
+            'condition'      => 'required|string|max:255',
+            'room_id'        => 'nullable|exists:rooms,id',
+        ]);
+
+        $room = $validated['room_id'] ? Room::findOrFail($validated['room_id']) : null;
+
+        // Update QR code path if room changes
+        $qrCodePath = $room 
+            ? strtolower("isu-ilagan/ict-department/room-{$room->room_number}/{$equipment->equipment_code}") 
+            : strtolower("isu-ilagan/ict-department/{$equipment->equipment_code}");
+
+        $equipment->update(array_merge($validated, ['qr_code' => $qrCodePath]));
+
+        // Update UserAddedEquipments as well
+        $userAdded = UserAddedEquipments::where('equipment_code', $equipment->equipment_code)->first();
+        if ($userAdded) {
+            $userAdded->update(array_merge($validated, ['qr_code' => $qrCodePath]));
+        }
+
+        return redirect()->back()->with('success', 'Equipment updated successfully!');
+    }
+
+    /**
+     * Delete equipment
+     */
+    public function deleteEquipment($id)
+    {
+        $equipment = Equipment::findOrFail($id);
+
+        // Delete from UserAddedEquipments as well
+        UserAddedEquipments::where('equipment_code', $equipment->equipment_code)->delete();
+
+        $equipment->delete();
+
+        return redirect()->back()->with('success', 'Equipment deleted successfully!');
+    }
 }

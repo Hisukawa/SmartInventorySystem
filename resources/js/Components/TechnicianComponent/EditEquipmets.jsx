@@ -25,7 +25,7 @@ export default function EquipmentForm({ rooms }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post("/equipments");
+        post("/techinician/equipments");
     };
 
     return (

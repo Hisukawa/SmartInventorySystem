@@ -11,21 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::create('user_added_peripherals', function (Blueprint $table) {
+        Schema::create('user_added_equipments', function (Blueprint $table) {
             $table->id();
-            $table->string('peripheral_code')->unique();
+            $table->string('equipment_code')->unique();
+            $table->string('equipment_name');
             $table->string('type');
             $table->string('brand')->nullable();
-            $table->string('model')->nullable();
-            $table->string('serial_number')->nullable();
-            $table->string('condition')->default('Good');
-            $table->foreignId('room_id');
-            $table->foreignId('unit_id');
-            $table->foreignId('added_by');
+            $table->string('condition');
+            $table->unsignedBigInteger('room_id');
+            $table->string('qr_code')->nullable();
+            $table->unsignedBigInteger('added_by');
             $table->timestamps();
 
+            // Foreign keys
             $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade');
-            $table->foreign('unit_id')->references('id')->on('system_units')->onDelete('cascade');
             $table->foreign('added_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
@@ -35,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_added_peripherals');
+        Schema::dropIfExists('user_added_equipments');
     }
 };

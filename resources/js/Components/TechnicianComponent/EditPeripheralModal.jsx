@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
+import Swal from "sweetalert2";
 const CONDITION_OPTIONS = [
     { label: "Functional", color: "bg-green-500" },
     { label: "Defective", color: "bg-red-500" },
@@ -32,12 +32,33 @@ export default function EditPeripheralModal({
         unit_id: peripheral?.unit_id || "", // <-- use unit_id
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        put(route("peripherals.update", peripheral.id), {
-            onSuccess: () => onClose(),
-        });
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    put(route("technician.update", peripheral.id), {
+        onSuccess: () => {
+            // Show success Swal
+            Swal.fire({
+                icon: "success",
+                title: "Updated!",
+                text: "Peripheral updated successfully.",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+
+            // Close the modal
+            onClose();
+        },
+        onError: (errors) => {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: errors?.type || "Failed to update peripheral. Please check your input.",
+            });
+        },
+    });
+};
+
 
     const getConditionColor = (condition) => {
         const found = CONDITION_OPTIONS.find(
