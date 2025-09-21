@@ -31,7 +31,7 @@ const data = {
         { title: "Equipments History", url: "#", icon: HardDrive },
         {
             title: "Users History",
-            url: "/admin/rooms",
+            url: "#",
             icon: Users,
         },
     ],
