@@ -62,7 +62,7 @@ class Reports extends Controller
             'rooms' => \App\Models\Room::pluck('room_number', 'id'),
         ];
 
-        return Inertia::render('Admin/Faculty-Reports/Faculty-reports', [
+        return Inertia::render('Admin/Reports/Faculty-reports', [
             'reports' => $reports,
             'filters' => $request->only(['room', 'faculty', 'reportable_type', 'condition', 'search']),
             'filterOptions' => $filterOptions,
@@ -84,7 +84,7 @@ class Reports extends Controller
     {
         // ✅ Validate request first
         $validated = $request->validate([
-          'reportable_type' => 'required|in:equipment,peripheral,system_unit',
+            'reportable_type' => 'required|in:equipment,peripheral,system_unit',
             'reportable_id'   => 'required|integer',
             'room_id'         => 'required|integer',
             'condition'       => 'required|string|max:255',

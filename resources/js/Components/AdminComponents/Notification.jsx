@@ -107,7 +107,7 @@ export default function Notification() {
                     {/* Footer */}
                     <div className="p-2 text-center border-t">
                         <a
-                            href="/faculty/reports"
+                            href="/admin/faculty/reports"
                             className="text-sm text-blue-600 hover:underline"
                         >
                             View all

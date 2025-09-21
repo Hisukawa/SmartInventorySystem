@@ -234,16 +234,15 @@ export default function AdminDashboard() {
                             Here’s a summary of your ICT inventory system.
                         </p>
                     </div>
-
                     {/* KPI Cards */}
-                    
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {cardData.map((card, idx) => (
                             <Link key={idx} href={card.link} className="block">
                                 <Card className="hover:shadow-lg hover:border-green-300 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                         <CardTitle className="text-lg font-medium text-gray-700 flex items-center gap-2">
-                                            <card.icon className="h-5 w-5 text-[#006400]" /> {/* Changed color here */}
+                                            <card.icon className="h-5 w-5 text-[#006400]" />{" "}
+                                            {/* Changed color here */}
                                             {card.title}
                                         </CardTitle>
                                     </CardHeader>
@@ -254,7 +253,6 @@ export default function AdminDashboard() {
                             </Link>
                         ))}
                     </div>
-
                     {/* Room Occupancy + Equipment Condition by Room */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Room Occupancy */}
@@ -334,7 +332,6 @@ export default function AdminDashboard() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Equipment Condition by Type (Pie Charts) */}
                     <Card>
                         <CardHeader>
@@ -461,7 +458,6 @@ export default function AdminDashboard() {
                             </div>
                         </CardContent>
                     </Card>
-
                     {/* Recent Activity */}
                     <Card>
                         <CardHeader>
@@ -472,14 +468,15 @@ export default function AdminDashboard() {
                         </CardHeader>
                         <CardContent>
                             <ul className="space-y-3 max-h-72 overflow-y-auto">
-                                {activityLogs.length > 0 ? (
+                                {Array.isArray(activityLogs) &&
+                                activityLogs.length > 0 ? (
                                     activityLogs.map((log, idx) => (
                                         <li
                                             key={idx}
                                             className="text-sm border-b pb-2"
                                         >
                                             <span className="font-semibold">
-                                                {log.user}
+                                                {log.user?.name ?? "Unknown"}
                                             </span>{" "}
                                             {log.action}
                                             <span className="block text-xs text-gray-500">

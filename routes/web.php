@@ -21,6 +21,8 @@ use App\Http\Controllers\SystemUnitController;
 use App\Http\Controllers\Auth\WebAuthnController;
 use App\Http\Controllers\Technician\TechnicianController;
 use App\Http\Controllers\Reports;
+use App\Http\Controllers\RoomHistoryController;
+use App\Http\Controllers\SystemUnitHistoryController;
 use App\Models\Equipment;
 use App\Models\Room;
 use App\Models\User;
@@ -28,12 +30,11 @@ use Illuminate\Support\Facades\Auth;
 
 
 
-
-
 // ✅ Public routes (only login/register/etc.)
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
 //Route to see all users the units details without logging in
 Route::get('/unit/{unit_path}', [SystemUnitController::class, 'showUnitsDetails'])
     ->where('unit_path', '.*')
@@ -46,6 +47,8 @@ Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'show
 //Route to see all users equipment details without logging in
 Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
     ->name('equipment.public.show');
+
+
 // Login page
 Route::get('/login', function () {
     return Inertia::render('Auth/Login', [
@@ -84,9 +87,6 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // System Units (all users)
-    Route::get('/units', [SystemUnitController::class, 'index'])->name('units.index');
-    Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
     //Route::get('/room/{roomPath}', [RoomController::class, 'show'])->where('roomPath', '.*') // <-- this allows slashes in parameter
                                                                     //->name('room.show');
 
@@ -98,7 +98,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     // Admin-only routes
-    Route::middleware('role:admin')->group(function () {
+        Route::middleware('role:admin')->group(function () {
 
 
         Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
@@ -127,8 +127,9 @@ Route::middleware(['auth'])->group(function () {
 
 
         // System Units
-        Route::get('/system-units', [SystemUnitController::class, 'index']) ->name('system-units.index');
-
+        // Route::get('/admin/units', [SystemUnitController::class, 'index'])->name('units.index'); // Duplicate
+        Route::post('/admin/system-units', [SystemUnitController::class, 'store'])->name('system-units.store');
+        Route::get('/admin/system-units', [SystemUnitController::class, 'index']) ->name('system-units.index');
         Route::put('/system-units/{id}', [SystemUnitController::class, 'update']);
         Route::delete('/system-units/{id}', [SystemUnitController::class, 'destroy']);
         Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
@@ -170,15 +171,15 @@ Route::middleware(['auth'])->group(function () {
 
 
         // Viewing Faculty Reports
-        Route::get('/faculty/reports', [Reports:: class, 'index'])->name('admin.reports.index');
+        Route::get('admin/faculty/reports', [Reports:: class, 'index'])->name('admin.reports.index');
 
         // status for force logout
         Route::put('/api/admin/rooms/{room}/status', [RoomController::class, 'updateStatus']);
 
 
 
-        Route::get('/admin/reports/{report}', [ReportController::class, 'show'])
-        ->name('admin.reports.show');
+        // Route::get('/admin/reports/{report}', [ReportController::class, 'show'])
+        //     ->name('admin.reports.show');
 
         Route::get('/admin/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
         // Route::post('/admin/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
@@ -188,6 +189,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+
+
+        // History
+
+        // Room History
+        Route::get('/admin/room-histories', [RoomHistoryController::class, 'index'])
+            ->name('room.histories');
+        Route::delete('/room-history/{id}', [RoomHistoryController::class, 'destroy'])
+            ->name('room-history.destroy');
+
+
+        // System Unit History
+        Route::get('/admin/system-unit-histories', [SystemUnitHistoryController::class, 'index'])
+            ->name('system-unit.histories');
+        Route::delete('/system-unit-history/{id}', [SystemUnitHistoryController::class, 'destroy'])
+            ->name('system-unit-history.destroy');
     });
 
 
@@ -199,6 +216,11 @@ Route::middleware(['auth'])->group(function () {
 
     // Faculty-only routes
     Route::middleware(['auth', 'role:faculty'])->group(function () {
+
+
+        Route::get('/units', [SystemUnitController::class, 'index'])->name('units.index');
+        Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
+
         // Faculty dashboard
         Route::get('/faculty/dashboard', [FacultyController::class, 'dashboard'])
             ->name('faculty.dashboard');
@@ -236,11 +258,11 @@ Route::middleware(['auth'])->group(function () {
 
     // Technician-only routes
     Route::middleware('role:technician')->group(function () {
-          Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])
+        Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])
             ->name('technician.dashboard');
 
-              Route::get('/technician/rooms', [TechnicianController::class, 'showRooms'])
-        ->name('technician.rooms');
+        Route::get('/technician/rooms', [TechnicianController::class, 'showRooms'])
+            ->name('technician.rooms');
 
         Route::get('/technician/units', [TechnicianController::class, 'showAllUnits'])->name('technicia.units');
 
@@ -250,9 +272,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/technician/equipments', [TechnicianController::class, 'showAllRoomEquipments'])->name('technician.equipments');
 
         //Route For Adding Rooms
-        Route::post('/technician/rooms/create', [TechnicianController::class, 'createRoom'])->name('technician.create.rooms');
+        Route::post('/technician/rooms/create', [TechnicianController::class, 'createRoom'])
+            ->name('technician.create.rooms');
         Route::put('/technician/rooms/{id}', [TechnicianController::class, 'editRoom'])
-    ->name('technician.rooms.edit');
+            ->name('technician.rooms.edit');
 
         Route::delete('/technician/rooms/{id}', [TechnicianController::class, 'deleteRoom'])
         ->name('technician.rooms.delete');
@@ -273,7 +296,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/technician/peripherals/{id}', [TechnicianController::class, 'deletePeripheral'])->name('technician.destroy');
 
         //Adding For Room Equipments
-    // Show the form
+        // Show the form
         Route::get('/technician/equipments/create', [TechnicianController::class, 'createEquipments'])
             ->name('technician.createEquipments');
 

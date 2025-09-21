@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Room;
+use App\Observers\RoomObserver;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use App\Observers\SystemUnitObserver;
+use App\Models\SystemUnit;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
 
@@ -25,10 +29,13 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
-      Relation::morphMap([
-        'system_unit' => \App\Models\SystemUnit::class,
-        'peripheral'  => \App\Models\Peripheral::class,
-        'equipment'   => \App\Models\Equipment::class,
-    ]);
+        Relation::morphMap([
+            'system_unit' => \App\Models\SystemUnit::class,
+            'peripheral'  => \App\Models\Peripheral::class,
+            'equipment'   => \App\Models\Equipment::class,
+        ]);
+
+        Room::observe(RoomObserver::class);
+        SystemUnit::observe(SystemUnitObserver::class);
     }
 }

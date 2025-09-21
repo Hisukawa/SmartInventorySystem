@@ -44,20 +44,15 @@ class Room extends Model
                         ->where('role', 'faculty');
         }
 
+    public function statuses()
+    {
+        return $this->hasMany(RoomStatus::class);
+    }
 
-
-
-
-
-public function statuses()
-{
-    return $this->hasMany(RoomStatus::class);
-}
-
-public function latestStatus()
-{
-    return $this->hasOne(RoomStatus::class)->latestOfMany();
-}
+    public function latestStatus()
+    {
+        return $this->hasOne(RoomStatus::class)->latestOfMany();
+    }
 
 
 

@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             UnitsSeeder::class,
             PeripheralsSeeder::class,
             RoomEquipmentsSeeder::class,
+            RoomHistorySeeder::class,
+            SystemUnitHistorySeeder::class,
         ]);
     }
 }

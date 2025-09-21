@@ -56,7 +56,7 @@ const data = {
             items: [
                 {
                     title: "System Unit Lists",
-                    url: "/units",
+                    url: "/admin/system-units",
                 },
                 {
                     title: "Peripherals",
@@ -65,6 +65,10 @@ const data = {
                 {
                     title: "Equipments",
                     url: "/equipments",
+                },
+                {
+                    title: "History",
+                    url: "/admin/room-histories",
                 },
             ],
         },
@@ -76,7 +80,7 @@ const data = {
             items: [
                 {
                     title: "View Reports",
-                    url: "/faculty/reports",
+                    url: "/admin/faculty/reports",
                 },
             ],
         },

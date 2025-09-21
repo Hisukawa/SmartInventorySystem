@@ -45,7 +45,7 @@ export default function AddUnitModal() {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        post("/units", {
+        post("/admin/system-units", {
             onSuccess: () => {
                 reset();
                 setOpen(false);

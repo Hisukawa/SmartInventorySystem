@@ -21,7 +21,7 @@ class RoomController extends Controller
     {
         $search = $request->input('search');
 
-        $rooms = Room::with(['latestStatus.scannedBy']) // eager load latest status + user
+        $rooms = Room::with(['latestStatus.scannedBy'])
             ->when($search, function ($query, $search) {
                 $query->where('room_number', 'like', "%$search%")
                       ->orWhere('room_path', 'like', "%$search%");
@@ -65,11 +65,41 @@ class RoomController extends Controller
             $qrUrl = url("/room/" . urlencode($roomPath));
 
             return redirect()->back()->with('qrUrl', $qrUrl);
-        } catch (QueryException $e) {
+        } catch (\Exception $e) {
             return back()->withErrors([
                 'room_number' => 'Room number already exists or unexpected error.',
             ]);
         }
+    }
+
+    /**
+     * Update an existing room
+     */
+    public function update(Request $request, Room $room)
+    {
+        $validated = $request->validate([
+            'room_number' => 'required|integer|unique:rooms,room_number,' . $room->id,
+        ]);
+
+        $roomNumber = $validated['room_number'];
+        $roomPath   = "isu-ilagan/ict-department/room-{$roomNumber}";
+
+        $room->update([
+            'room_number' => $roomNumber,
+            'room_path'   => $roomPath,
+        ]);
+
+        return redirect()->back()->with('success', "Room updated successfully.");
+    }
+
+    /**
+     * Delete a room
+     */
+    public function destroy(Room $room)
+    {
+        $room->delete();
+
+        return redirect()->back()->with('success', "Room deleted successfully.");
     }
 
     /**
@@ -79,72 +109,58 @@ class RoomController extends Controller
     {
         $roomPath = urldecode($encodedRoomPath);
         $room     = Room::where('room_path', $roomPath)->firstOrFail();
+        $user     = Auth::user();
 
-        $user = Auth::user();
-
-        // ✅ Save new scan into room_statuses table
         RoomStatus::updateOrCreate(
-            [
-                'room_id'    => $room->id,      // Find by room
-            ],
-            [
-                'scanned_by' => $user?->id,
-                'is_active'  => 1,
-            ]
+            ['room_id' => $room->id],
+            ['scanned_by' => $user?->id, 'is_active' => 1]
         );
 
-        // ✅ Filters
         $condition = $request->query('condition');
         $unitCode  = $request->query('unit_code');
         $search    = $request->query('search');
 
-        // ✅ Equipments
         $equipments = Equipment::with('room')
             ->where('room_id', $room->id)
-            ->when($condition, fn ($q) => $q->where('condition', $condition))
-            ->when($search, fn ($q) => $q->where('equipment_code', 'like', "%$search%"))
+            ->when($condition, fn($q) => $q->where('condition', $condition))
+            ->when($search, fn($q) => $q->where('equipment_code', 'like', "%$search%"))
             ->get()
-            ->map(fn ($e) => [
-                'id'          => $e->id,
-                'name'        => $e->equipment_code,
-                'condition'   => $e->condition ?? 'Good',
-                'type'        => $e->type,
-                'room_path'   => $room->room_path,
+            ->map(fn($e) => [
+                'id' => $e->id,
+                'name' => $e->equipment_code,
+                'condition' => $e->condition ?? 'Good',
+                'type' => $e->type,
+                'room_path' => $room->room_path,
                 'room_number' => $e->room?->room_number,
             ]);
 
-        // ✅ System Units
         $systemUnits = SystemUnit::where('room_id', $room->id)
-            ->when($condition, fn ($q) => $q->where('condition', $condition))
-            ->when($unitCode, fn ($q) => $q->where('unit_code', $unitCode))
-            ->when($search, fn ($q) => $q->where('unit_code', 'like', "%$search%"))
+            ->when($condition, fn($q) => $q->where('condition', $condition))
+            ->when($unitCode, fn($q) => $q->where('unit_code', $unitCode))
+            ->when($search, fn($q) => $q->where('unit_code', 'like', "%$search%"))
             ->get()
-            ->map(fn ($s) => [
-                'id'        => $s->id,
-                'name'      => $s->unit_code,
+            ->map(fn($s) => [
+                'id' => $s->id,
+                'name' => $s->unit_code,
                 'condition' => $s->condition ?? 'Good',
                 'room_path' => $room->room_path,
             ]);
 
-        // ✅ Peripherals
         $peripherals = Peripheral::with('unit')
             ->where('room_id', $room->id)
-            ->when($condition, fn ($q) => $q->where('condition', $condition))
-            ->when($unitCode, fn ($q) =>
-                $q->whereHas('unit', fn ($sub) => $sub->where('unit_code', $unitCode))
-            )
-            ->when($search, fn ($q) => $q->where('peripheral_code', 'like', "%$search%"))
+            ->when($condition, fn($q) => $q->where('condition', $condition))
+            ->when($unitCode, fn($q) => $q->whereHas('unit', fn($sub) => $sub->where('unit_code', $unitCode)))
+            ->when($search, fn($q) => $q->where('peripheral_code', 'like', "%$search%"))
             ->get()
-            ->map(fn ($p) => [
-                'id'        => $p->id,
-                'name'      => $p->peripheral_code,
+            ->map(fn($p) => [
+                'id' => $p->id,
+                'name' => $p->peripheral_code,
                 'condition' => $p->condition ?? 'Good',
-                'type'      => $p->type,
+                'type' => $p->type,
                 'room_path' => $room->room_path,
                 'unit_code' => $p->unit?->unit_code,
             ]);
 
-        // ✅ Filters
         $conditionOptions = collect()
             ->merge(Equipment::select('condition')->distinct()->pluck('condition'))
             ->merge(SystemUnit::select('condition')->distinct()->pluck('condition'))
@@ -159,20 +175,20 @@ class RoomController extends Controller
             ->pluck('unit_code');
 
         return Inertia::render('Faculty/FacultyRoomView', [
-            'room'        => $room,
-            'equipments'  => $equipments,
+            'room' => $room,
+            'equipments' => $equipments,
             'systemUnits' => $systemUnits,
             'peripherals' => $peripherals,
             'filters' => [
                 'condition' => $condition,
                 'unit_code' => $unitCode,
-                'search'    => $search,
+                'search' => $search,
             ],
             'filterOptions' => [
                 'conditions' => $conditionOptions,
                 'unit_codes' => $unitCodeOptions,
             ],
-            'auth'    => ['user' => $user],
+            'auth' => ['user' => $user],
             'section' => $request->query('section', 'system-units'),
         ]);
     }
@@ -194,8 +210,8 @@ class RoomController extends Controller
                 'is_active' => (bool) ($room->latestStatus?->is_active ?? 0),
                 'last_scanned_user' => $room->latestStatus?->scannedBy
                     ? [
-                        'name'  => $room->latestStatus->scannedBy->name,
-                        'role'  => $room->latestStatus->scannedBy->role,
+                        'name' => $room->latestStatus->scannedBy->name,
+                        'role' => $room->latestStatus->scannedBy->role,
                         'photo' => $room->latestStatus->scannedBy->photo
                             ? asset('storage/' . $room->latestStatus->scannedBy->photo)
                             : null,
@@ -208,7 +224,7 @@ class RoomController extends Controller
             'data' => $rooms->items(),
             'meta' => [
                 'current_page' => $rooms->currentPage(),
-                'total_pages'  => $rooms->lastPage(),
+                'total_pages' => $rooms->lastPage(),
             ],
         ]);
     }

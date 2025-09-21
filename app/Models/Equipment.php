@@ -29,12 +29,14 @@ class Equipment extends Model
     }
 
     public function getRouteKeyName()
-{
-    if (request()->routeIs('faculty.*')) {
-        return 'id'; // Faculty uses primary key
+    {
+        if (request()->routeIs('faculty.*')) {
+            return 'id'; // Faculty uses primary key
+        }
+
+        return 'equipment_code'; // Admin uses equipment_code
     }
 
-    return 'equipment_code'; // Admin uses equipment_code
-}
+
 
 }
