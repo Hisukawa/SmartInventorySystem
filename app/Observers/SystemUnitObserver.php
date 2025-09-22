@@ -30,7 +30,7 @@ class SystemUnitObserver
     public function updated(SystemUnit $systemUnit): void
     {
         foreach ($systemUnit->getChanges() as $field => $newValue) {
-            if (in_array($field, ['ram', 'gpu', 'storage', 'cpu'])) {
+            if (in_array($field, ['ram', 'gpu', 'storage', 'cpu', 'condition'])) {
                 SystemUnitHistory::create([
                     'system_unit_id' => $systemUnit->id,
                     'user_id' => Auth::id(),

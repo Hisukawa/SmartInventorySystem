@@ -339,6 +339,14 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
 
     const { delete: destroy } = useInertiaForm();
 
+    const handleUpdateSuccess = () => {
+        Swal.fire({
+            icon: "success",
+            title: "Updated!",
+            text: "The system unit has been updated successfully.",
+        });
+    };
+
     // Build filterOptions from current data
     const filterOptions = useMemo(() => {
         const uniq = (arr) =>
@@ -401,39 +409,48 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
         currentPage * itemsPerPage
     );
 
-    const getConditionColor = (value) => {
+    const getCondition = (value) => {
         const match = CONDITION_OPTIONS.find(
             (opt) => opt.label.toLowerCase() === (value || "").toLowerCase()
         );
-        return match ? match.color : "bg-muted";
+        return match || { label: value || "Unknown", color: "bg-slate-400" };
     };
 
     return (
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
-                    <SidebarTrigger />
-                    <Separator orientation="vertical" className="h-6 mx-3" />
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="#" aria-current="page">
-                                    Assets
-                                </BreadcrumbLink>
-                                <BreadcrumbSeparator />
-                                <BreadcrumbLink
-                                    href="/units"
-                                    aria-current="page"
-                                    className="font-semibold text-foreground"
-                                >
-                                    System Unit Lists
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                    <div className="flex-1" />
-                    <Notification />
+                {/* Fixed content header inside the main area */}
+                <header className="sticky top-0 z-20 bg-white border-b px-6 py-3">
+                    <div className="flex items-center gap-2">
+                        <SidebarTrigger />
+                        <Separator
+                            orientation="vertical"
+                            className="h-6 mx-3"
+                        />
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink
+                                        href="#"
+                                        aria-current="page"
+                                    >
+                                        Assets
+                                    </BreadcrumbLink>
+                                    <BreadcrumbSeparator />
+                                    <BreadcrumbLink
+                                        href="/admin/system-units"
+                                        aria-current="page"
+                                        className="font-semibold text-foreground"
+                                    >
+                                        System Unit Lists
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb>
+                        <div className="flex-1" />
+                        <Notification />
+                    </div>
                 </header>
 
                 <main className="w-full px-6 py-4">
@@ -534,20 +551,22 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                 {unit.motherboard}
                                             </TableCell>
                                             <TableCell>
-                                                {unit.condition && (
-                                                    <div className="mt-1 text-sm flex items-center gap-2">
-                                                        <span
-                                                            className={cn(
-                                                                "inline-block w-3 h-3 rounded-full",
-                                                                getConditionColor(
-                                                                    unit.condition
-                                                                )
-                                                            )}
-                                                        />
-                                                        <span className="capitalize">
-                                                            {unit.condition}
-                                                        </span>
-                                                    </div>
+                                                {unit.condition ? (
+                                                    <span
+                                                        className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                                                            getCondition(
+                                                                unit.condition
+                                                            ).color
+                                                        }`}
+                                                    >
+                                                        {
+                                                            getCondition(
+                                                                unit.condition
+                                                            ).label
+                                                        }
+                                                    </span>
+                                                ) : (
+                                                    "N/A"
                                                 )}
                                             </TableCell>
 
@@ -567,11 +586,12 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                     <Button
                                                         size="sm"
                                                         variant="secondary"
-                                                        onClick={() =>
+                                                        onClick={() => {
                                                             setSelectedUnit(
                                                                 unit
-                                                            )
-                                                        }
+                                                            );
+                                                            setShowModal(true);
+                                                        }}
                                                     >
                                                         Edit
                                                     </Button>
@@ -712,6 +732,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                             unit={selectedUnit}
                             rooms={rooms}
                             onClose={() => setSelectedUnit(null)}
+                            onSuccess={handleUpdateSuccess}
                         />
                     )}
                 </main>

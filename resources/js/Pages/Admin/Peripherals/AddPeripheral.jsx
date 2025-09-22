@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
+import { cn } from "@/lib/utils";
 
 import {
     SidebarProvider,
@@ -21,6 +22,14 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
+const CONDITION_OPTIONS = [
+    { label: "Functional", color: "bg-green-500" },
+    { label: "Defective", color: "bg-red-500" },
+    { label: "Under Maintenance", color: "bg-yellow-500" },
+    { label: "Needs Upgrade", color: "bg-blue-500" },
+    { label: "For Disposal", color: "bg-gray-500" },
+];
+
 export default function AddPeripheral({
     existingRooms = [],
     existingUnits = [],
@@ -32,10 +41,16 @@ export default function AddPeripheral({
         brand: "",
         model: "",
         serial_number: "",
-        condition: "Working",
+        condition: "",
         room_id: "", // <-- send room_id to backend
         unit_id: "", // <-- send unit_id to backend
     });
+    const getConditionColor = (value) => {
+        const match = CONDITION_OPTIONS.find(
+            (opt) => opt.label.toLowerCase() === value.toLowerCase()
+        );
+        return match ? match.color : "bg-muted";
+    };
 
     const [filteredUnits, setFilteredUnits] = useState([]);
 
@@ -286,29 +301,97 @@ export default function AddPeripheral({
                                 </div>
 
                                 {/* Condition */}
-                                <div>
-                                    <Label>Condition</Label>
-                                    <select
+                                {/* Do not Erased */}
+                                {/* <div>
+                                    <Label htmlFor="condition">Condition</Label>
+                                    <Input
+                                        id="condition"
+                                        list="condition-options"
                                         value={data.condition}
                                         onChange={(e) =>
                                             setData("condition", e.target.value)
                                         }
-                                        className="w-full border rounded px-2 py-1"
-                                    >
-                                        <option value="Working">
-                                            🟢 Working
-                                        </option>
-                                        <option value="Defective">
-                                            🔴 Defective
-                                        </option>
-                                        <option value="Maintenance">
-                                            🟡 Maintenance
-                                        </option>
-                                    </select>
-                                    {errors.condition && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.condition}
+                                        placeholder="Type or select Condition"
+                                    />
+                                    <datalist id="condition-options">
+                                        {CONDITION_OPTIONS.map((opt) => (
+                                            <option
+                                                key={opt.label}
+                                                value={opt.label}
+                                            />
+                                        ))}
+                                    </datalist>
+
+                                    Preview selected condition with color */}
+                                {/*
+                                    {data.condition && (
+                                        <div className="mt-1 text-sm flex items-center gap-2">
+                                            <span
+                                                className={cn(
+                                                    "inline-block w-3 h-3 rounded-full",
+                                                    getConditionColor(
+                                                        data.condition
+                                                    )
+                                                )}
+                                            />
+                                            <span className="capitalize">
+                                                {data.condition}
+                                            </span>
                                         </div>
+                                    )}
+
+                                    {errors.condition && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.condition}
+                                        </p>
+                                    )}
+                                </div> */}
+
+                                {/* Condition */}
+                                <div>
+                                    <Label htmlFor="condition">Condition</Label>
+                                    <select
+                                        id="condition"
+                                        className="w-full border rounded-md p-2"
+                                        value={data.condition}
+                                        onChange={(e) =>
+                                            setData("condition", e.target.value)
+                                        }
+                                    >
+                                        <option value="">
+                                            Select Condition
+                                        </option>
+                                        {CONDITION_OPTIONS.map((opt) => (
+                                            <option
+                                                key={opt.label}
+                                                value={opt.label}
+                                            >
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    {/* Preview selected condition with color */}
+                                    {data.condition && (
+                                        <div className="mt-1 text-sm flex items-center gap-2">
+                                            <span
+                                                className={cn(
+                                                    "inline-block w-3 h-3 rounded-full",
+                                                    getConditionColor(
+                                                        data.condition
+                                                    )
+                                                )}
+                                            />
+                                            <span className="capitalize">
+                                                {data.condition}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {errors.condition && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.condition}
+                                        </p>
                                     )}
                                 </div>
 

@@ -32,7 +32,7 @@ class PeripheralController extends Controller
             ->get();
 
         $rooms = Room::select('id', 'room_number')->get();
-        $units = SystemUnit::select('id', 'unit_code as unit_id', 'room_id')->get();
+        $units = SystemUnit::select('id', 'unit_code', 'room_id')->get();
 
         return Inertia::render('Admin/PeripheralsPage', [
             'peripherals'    => $peripherals,
@@ -118,9 +118,12 @@ class PeripheralController extends Controller
     {
         $peripheral = Peripheral::with(['room', 'unit'])->findOrFail($id);
 
-
         $rooms = Room::select('id', 'room_number')->get();
-        $units = SystemUnit::select('id', 'unit_code', 'room_id')->get();
+
+        // ✅ Only load units from the peripheral’s room
+        $units = SystemUnit::where('room_id', $peripheral->room_id)
+                            ->select('id', 'unit_code', 'room_id')
+                            ->get();
 
         return Inertia::render('Admin/Peripherals/EditPeripheral', [
             'peripheral' => $peripheral,
@@ -129,24 +132,40 @@ class PeripheralController extends Controller
         ]);
     }
 
+
     public function update(Request $request, $id)
     {
         $peripheral = Peripheral::findOrFail($id);
 
-        $validated = $request->validate([
-            'type'          => 'required|string|max:255',
-            'brand'         => 'nullable|string|max:255',
-            'model'         => 'nullable|string|max:255',
+        $request->validate([
+            'type' => 'required|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'model' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
-            'condition'     => 'required|string|max:255',
-            'room_id'       => 'required|exists:rooms,id',
-            'unit_id'       => 'required|exists:system_units,id',
+            'condition' => 'required|string|max:255',
+            'room_id' => 'required|exists:rooms,id',
+            'unit_id' => 'required|exists:system_units,id',
         ]);
 
-        $peripheral->update($validated);
+        // 🔹 Prevent duplicate type in the same unit
+        $duplicate = Peripheral::where('unit_id', $request->unit_id)
+            ->where('type', $request->type)
+            ->where('id', '!=', $id) // exclude current peripheral
+            ->exists();
 
-        return redirect()->route('peripherals.index')->with('success', 'Peripheral updated successfully.');
+        if ($duplicate) {
+            return back()->withErrors([
+                'type' => 'This unit already has a ' . $request->type,
+            ])->withInput();
+        }
+
+        // ✅ Update if no duplicate
+        $peripheral->update($request->all());
+
+        return redirect()->route('peripherals.index')
+            ->with('success', 'Peripheral updated successfully!');
     }
+
 
     public function destroy($id)
     {

@@ -23,7 +23,15 @@ class PeripheralsSeeder extends Seeder
             ['type' => 'Headset',   'brand' => 'Logitech', 'model' => 'LH-100'],
         ];
 
-        $conditions = ['Working', 'Defective', 'Needs Replacement'];
+        $conditions = [
+            'Functional',
+            'Defective',
+            'Intermittent Issue',
+            'Needs Cleaning',
+            'For Replacement',
+            'For Disposal',
+        ];
+
 
         $peripherals = [];
         $counter = 1;

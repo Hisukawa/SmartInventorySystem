@@ -213,6 +213,16 @@ function PeripheralsFilter({ filters, filterOptions, onApplyFilters }) {
     );
 }
 
+/* ✅ Peripheral Condition Options with Color */
+const PERIPHERAL_CONDITION_OPTIONS = [
+    { label: "Functional", color: "bg-green-500" }, // fully functional
+    { label: "Defective", color: "bg-red-500" }, // broken / not usable
+    { label: "Intermittent Issue", color: "bg-yellow-500" }, // works sometimes / unstable
+    { label: "Needs Cleaning", color: "bg-blue-500" }, // dirty / minor issue
+    { label: "For Replacement", color: "bg-orange-500" }, // usable but needs replacing soon
+    { label: "For Disposal", color: "bg-gray-500" }, // completely unusable
+];
+
 /* ✅ Main Component */
 export default function PeripheralsIndex({
     peripherals,
@@ -317,30 +327,50 @@ export default function PeripheralsIndex({
         });
     }
 
+    /* Helper to get condition object */
+    function getCondition(condition) {
+        return (
+            PERIPHERAL_CONDITION_OPTIONS.find(
+                (opt) => opt.label.toLowerCase() === condition?.toLowerCase()
+            ) || { label: condition, color: "bg-slate-400" }
+        );
+    }
+
     return (
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
-                    <SidebarTrigger />
-                    <Separator orientation="vertical" className="h-6 mx-3" />
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="#">Assets</BreadcrumbLink>
-                                <BreadcrumbSeparator />
-                                <BreadcrumbLink
-                                    href="/admin/peripherals"
-                                    aria-current="page"
-                                    className="font-semibold text-foreground"
-                                >
-                                    Peripherals
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                    <div className="flex-1" />
-                    <Notification />
+                {/* Fixed content header inside the main area */}
+                <header className="sticky top-0 z-20 bg-white border-b px-6 py-3">
+                    <div className="flex items-center gap-2">
+                        <SidebarTrigger />
+                        <Separator
+                            orientation="vertical"
+                            className="h-6 mx-3"
+                        />
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink
+                                        href="#"
+                                        aria-current="page"
+                                    >
+                                        Assets
+                                    </BreadcrumbLink>
+                                    <BreadcrumbSeparator />
+                                    <BreadcrumbLink
+                                        href="/admin/peripherals"
+                                        aria-current="page"
+                                        className="font-semibold text-foreground"
+                                    >
+                                        Peripherals
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb>
+                        <div className="flex-1" />
+                        <Notification />
+                    </div>
                 </header>
 
                 <main>
@@ -384,12 +414,12 @@ export default function PeripheralsIndex({
                                                 Peripheral Code
                                             </TableHead>
                                             <TableHead>Type</TableHead>
+                                            <TableHead>Room</TableHead>
+                                            <TableHead>Units</TableHead>
                                             <TableHead>Brand</TableHead>
                                             <TableHead>Model</TableHead>
                                             <TableHead>Serial Number</TableHead>
                                             <TableHead>Condition</TableHead>
-                                            <TableHead>Room</TableHead>
-                                            <TableHead>Units</TableHead>
                                             <TableHead>Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -410,6 +440,16 @@ export default function PeripheralsIndex({
                                                         {p.type}
                                                     </TableCell>
                                                     <TableCell>
+                                                        {p.room
+                                                            ? `ROOM ${p.room.room_number}`
+                                                            : "N/A"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {p.unit
+                                                            ? p.unit.unit_code
+                                                            : "N/A"}
+                                                    </TableCell>
+                                                    <TableCell>
                                                         {p.brand}
                                                     </TableCell>
                                                     <TableCell>
@@ -419,17 +459,23 @@ export default function PeripheralsIndex({
                                                         {p.serial_number}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {p.condition}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.room
-                                                            ? `ROOM ${p.room.room_number}`
-                                                            : "N/A"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.unit
-                                                            ? p.unit.unit_code
-                                                            : "N/A"}
+                                                        {p.condition ? (
+                                                            <span
+                                                                className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                                                                    getCondition(
+                                                                        p.condition
+                                                                    ).color
+                                                                }`}
+                                                            >
+                                                                {
+                                                                    getCondition(
+                                                                        p.condition
+                                                                    ).label
+                                                                }
+                                                            </span>
+                                                        ) : (
+                                                            "N/A"
+                                                        )}
                                                     </TableCell>
                                                     <TableCell className="space-x-2">
                                                         <Link

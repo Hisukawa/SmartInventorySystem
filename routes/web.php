@@ -23,6 +23,7 @@ use App\Http\Controllers\Technician\TechnicianController;
 use App\Http\Controllers\Reports;
 use App\Http\Controllers\RoomHistoryController;
 use App\Http\Controllers\SystemUnitHistoryController;
+use App\Http\Controllers\UserHistoryController;
 use App\Models\Equipment;
 use App\Models\Room;
 use App\Models\User;
@@ -205,6 +206,9 @@ Route::middleware(['auth'])->group(function () {
             ->name('system-unit.histories');
         Route::delete('/system-unit-history/{id}', [SystemUnitHistoryController::class, 'destroy'])
             ->name('system-unit-history.destroy');
+
+        // User History
+        Route::get('/admin/user-histories', [UserHistoryController::class, 'index']);
     });
 
 

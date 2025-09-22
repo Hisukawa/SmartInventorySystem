@@ -63,28 +63,30 @@ export default function SystemUnitHistories() {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
-                    <SidebarTrigger />
-                    <Separator orientation="vertical" className="h-6 mx-3" />
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href="#">
-                                    Reports
-                                </BreadcrumbLink>
-                                <BreadcrumbSeparator />
-                                <BreadcrumbLink
-                                    href="#"
-                                    aria-current="page"
-                                    className="font-semibold text-foreground"
-                                >
-                                    System Unit History
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                    <div className="flex-1" />
-                    <Notification />
+                {/* Fixed content header inside the main area */}
+                <header className="sticky top-0 z-20 bg-white border-b px-6 py-3">
+                    <div className="flex items-center gap-2">
+                        <SidebarTrigger />
+                        <Separator
+                            orientation="vertical"
+                            className="h-6 mx-3"
+                        />
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink
+                                        href="/admin/system-unit-histories"
+                                        aria-current="page"
+                                        className="font-semibold text-foreground"
+                                    >
+                                        System Unit History
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb>
+                        <div className="flex-1" />
+                        <Notification />
+                    </div>
                 </header>
 
                 <div className="p-6 max-w-7xl mx-auto">

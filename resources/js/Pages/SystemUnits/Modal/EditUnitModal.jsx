@@ -19,7 +19,7 @@ const CONDITION_OPTIONS = [
     { label: "For Disposal", color: "bg-gray-500" },
 ];
 
-export default function EditUnitModal({ unit, rooms, onClose }) {
+export default function EditUnitModal({ unit, rooms, onClose, onSuccess }) {
     const { data, setData, put, processing, errors } = useForm({
         unit_code: unit.unit_code,
         processor: unit.processor,
@@ -36,6 +36,7 @@ export default function EditUnitModal({ unit, rooms, onClose }) {
         put(`/system-units/${unit.id}`, {
             onSuccess: () => {
                 onClose();
+                if (onSuccess) onSuccess(); // <-- triggers SweetAlert in parent
             },
         });
     };
@@ -148,20 +149,23 @@ export default function EditUnitModal({ unit, rooms, onClose }) {
                     {/* Condition */}
                     <div>
                         <Label htmlFor="condition">Condition</Label>
-                        <Input
+                        <select
                             id="condition"
-                            list="condition-options"
                             value={data.condition}
                             onChange={(e) =>
                                 setData("condition", e.target.value)
                             }
-                            placeholder="Type or select"
-                        />
-                        <datalist id="condition-options">
+                            className="w-full border rounded px-2 py-1"
+                        >
+                            <option value="" disabled>
+                                Select Condition
+                            </option>
                             {CONDITION_OPTIONS.map((opt) => (
-                                <option key={opt.label} value={opt.label} />
+                                <option key={opt.label} value={opt.label}>
+                                    {opt.label}
+                                </option>
                             ))}
-                        </datalist>
+                        </select>
 
                         {data.condition && (
                             <div className="mt-1 text-sm flex items-center gap-2">

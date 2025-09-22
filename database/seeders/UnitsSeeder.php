@@ -19,12 +19,12 @@ class UnitsSeeder extends Seeder
             return;
         }
 
-        $conditions = ['Functional', 'Under Maintenance', 'For Repair'];
+        $conditions = ['Functional', 'Under Maintenance', 'Defective', 'Needs Upgrade', 'For Disposal'];
 
         $units = [];
 
         foreach ($rooms as $room) {
-            for ($i = 1; $i <= 15; $i++) {
+            for ($i = 1; $i <= 100; $i++) {
                 $unitCode = 'PC-' . str_pad($i, 2, '0', STR_PAD_LEFT);
 
                 $units[] = [
