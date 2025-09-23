@@ -37,12 +37,11 @@ class Room extends Model
         return $this->hasMany(Equipment::class);
     }
 
-
-        public function faculties()
-        {
-            return $this->hasMany(User::class, 'active_room_id') // foreign key
-                        ->where('role', 'faculty');
-        }
+public function faculties()
+{
+    return $this->belongsToMany(User::class, 'room_statuses', 'room_id', 'scanned_by')
+                ->withPivot('is_active', 'created_at', 'updated_at');
+}
 
     public function statuses()
     {

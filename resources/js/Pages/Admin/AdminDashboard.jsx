@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Head, Link, usePage } from "@inertiajs/react";
 import Notification from "@/Components/AdminComponents/Notification";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
+import { Button } from "@/components/ui/button";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -14,7 +15,7 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter  } from "@/components/ui/card";
 import axios from "axios";
 import {
     HardDrive,
@@ -44,6 +45,7 @@ import {
 } from "recharts";
 
 export default function AdminDashboard() {
+   
     const [dashboardStats, setDashboardStats] = useState({
         totalRooms: 0,
         totalSystemUnits: 0,
@@ -198,6 +200,13 @@ export default function AdminDashboard() {
             name,
             value,
         }));
+  const [showAll, setShowAll] = useState(false);
+
+    const activeRooms = roomsStatus.details
+        ? roomsStatus.details.filter((room) => room.is_active)
+        : [];
+
+    const roomsToShow = showAll ? activeRooms : activeRooms.slice(0, 2);
 
     return (
         <SidebarProvider>
@@ -253,54 +262,74 @@ export default function AdminDashboard() {
                             </Link>
                         ))}
                     </div>
+
                     {/* Room Occupancy + Equipment Condition by Room */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Room Occupancy */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Users className="w-5 h-5 text-blue-600" />
-                                    Room Occupancy Overview
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="space-y-3 max-h-72 overflow-y-auto">
-                                    {roomsStatus.length > 0 ? (
-                                        roomsStatus.map((room) => (
-                                            <li
-                                                key={room.id}
-                                                className="text-sm border-b pb-2 flex justify-between"
-                                            >
-                                                <div>
-                                                    <span className="font-semibold">
-                                                        {room.room_number}
-                                                    </span>{" "}
-                                                    -{" "}
-                                                    {room.is_active ? (
-                                                        <span className="text-green-600 font-medium">
-                                                            Occupied
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-gray-500">
-                                                            Available
-                                                        </span>
-                                                    )}
-                                                    <div className="text-xs text-gray-500">
-                                                        {room.last_scanned_by
-                                                            ? `Last scanned by ${room.last_scanned_by}`
-                                                            : "No recent scans"}
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <li className="text-gray-500">
-                                            No room status data
-                                        </li>
-                                    )}
-                                </ul>
-                            </CardContent>
-                        </Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    Active Room Occupancy
+                </CardTitle>
+            </CardHeader>
+<CardContent>
+  {activeRooms.length === 0 ? (
+    <p className="text-green-100 text-sm text-center">No active rooms right now</p>
+  ) : (
+    <div className="space-y-4 max-w-xl mx-auto">
+      {roomsToShow.map((activeRoom) => (
+        <div
+          key={activeRoom.id}
+          className="flex items-center gap-4 p-4 rounded-lg shadow-sm bg-green-700 border border-green-800"
+        >
+          {/* Faculty Photo */}
+          <img
+            src={
+              activeRoom.faculty_photo
+                ? `/storage/${activeRoom.faculty_photo}`
+                : "/default-avatar.png"
+            }
+            alt="Faculty"
+            className="w-16 h-16 rounded-full object-cover border-2 border-green-500"
+          />
+
+          {/* Room & Scan Info */}
+          <div>
+            <p className="text-lg font-semibold text-white">
+              Room {activeRoom.room_number}
+            </p>
+            <p className="text-sm text-green-100">
+              Scanned by{" "}
+              <span className="font-medium text-white">
+                {activeRoom.last_scanned_by ?? "Unknown"}
+              </span>
+            </p>
+            <p className="text-xs text-green-200">
+              {activeRoom.last_scanned_at
+                ? new Date(activeRoom.last_scanned_at).toLocaleString()
+                : "No scan time"}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</CardContent>
+
+
+
+
+            {/* Footer toggle */}
+            {activeRooms.length > 2 && (
+                <CardFooter className="flex justify-center">
+                    <Button variant="outline" size="sm" onClick={() => setShowAll(!showAll)}>
+                        {showAll ? "Show Less" : "View All Active Rooms"}
+                    </Button>
+                </CardFooter>
+            )}
+        </Card>
+    
 
                         {/* Equipment Condition by Room (Dynamic) */}
                         <Card>

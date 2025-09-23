@@ -228,7 +228,7 @@ Route::middleware(['auth'])->group(function () {
         // Faculty dashboard
         Route::get('/faculty/dashboard', [FacultyController::class, 'dashboard'])
             ->name('faculty.dashboard');
-
+ 
         Route::get('/faculty-room-dashboard', [FacultyController::class, 'showRoom'])->name('faculty.rooms.dashboard');
         // Faculty room view (QR scan)
         Route::get('/room/{roomPath}', [RoomController::class, 'show'])
