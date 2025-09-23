@@ -16,7 +16,7 @@ class RoomStatus extends Model
         'is_active',
     ];
 
-    protected $cast = [
+    protected $casts = [
         'is_active' => 'boolean',
     ];
 
@@ -32,4 +32,9 @@ class RoomStatus extends Model
     public function scannedBy(){
         return $this->belongsTo(User::class, 'scanned_by');
     }
+ public function faculty()
+    {
+        return $this->belongsTo(User::class, 'scanned_by');
+    }
+
 }

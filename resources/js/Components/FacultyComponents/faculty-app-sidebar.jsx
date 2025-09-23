@@ -45,7 +45,7 @@ const data = {
         },
         {
             title: "Rooms",
-            url: "/faculty-room-dashboard",
+              url: route("faculty.rooms.dashboard"), 
             icon: Home,
         },
         // {
