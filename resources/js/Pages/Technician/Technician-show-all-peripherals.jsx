@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Swal from "sweetalert2";
-
+import { Eye, Edit2, Trash2 } from "lucide-react"
 
 import {
     Table,
@@ -346,16 +346,16 @@ export default function TechnicianShowAllPeripherals({
                             </div>
                             <div className="flex items-center space-x-4">
                                 <Link href="/technician/peripherals/create">
-                                    <Button>Add Peripheral</Button>
+                                    <Button  className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">Add Peripheral</Button>
                                 </Link>
                             </div>
                         </div>
 
                         <Card>
-                            <CardContent>
+                         <CardContent className="p-0">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow>
+                                        <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
                                             <TableHead>#</TableHead>
                                             <TableHead>Peripheral Code</TableHead>
                                             <TableHead>Type</TableHead>
@@ -406,40 +406,40 @@ export default function TechnicianShowAllPeripherals({
                                                             ? p.unit.unit_code
                                                             : "N/A"}
                                                     </TableCell>
-                                                    <TableCell className="space-x-2">
-                                                        <Link
-                                                            href={`/technician/peripherals/${p.id}`}
-                                                        >
-                                                            <Button
-                                                                variant="secondary"
-                                                                size="sm"
-                                                            >
-                                                                View
-                                                            </Button>
-                                                        </Link>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                setEditPeripheral(
-                                                                    p
-                                                                )
-                                                            }
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                        <Button
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    p.id
-                                                                )
-                                                            }
-                                                        >
-                                                            Delete
-                                                        </Button>
-                                                    </TableCell>
+                                                   <TableCell className="space-x-2 flex items-center">
+  {/* View Button */}
+  <Link href={`/technician/peripherals/${p.id}`}>
+    <Button
+      size="sm"
+      className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+    >
+      <Eye className="h-4 w-4" />
+      View
+    </Button>
+  </Link>
+
+  {/* Edit Button */}
+  <Button
+    size="sm"
+    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+    onClick={() => setEditPeripheral(p)}
+  >
+    <Edit2 className="h-4 w-4" />
+    Edit
+  </Button>
+
+  {/* Delete Button */}
+  <Button
+    size="sm"
+    variant="destructive"
+    className="flex items-center gap-2"
+    onClick={() => handleDelete(p.id)}
+  >
+    <Trash2 className="h-4 w-4" />
+    Delete
+  </Button>
+</TableCell>
+
                                                 </TableRow>
                                             ))
                                         ) : (

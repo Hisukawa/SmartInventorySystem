@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Swal from "sweetalert2";
-
+import { Eye, Edit2, Trash2 } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -313,16 +313,16 @@ export default function EquipmentIndex({
                             </div>
                             <div className="flex items-center space-x-4">
                                 <Link href="/technician/equipments/create">
-                                    <Button>Add Equipment</Button>
+                                    <Button  className="text-sm sm:text-base px-3 py-1 sm:py-2 bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">Add Equipment</Button>
                                 </Link>
                             </div>
                         </div>
 
                         <Card>
-                            <CardContent>
+                            <CardContent className="p-0">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow>
+                                       <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
                                             <TableHead>#</TableHead>
                                             <TableHead>Equipment Code</TableHead>
                                             <TableHead>Type</TableHead>
@@ -350,25 +350,42 @@ export default function EquipmentIndex({
                                                     <TableCell>
                                                         {e.room ? `ROOM ${e.room.room_number}` : "N/A"}
                                                     </TableCell>
-                                                    <TableCell className="space-x-2">
-                                                        <Link href={`/technician/equipments/${e.id}`}>
-                                                            <Button variant="secondary" size="sm">View</Button>
-                                                        </Link>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => setEditEquipment(e)}
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                        <Button
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            onClick={() => handleDelete(e.id)}
-                                                        >
-                                                            Delete
-                                                        </Button>
-                                                    </TableCell>
+                                                    <TableCell className="text-center">
+  <div className="hidden sm:flex gap-2 justify-center">
+    {/* View Button */}
+    <Link href={`/technician/equipments/${e.id}`}>
+      <Button
+        size="sm"
+        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+      >
+        <Eye className="h-4 w-4" />
+        View
+      </Button>
+    </Link>
+
+    {/* Edit Button */}
+    <Button
+      size="sm"
+      className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+      onClick={() => setEditEquipment(e)}
+    >
+      <Edit2 className="h-4 w-4" />
+      Edit
+    </Button>
+
+    {/* Delete Button */}
+    <Button
+      size="sm"
+      variant="destructive"
+      className="flex items-center gap-2"
+      onClick={() => handleDelete(e.id)}
+    >
+      <Trash2 className="h-4 w-4" />
+      Delete
+    </Button>
+  </div>
+</TableCell>
+
                                                 </TableRow>
                                             ))
                                         ) : (

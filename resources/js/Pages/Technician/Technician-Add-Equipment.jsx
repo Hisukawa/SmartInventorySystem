@@ -249,7 +249,7 @@ const handleSubmit = (e) => {
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                               className="text-sm sm:text-base px-3 py-1 sm:py-2 bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
                             >
                                 Add Equipment
                             </Button>

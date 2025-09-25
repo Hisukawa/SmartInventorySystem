@@ -21,12 +21,15 @@ export default function FacultyRoomSidebar({ room, user, active, onSelect }) {
     };
 
     return (
-        <div className="w-64 bg-gradient-to-b from-green-50 to-green-100 border-r flex flex-col justify-between shadow-md">
+        <div
+            className="w-64 flex flex-col justify-between shadow-md text-white"
+            style={{ backgroundColor: "hsl(142, 34%, 51%)" }} // Solid sidebar color
+        >
             {/* Top Section */}
             <div>
                 {/* Logo + Title */}
-                <div className="p-4 border-b bg-green-600 text-white flex items-center gap-3">
-                    <div className="flex aspect-square size-10 items-center justify-center rounded-full bg-white overflow-hidden shadow">
+                <div className="px-4 py-3 flex items-center gap-2">
+                    <div className="flex aspect-square w-10 items-center justify-center rounded-full bg-white overflow-hidden shadow">
                         <img
                             src="/ict.png"
                             alt="Logo"
@@ -44,26 +47,27 @@ export default function FacultyRoomSidebar({ room, user, active, onSelect }) {
                 </div>
 
                 {/* Room Info */}
-                <div className="p-4 bg-yellow-50 border-b">
-                    <h2 className="text-lg font-semibold text-green-700">
-                        {room.room_name}
-                    </h2>
-                    <p className="text-sm text-gray-600">{room.department}</p>
+                <div className="px-4 py-2">
+                    <h2 className="text-lg font-semibold">{room.room_name}</h2>
+                    <p className="text-sm opacity-90">{room.department}</p>
                 </div>
 
                 {/* Navigation */}
-                <nav className="space-y-1 px-2 mt-2">
+                <nav className="space-y-1 px-2 mt-1">
                     {links.map(({ key, label, icon: Icon }) => (
                         <button
                             key={key}
                             onClick={() => {
-                                window.location.href = route("room.show", {
-                                    slug: room.room_path,
+                                window.location.href = route("faculty.room.show", {
+                                    roomPath: room.room_path,
                                     section: key,
                                 });
                             }}
                             className={cn(
-                                "flex items-center w-full px-3 py-2 rounded-lg text-sm font-medium transition"
+                                "flex items-center w-full px-3 py-2 rounded-lg text-sm font-medium transition",
+                                active === key
+                                    ? "bg-hsl(142,34%,45%)" // slightly darker for active
+                                    : "hover:bg-hsl(142,34%,45%)"
                             )}
                         >
                             <Icon className="mr-2 h-4 w-4" />
@@ -74,23 +78,19 @@ export default function FacultyRoomSidebar({ room, user, active, onSelect }) {
             </div>
 
             {/* Faculty Account */}
-            <div className="border-t p-4 bg-green-50">
+            <div className="px-4 py-3">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
                             variant="ghost"
-                            className="w-full flex items-center justify-start gap-3 text-green-700"
+                            className="w-full flex items-center justify-start gap-3 text-white"
                         >
-                            <div className="h-10 w-10 rounded-full bg-green-200 flex items-center justify-center text-green-800 font-bold">
+                            <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-green-800 font-bold">
                                 {user.name.charAt(0)}
                             </div>
                             <div className="flex flex-col items-start">
-                                <p className="text-sm font-medium">
-                                    {user.name}
-                                </p>
-                                <p className="text-xs text-gray-600">
-                                    {user.email}
-                                </p>
+                                <p className="text-sm font-medium">{user.name}</p>
+                                <p className="text-xs opacity-90">{user.email}</p>
                             </div>
                         </Button>
                     </DropdownMenuTrigger>

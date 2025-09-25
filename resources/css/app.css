@@ -30,15 +30,15 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* 🌿 Sidebar (light mode) */
-    --sidebar-background: 0 0% 100%; /* pure white */
-    --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 220 70% 50%;
+    /* 🌿 Sidebar (light mode, solid #59AC77 theme) */
+    --sidebar-background: 142 34% 51%;       /* #59AC77 */
+    --sidebar-foreground: 0 0% 100%;         /* white text */
+    --sidebar-primary: 142 34% 45%;          /* darker green for active */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 95%;
-    --sidebar-accent-foreground: 0 0% 15%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 220 70% 45%;
+    --sidebar-accent: 142 34% 65%;           /* lighter green for hover */
+    --sidebar-accent-foreground: 0 0% 15%;   /* dark text on hover */
+    --sidebar-border: 142 25% 80%;           /* subtle border */
+    --sidebar-ring: 142 34% 40%;             /* focus ring */
   }
 
   .dark {
@@ -67,15 +67,15 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* 🌑 Sidebar (dark mode) */
-    --sidebar-background: 0 0% 12%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 220 70% 50%;
+    /* 🌑 Sidebar (dark mode, solid #59AC77 theme with variations) */
+    --sidebar-background: 142 34% 20%;       /* deep green */
+    --sidebar-foreground: 0 0% 98%;          /* white text */
+    --sidebar-primary: 142 34% 40%;          /* darker #59AC77 */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 20%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 25%;
-    --sidebar-ring: 220 70% 50%;
+    --sidebar-accent: 142 34% 30%;           /* hover state */
+    --sidebar-accent-foreground: 0 0% 100%;  /* white hover text */
+    --sidebar-border: 142 20% 25%;
+    --sidebar-ring: 142 34% 45%;
   }
 }
 
@@ -87,23 +87,21 @@
     @apply bg-background text-foreground;
   }
 }
-
-/* 🎨 Sidebar wrapper solid color */
-[data-sidebar="sidebar"] {
-  background: hsl(var(--sidebar-background)); /* white in light mode */
+/* Sidebar menu default */
+[data-sidebar="menu-button"] {
+  background: transparent !important;
+  color: hsl(var(--sidebar-foreground)); /* white text/icons */
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.dark [data-sidebar="sidebar"] {
-  background: hsl(var(--sidebar-background)); /* dark gray in dark mode */
-}
-
-/* 🌟 Sidebar menu hover + active */
+/* Hover state */
 [data-sidebar="menu-button"]:hover {
-  background: hsl(var(--sidebar-accent));
-  color: hsl(var(--sidebar-foreground));
+  background: hsl(var(--sidebar-accent));   /* lighter green */
+  color: hsl(var(--sidebar-foreground));    /* keep icons/text white */
 }
 
+/* Active (clicked) state */
 [data-sidebar="menu-button"][data-active="true"] {
-  background: hsl(var(--sidebar-primary));
-  color: hsl(var(--sidebar-primary-foreground));
+  background: hsl(var(--sidebar-primary));           /* darker green */
+  color: hsl(var(--sidebar-primary-foreground));    /* white */
 }

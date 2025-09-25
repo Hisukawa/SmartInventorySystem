@@ -127,7 +127,7 @@ export default function UserManagement({ users }) {
                             />
                         </div>
 
-                        <Button asChild>
+                        <Button asChild     className="text-sm sm:text-base px-3 py-1 sm:py-2 bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
                             <a href={route("register")}>Register User</a>
                         </Button>
                     </div>
@@ -136,7 +136,7 @@ export default function UserManagement({ users }) {
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         <Table className="w-full">
                             <TableHeader>
-                                <TableRow className="bg-gray-50">
+                               <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
                                     <TableHead className="w-12 px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
                                         #
                                     </TableHead>

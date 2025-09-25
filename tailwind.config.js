@@ -15,8 +15,8 @@ export default {
     	extend: {
     		fontFamily: {
     			sans: [
-    				'Figtree',
-                    ...defaultTheme.fontFamily.sans
+    			  'Inter', 
+                    ...defaultTheme.fontFamily.sans,
                 ]
     		},
     		borderRadius: {

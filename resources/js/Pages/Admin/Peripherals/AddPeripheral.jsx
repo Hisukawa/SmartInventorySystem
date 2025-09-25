@@ -397,7 +397,7 @@ export default function AddPeripheral({
 
                                 {/* Submit */}
                                 <div className="flex justify-center">
-                                    <Button type="submit" disabled={processing}>
+                                    <Button type="submit" disabled={processing} className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
                                         Submit
                                     </Button>
                                 </div>

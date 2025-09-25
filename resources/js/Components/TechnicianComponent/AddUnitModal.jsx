@@ -93,7 +93,7 @@ const handleSubmit = (e) => {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>Add Unit</Button>
+              <Button   className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">Add Unit</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
@@ -261,7 +261,7 @@ const handleSubmit = (e) => {
                     </div>
 
                     <div className="flex justify-end">
-                        <Button type="submit" disabled={processing}>
+                        <Button type="submit" disabled={processing} className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
                             Submit
                         </Button>
                     </div>

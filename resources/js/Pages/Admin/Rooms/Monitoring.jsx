@@ -93,41 +93,41 @@ export default function AdminDashboard({ children }) {
 
                                                 {/* Room Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-  {rooms.length === 0 && (
-    <p className="col-span-full text-center text-gray-500">
-      No rooms found.
-    </p>
-  )}
+        {rooms.length === 0 && (
+          <p className="col-span-full text-center text-gray-500">
+            No rooms found.
+          </p>
+        )}
 
-  {rooms.map((room) => (
-    <Card
-      key={room.id}
-      className={`rounded-2xl transition-all duration-200 ease-in-out shadow-md 
-        hover:scale-[1.02] hover:shadow-lg
-        ${room.is_active
-          ? "bg-green-600 border border-green-700 text-white"
-          : "bg-white border border-gray-300 text-gray-900"
-        }`}
-    >
-      {/* Header: Room Name + Status */}
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle
-          className={`text-lg md:text-xl font-semibold ${
-            room.is_active ? "text-white" : "text-gray-900"
-          }`}
-        >
-          {room.name}
-        </CardTitle>
-        <Badge
-          className={`px-3 py-1 text-xs font-medium rounded-full ${
-            room.is_active
-              ? "bg-white text-green-700"
-              : "bg-gray-500 text-white"
-          }`}
-        >
-          {room.is_active ? "Active" : "Inactive"}
-        </Badge>
-      </CardHeader>
+        {rooms.map((room) => (
+          <Card
+            key={room.id}
+            className={`rounded-2xl transition-all duration-200 ease-in-out shadow-md 
+              hover:scale-[1.02] hover:shadow-lg
+              ${room.is_active
+                ? "bg-[#59AC77]  border border-green-700 text-white"
+                : "bg-[#59AC77]  border border-gray-300 text-gray-900"
+              }`}
+          >
+            {/* Header: Room Name + Status */}
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle
+                className={`text-lg md:text-xl font-semibold ${
+                  room.is_active ? "text-white" : "text-gray-900"
+                }`}
+              >
+                {room.name}
+              </CardTitle>
+              <Badge
+                className={`px-3 py-1 text-xs font-medium rounded-full ${
+                  room.is_active
+                    ? "bg-white text-green-700"
+                    : "bg-gray-500 text-white"
+                }`}
+              >
+                {room.is_active ? "Active" : "Inactive"}
+              </Badge>
+            </CardHeader>
 
       {/* Content: Faculty Info */}
       <CardContent>
@@ -176,33 +176,7 @@ export default function AdminDashboard({ children }) {
 
 
                         {/* Pagination */}
-                        <div className="flex justify-center mt-6 space-x-2">
-                            <button
-                                onClick={() =>
-                                    setCurrentPage((prev) =>
-                                        Math.max(prev - 1, 1)
-                                    )
-                                }
-                                className="px-4 py-2 bg-[#FFD700] text-[#006400] rounded hover:bg-[#DAA520]" // Yellow button, green text
-                                disabled={currentPage === 1}
-                            >
-                                Prev
-                            </button>
-                            <span className="px-4 py-2 text-white">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={() =>
-                                    setCurrentPage((prev) =>
-                                        Math.min(prev + 1, totalPages)
-                                    )
-                                }
-                                className="px-4 py-2 bg-[#FFD700] text-[#006400] rounded hover:bg-[#DAA520]" // Yellow button, green text
-                                disabled={currentPage === totalPages}
-                            >
-                                Next
-                            </button>
-                        </div>
+                        
                     </div>
                 </main>
             </SidebarInset>

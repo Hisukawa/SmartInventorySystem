@@ -131,7 +131,8 @@ export default function AdminDashboard() {
     const animatedValue = (val) => useSpring({ val, from: { val: 0 } });
 
     const renderCardValue = (anim) => (
-        <animated.p className="text-4xl font-extrabold text-gray-900">
+    <animated.p className="text-4xl font-extrabold text-[#F0FFF4] drop-shadow-sm">
+
             {anim.val.to((val) => Math.floor(val))}
         </animated.p>
     );
@@ -235,7 +236,7 @@ export default function AdminDashboard() {
                 {/* Content */}
                 <main className="w-full px-6 py-6 space-y-6">
                     {/* Welcome Banner */}
-                    <div className="relative rounded-2xl bg-gradient-to-r from-green-500 via-green-400 to-emerald-500 p-6 text-white shadow-lg">
+                    <div className="relative rounded-2xl bg-gradient-to-r   from-[#A8D5BA] via-[#7FCF9E] to-[#59AC77]  p-6 text-white shadow-lg">
                         <h1 className="text-3xl font-bold">
                             Welcome back, {user.name.split(" ")[0]}.
                         </h1>
@@ -244,46 +245,59 @@ export default function AdminDashboard() {
                         </p>
                     </div>
                     {/* KPI Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {cardData.map((card, idx) => (
-                            <Link key={idx} href={card.link} className="block">
-                                <Card className="hover:shadow-lg hover:border-green-300 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
-                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <CardTitle className="text-lg font-medium text-gray-700 flex items-center gap-2">
-                                            <card.icon className="h-5 w-5 text-[#006400]" />{" "}
-                                            {/* Changed color here */}
-                                            {card.title}
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {renderCardValue(card.value)}
-                                    </CardContent>
-                                </Card>
-                            </Link>
-                        ))}
-                    </div>
+     {/* KPI Cards */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {cardData.map((card, idx) => (
+    <Link key={idx} href={card.link} className="block">
+      <Card
+        className="rounded-2xl shadow-md bg-white 
+                   hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 
+                   cursor-pointer p-6"
+      >
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-lg font-medium flex items-center gap-2 text-[hsl(142,34%,51%)]">
+            <card.icon className="h-5 w-5 text-[hsl(142,34%,51%)]" />
+            {card.title}
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="text-2xl font-bold text-black !important">
+          {renderCardValue(card.value)}
+        </CardContent>
+      </Card>
+    </Link>
+  ))}
+</div>
+
+
+
+
+
 
                     {/* Room Occupancy + Equipment Condition by Room */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Room Occupancy */}
-                        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-blue-600" />
-                    Active Room Occupancy
-                </CardTitle>
-            </CardHeader>
-<CardContent>
-  {activeRooms.length === 0 ? (
-    <p className="text-green-100 text-sm text-center">No active rooms right now</p>
-  ) : (
-    <div className="space-y-4 max-w-xl mx-auto">
-      {roomsToShow.map((activeRoom) => (
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  {/* Room Occupancy */}
+<Card className="rounded-2xl shadow-md bg-white border-[#C5DBC7]">
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2 text-[#2F4F2F]">
+      <Users className="w-5 h-5 text-[#59AC77]" />
+      Active Room Occupancy
+    </CardTitle>
+  </CardHeader>
+
+  {/* Plain layout: just photo + scan info */}
+  <div className="space-y-6 p-4"> {/* minimal padding */}
+    {activeRooms.length === 0 ? (
+      <p className="text-[#3B5C47] text-sm text-center">
+        No active rooms right now
+      </p>
+    ) : (
+      roomsToShow.map((activeRoom) => (
         <div
           key={activeRoom.id}
-          className="flex items-center gap-4 p-4 rounded-lg shadow-sm bg-green-700 border border-green-800"
+          className="flex items-center gap-6 border-b pb-6 last:border-b-0"
         >
-          {/* Faculty Photo */}
+          {/* Faculty Photo - Bigger & flush left */}
           <img
             src={
               activeRoom.faculty_photo
@@ -291,76 +305,75 @@ export default function AdminDashboard() {
                 : "/default-avatar.png"
             }
             alt="Faculty"
-            className="w-16 h-16 rounded-full object-cover border-2 border-green-500"
+            className="w-28 h-28 rounded-full object-cover border-4 border-[#59AC77]"
           />
 
           {/* Room & Scan Info */}
           <div>
-            <p className="text-lg font-semibold text-white">
+            <p className="text-xl font-semibold text-[#2F4F2F]">
               Room {activeRoom.room_number}
             </p>
-            <p className="text-sm text-green-100">
+            <p className="text-base text-[#3B5C47]">
               Scanned by{" "}
-              <span className="font-medium text-white">
+              <span className="font-medium text-[#2F4F2F]">
                 {activeRoom.last_scanned_by ?? "Unknown"}
               </span>
             </p>
-            <p className="text-xs text-green-200">
+            <p className="text-sm text-gray-500">
               {activeRoom.last_scanned_at
                 ? new Date(activeRoom.last_scanned_at).toLocaleString()
                 : "No scan time"}
             </p>
           </div>
         </div>
-      ))}
-    </div>
+      ))
+    )}
+  </div>
+
+  {/* Footer toggle */}
+  {activeRooms.length > 2 && (
+    <CardFooter className="flex justify-center">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowAll(!showAll)}
+      >
+        {showAll ? "Show Less" : "View All Active Rooms"}
+      </Button>
+    </CardFooter>
   )}
-</CardContent>
+</Card>
+
+  {/* Equipment Condition by Room */}
+  <Card className="rounded-2xl shadow-md bg-white border border-[#A8CDB6]">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2 text-[#2F4F2F]">
+        <BarChartIcon className="w-5 h-5 text-[#59AC77]" />
+        Equipment Condition by Room
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={roomConditionData}>
+          <XAxis dataKey="room" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          {conditions.map((cond, idx) => (
+            <Bar
+              key={cond}
+              dataKey={cond}
+              stackId="a"
+              fill={COLORS[idx % COLORS.length]}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </CardContent>
+  </Card>
+</div>
 
 
-
-
-            {/* Footer toggle */}
-            {activeRooms.length > 2 && (
-                <CardFooter className="flex justify-center">
-                    <Button variant="outline" size="sm" onClick={() => setShowAll(!showAll)}>
-                        {showAll ? "Show Less" : "View All Active Rooms"}
-                    </Button>
-                </CardFooter>
-            )}
-        </Card>
-    
-
-                        {/* Equipment Condition by Room (Dynamic) */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <BarChartIcon className="w-5 h-5 text-purple-600" />
-                                    Equipment Condition by Room
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={roomConditionData}>
-                                        <XAxis dataKey="room" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Legend />
-                                        {conditions.map((cond, idx) => (
-                                            <Bar
-                                                key={cond}
-                                                dataKey={cond}
-                                                stackId="a"
-                                                fill={
-                                                    COLORS[idx % COLORS.length]
-                                                }
-                                            />
-                                        ))}
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
-                    </div>
                     {/* Equipment Condition by Type (Pie Charts) */}
                     <Card>
                         <CardHeader>

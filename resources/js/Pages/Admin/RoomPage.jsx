@@ -1,5 +1,28 @@
 import { useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
+
+import { Edit2, Trash2 } from "lucide-react";
+
+<TableCell className="flex gap-2">
+    <Button
+        size="sm"
+        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+        onClick={() => openEditModal(room)}
+    >
+        <Edit2 className="h-4 w-4" />
+        Edit
+    </Button>
+    <Button
+        size="sm"
+        variant="destructive"
+        className="flex items-center gap-2"
+        onClick={() => handleDelete(room.id)}
+    >
+        <Trash2 className="h-4 w-4" />
+        Delete
+    </Button>
+</TableCell>
+
 import QRCode from "react-qr-code";
 import Swal from "sweetalert2";
 import Notification from "@/Components/AdminComponents/Notification";
@@ -306,11 +329,13 @@ export default function RoomPage({ rooms, search }) {
                                 />
 
                                 {/* Add Room Button */}
-                                <Button
-                                    onClick={() => setAddRoomModalOpen(true)}
-                                >
-                                    Add Room
-                                </Button>
+                               <Button
+                            onClick={() => setAddRoomModalOpen(true)}
+                            className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                            >
+                            Add Room
+                            </Button>
+
                             </div>
 
                             {/* Table */}
@@ -319,23 +344,18 @@ export default function RoomPage({ rooms, search }) {
                                     {/* Scrollable Table Container */}
                                     <div className="max-h-[500px] overflow-y-auto">
                                         <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>#</TableHead>
-                                                    <TableHead>
-                                                        Room Name
-                                                    </TableHead>
-                                                    <TableHead>
-                                                        Room Code
-                                                    </TableHead>
-                                                    <TableHead>
-                                                        QR Code
-                                                    </TableHead>
-                                                    <TableHead>
-                                                        Actions
-                                                    </TableHead>
-                                                </TableRow>
-                                            </TableHeader>
+                                  <TableHeader>
+                                    <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
+                                        <TableHead className="font-semibold">#</TableHead>
+                                        <TableHead className="font-semibold">Room Name</TableHead>
+                                        <TableHead className="font-semibold">Room Code</TableHead>
+                                        <TableHead className="font-semibold">QR Code</TableHead>
+                                        <TableHead className="font-semibold">Actions</TableHead>
+                                    </TableRow>
+                                    </TableHeader>
+
+
+
                                             <TableBody>
                                                 {rooms.data.map(
                                                     (room, index) => {
@@ -397,28 +417,22 @@ export default function RoomPage({ rooms, search }) {
                                                                         </span>
                                                                     )}
                                                                 </TableCell>
-                                                                <TableCell>
+                                                               <TableCell className="flex gap-2">
                                                                     <Button
-                                                                        variant="outline"
                                                                         size="sm"
-                                                                        onClick={() =>
-                                                                            openEditModal(
-                                                                                room
-                                                                            )
-                                                                        }
-                                                                        className="mr-2"
+                                                                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                                        onClick={() => openEditModal(room)}
                                                                     >
+                                                                        <Edit2 className="h-4 w-4" />
                                                                         Edit
                                                                     </Button>
                                                                     <Button
-                                                                        variant="destructive"
                                                                         size="sm"
-                                                                        onClick={() =>
-                                                                            handleDelete(
-                                                                                room.id
-                                                                            )
-                                                                        }
+                                                                        variant="destructive"
+                                                                        className="flex items-center gap-2"
+                                                                        onClick={() => handleDelete(room.id)}
                                                                     >
+                                                                        <Trash2 className="h-4 w-4" />
                                                                         Delete
                                                                     </Button>
                                                                 </TableCell>
@@ -522,7 +536,7 @@ export default function RoomPage({ rooms, search }) {
                                     >
                                         Cancel
                                     </Button>
-                                    <Button type="submit" disabled={processing}>
+                                    <Button type="submit" disabled={processing} className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
                                         Save
                                     </Button>
                                 </div>
