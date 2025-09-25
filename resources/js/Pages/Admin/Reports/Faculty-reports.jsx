@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Swal from "sweetalert2";
 import Notification from "@/Components/AdminComponents/Notification";
-
+import { Eye, Edit2, Trash2 } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -94,23 +94,26 @@ function Filter({ filters, filterOptions, onApplyFilters, onResetFilters }) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                    <FilterIcon className="h-4 w-4" />
-                    Filter
-                    {(filters.condition ||
-                        filters.room ||
-                        filters.faculty ||
-                        filters.reportable_type) && (
-                        <X
-                            className="h-4 w-4 ml-1 cursor-pointer"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                handleReset();
-                            }}
-                        />
-                    )}
-                </Button>
+            <Button
+  className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+>
+  <FilterIcon className="h-4 w-4" />
+  Filter
+  {(filters.condition ||
+    filters.room ||
+    filters.faculty ||
+    filters.reportable_type) && (
+    <X
+      className="h-4 w-4 ml-1 cursor-pointer"
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        handleReset();
+      }}
+    />
+  )}
+</Button>
+
             </PopoverTrigger>
             <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[400px] p-4">
                 <h4 className="font-medium mb-3 text-lg">Filter Options</h4>
@@ -252,23 +255,23 @@ export default function FacultyReportsIndex({
         currentPage * itemsPerPage
     );
 
-    function onApplyFilters(newFilters) {
-        const cleanedFilters = Object.fromEntries(
-            Object.entries(newFilters).filter(
-                ([_, v]) => v !== "" && v !== undefined
-            )
-        );
+   function onApplyFilters(newFilters) {
+    const cleanedFilters = Object.fromEntries(
+        Object.entries(newFilters).filter(
+            ([_, v]) => v !== "" && v !== undefined
+        )
+    );
 
-        router.get("/faculty/reports", {
-            ...cleanedFilters,
-            search: search || undefined,
-        });
-    }
+    router.get(route("admin.reports.index"), {
+        ...cleanedFilters,
+        search: search || undefined,
+    });
+}
 
-    function resetFilters() {
-        setSearch(""); // clear search
-        router.get(route("admin.reports.index")); // fetch all data
-    }
+function resetFilters() {
+    setSearch(""); // clear search
+    router.get(route("admin.reports.index")); // fetch all data
+}
     function handleSearch(e) {
         if (e.key === "Enter") {
             onApplyFilters(filters);
@@ -340,21 +343,25 @@ export default function FacultyReportsIndex({
                                 onApplyFilters={onApplyFilters}
                                 onResetFilters={resetFilters}
                             />
-                            <Input
-                                placeholder="Search reports..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                onKeyDown={handleSearch}
-                                className="flex-1 min-w-0 sm:max-w-xs w-full"
-                            />
+                           <Input
+  placeholder="Search reports..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  onKeyDown={handleSearch}
+  className="flex-1 min-w-0 sm:max-w-xs w-full 
+             border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)] 
+             focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)] 
+             placeholder:text-[hsl(142,34%,40%)]"
+/>
+
                         </div>
 
                         {/* Reports Table */}
                         <Card>
-                            <CardContent>
+                            <CardContent className="p-0">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow>
+                                        <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
                                             <TableHead>#</TableHead>
                                             <TableHead>Faculty</TableHead>
                                             <TableHead>Reports Type</TableHead>
@@ -432,29 +439,45 @@ export default function FacultyReportsIndex({
                                                             r.created_at
                                                         ).toLocaleDateString()}
                                                     </TableCell>
-                                                    <TableCell className="space-x-2">
-                                                        <Link
-                                                            href={`/admin/faculty-reports/${r.id}/edit`}
-                                                        >
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                            >
-                                                                Edit
-                                                            </Button>
-                                                        </Link>
-                                                        <Button
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    r.id
-                                                                )
-                                                            }
-                                                        >
-                                                            Delete
-                                                        </Button>
-                                                    </TableCell>
+                                                  <TableCell>
+  <div className="flex gap-2">
+    <Link href={`/admin/faculty-reports/${r.id}/edit`}>
+      <Button
+        size="sm"
+        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+      >
+        <Edit2 className="h-4 w-4" />
+        Edit
+      </Button>
+    </Link>
+
+    <Button
+      size="sm"
+      variant="destructive"
+      className="flex items-center gap-2"
+      onClick={() => {
+        Swal.fire({
+          title: `Delete report #${r.id}?`,
+          text: "This action cannot be undone!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            handleDelete(r.id);
+            Swal.fire("Deleted!", `Report #${r.id} has been deleted.`, "success");
+          }
+        });
+      }}
+    >
+      <Trash2 className="h-4 w-4" />
+      Delete
+    </Button>
+  </div>
+</TableCell>
+
                                                 </TableRow>
                                             ))
                                         ) : (

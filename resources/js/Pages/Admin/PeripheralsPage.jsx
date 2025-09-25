@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Swal from "sweetalert2";
 import Notification from "@/Components/AdminComponents/Notification";
-
+import { Eye, Edit2, Trash2 } from "lucide-react"
 import {
     Table,
     TableBody,
@@ -67,10 +67,14 @@ function PeripheralsFilter({ filters, filterOptions, onApplyFilters }) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="outline" size="sm">
-                    <FilterIcon className="mr-2 h-4 w-4" />
-                    Filters
-                </Button>
+                <Button
+    size="sm"
+    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+>
+    <FilterIcon className="mr-2 h-4 w-4" />
+    Filters
+</Button>
+
             </PopoverTrigger>
             <PopoverContent className="w-72">
                 <div className="flex flex-col gap-3">
@@ -387,226 +391,165 @@ export default function PeripheralsIndex({
                                     onReset={resetFilters}
                                 />
 
-                                <Input
-                                    placeholder="Search peripherals..."
-                                    value={searchTerm}
-                                    onChange={(e) =>
-                                        setSearchTerm(e.target.value)
-                                    }
-                                    onKeyDown={handleSearch}
-                                    className="w-64"
-                                />
+                               <Input
+    placeholder="Search peripherals..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    onKeyDown={handleSearch}
+    className="flex-1 min-w-0 sm:max-w-xs w-full 
+               border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)] 
+               focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)] 
+               placeholder:text-[hsl(142,34%,40%)]"
+/>
+
                             </div>
                             <div className="flex items-center space-x-4">
                                 <Link href="/admin/peripherals/create">
-                                    <Button>Add Peripheral</Button>
+                                    <Button  className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">Add Peripheral</Button>
                                 </Link>
                             </div>
                         </div>
 
                         <Card>
-                            <CardContent>
-                                <Table>
+                            <CardContent className="p-0">
+                                {/* Table Header Full Width */}
+                                <div className="rounded-t-lg">
+                                <Table className="w-full table-auto">
                                     <TableHeader>
-                                        <TableRow>
-                                            <TableHead>#</TableHead>
-                                            <TableHead>
-                                                Peripheral Code
-                                            </TableHead>
-                                            <TableHead>Type</TableHead>
-                                            <TableHead>Room</TableHead>
-                                            <TableHead>Units</TableHead>
-                                            <TableHead>Brand</TableHead>
-                                            <TableHead>Model</TableHead>
-                                            <TableHead>Serial Number</TableHead>
-                                            <TableHead>Condition</TableHead>
-                                            <TableHead>Actions</TableHead>
-                                        </TableRow>
+                                    <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
+                                        <TableHead>#</TableHead>
+                                        <TableHead>Peripheral Code</TableHead>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead>Room</TableHead>
+                                        <TableHead>Units</TableHead>
+                                        <TableHead>Brand</TableHead>
+                                        <TableHead>Model</TableHead>
+                                        <TableHead>Serial Number</TableHead>
+                                        <TableHead>Condition</TableHead>
+                                        <TableHead>Actions</TableHead>
+                                    </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {paginatedData.length > 0 ? (
-                                            paginatedData.map((p, index) => (
-                                                <TableRow key={p.id}>
-                                                    <TableCell>
-                                                        {(currentPage - 1) *
-                                                            itemsPerPage +
-                                                            index +
-                                                            1}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.peripheral_code}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.type}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.room
-                                                            ? `ROOM ${p.room.room_number}`
-                                                            : "N/A"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.unit
-                                                            ? p.unit.unit_code
-                                                            : "N/A"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.brand}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.model}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.serial_number}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {p.condition ? (
-                                                            <span
-                                                                className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
-                                                                    getCondition(
-                                                                        p.condition
-                                                                    ).color
-                                                                }`}
-                                                            >
-                                                                {
-                                                                    getCondition(
-                                                                        p.condition
-                                                                    ).label
-                                                                }
-                                                            </span>
-                                                        ) : (
-                                                            "N/A"
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell className="space-x-2">
-                                                        <Link
-                                                            href={`/admin/peripherals/${p.id}`}
-                                                        >
-                                                            <Button
-                                                                variant="secondary"
-                                                                size="sm"
-                                                            >
-                                                                View
-                                                            </Button>
-                                                        </Link>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                setEditPeripheral(
-                                                                    p
-                                                                )
-                                                            }
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                        <Button
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    p.id
-                                                                )
-                                                            }
-                                                        >
-                                                            Delete
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell
-                                                    colSpan="8"
-                                                    className="text-center"
+                                    {paginatedData.length > 0 ? (
+                                        paginatedData.map((p, index) => (
+                                        <TableRow key={p.id}>
+                                            <TableCell>
+                                            {(currentPage - 1) * itemsPerPage + index + 1}
+                                            </TableCell>
+                                            <TableCell>{p.peripheral_code}</TableCell>
+                                            <TableCell>{p.type}</TableCell>
+                                            <TableCell>
+                                            {p.room ? `ROOM ${p.room.room_number}` : "N/A"}
+                                            </TableCell>
+                                            <TableCell>{p.unit ? p.unit.unit_code : "N/A"}</TableCell>
+                                            <TableCell>{p.brand}</TableCell>
+                                            <TableCell>{p.model}</TableCell>
+                                            <TableCell>{p.serial_number}</TableCell>
+                                            <TableCell>
+                                            {p.condition ? (
+                                                <span
+                                                className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                                                    getCondition(p.condition).color
+                                                }`}
                                                 >
-                                                    No peripherals found.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
+                                                {getCondition(p.condition).label}
+                                                </span>
+                                            ) : (
+                                                "N/A"
+                                            )}
+                                            </TableCell>
+                                            
+                            <TableCell className="space-x-2 flex items-center">
+                                <Link href={`/admin/peripherals/${p.id}`}>
+                                    <Button
+                                        size="sm"
+                                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                    >
+                                        <Eye className="h-4 w-4" />
+                                        View
+                                    </Button>
+                                </Link>
+
+                                <Button
+                                    size="sm"
+                                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                    onClick={() => setEditPeripheral(p)}
+                                >
+                                    <Edit2 className="h-4 w-4" />
+                                    Edit
+                                </Button>
+
+                                <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="flex items-center gap-2"
+                                    onClick={() => handleDelete(p.id)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete
+                                </Button>
+                            </TableCell>
+                                        </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                        <TableCell colSpan="10" className="text-center">
+                                            No peripherals found.
+                                        </TableCell>
+                                        </TableRow>
+                                    )}
                                     </TableBody>
                                 </Table>
+                                </div>
 
                                 {/* Pagination Controls */}
-                                <div className="flex justify-between items-center mt-4">
-                                    {/* Page Info */}
-                                    <span className="text-sm text-muted-foreground">
-                                        Page {currentPage} of {totalPages}
-                                    </span>
+                                <div className="flex justify-between items-center p-4">
+                                <span className="text-sm text-muted-foreground">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <div className="flex gap-2">
+                                    <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(currentPage - 1)}
+                                    >
+                                    Previous
+                                    </Button>
 
-                                    {/* Buttons */}
-                                    <div className="flex gap-2">
+                                    {Array.from({ length: totalPages }, (_, idx) => idx + 1)
+                                    .filter((page) => {
+                                        if (page === 1 || page === totalPages) return true;
+                                        return page >= currentPage - 2 && page <= currentPage + 2;
+                                    })
+                                    .map((page, idx, arr) => (
+                                        <React.Fragment key={page}>
+                                        {idx > 0 && arr[idx] - arr[idx - 1] > 1 && (
+                                            <span className="px-2">...</span>
+                                        )}
                                         <Button
                                             size="sm"
-                                            variant="outline"
-                                            disabled={currentPage === 1}
-                                            onClick={() =>
-                                                setCurrentPage(currentPage - 1)
-                                            }
+                                            variant={currentPage === page ? "default" : "outline"}
+                                            onClick={() => setCurrentPage(page)}
                                         >
-                                            Previous
+                                            {page}
                                         </Button>
+                                        </React.Fragment>
+                                    ))}
 
-                                        {/* Page Numbers (max 5 visible) */}
-                                        {Array.from(
-                                            { length: totalPages },
-                                            (_, idx) => idx + 1
-                                        )
-                                            .filter((page) => {
-                                                // Always show first & last
-                                                if (
-                                                    page === 1 ||
-                                                    page === totalPages
-                                                )
-                                                    return true;
-                                                // Show pages near current (±2)
-                                                return (
-                                                    page >= currentPage - 2 &&
-                                                    page <= currentPage + 2
-                                                );
-                                            })
-                                            .map((page, idx, arr) => (
-                                                <React.Fragment key={page}>
-                                                    {/* Ellipsis if gap */}
-                                                    {idx > 0 &&
-                                                        arr[idx] -
-                                                            arr[idx - 1] >
-                                                            1 && (
-                                                            <span className="px-2">
-                                                                ...
-                                                            </span>
-                                                        )}
-                                                    <Button
-                                                        size="sm"
-                                                        variant={
-                                                            currentPage === page
-                                                                ? "default"
-                                                                : "outline"
-                                                        }
-                                                        onClick={() =>
-                                                            setCurrentPage(page)
-                                                        }
-                                                    >
-                                                        {page}
-                                                    </Button>
-                                                </React.Fragment>
-                                            ))}
-
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            disabled={
-                                                currentPage === totalPages
-                                            }
-                                            onClick={() =>
-                                                setCurrentPage(currentPage + 1)
-                                            }
-                                        >
-                                            Next
-                                        </Button>
-                                    </div>
+                                    <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage(currentPage + 1)}
+                                    >
+                                    Next
+                                    </Button>
+                                </div>
                                 </div>
                             </CardContent>
-                        </Card>
+</Card>
+
                     </div>
                 </main>
 

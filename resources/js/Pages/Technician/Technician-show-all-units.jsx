@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import Notification from "@/Components/AdminComponents/Notification";
 import Swal from "sweetalert2";
 
-
+import { Eye, Edit2, Trash2 , QrCode} from "lucide-react";
 import {
     Table,
     TableHeader,
@@ -366,10 +366,10 @@ const handleDelete = (unitId) => {
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto rounded-lg shadow-lg">
                         <Table>
                             <TableHeader>
-                                <TableRow className="h-10">
+                           <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
                                     <TableHead>#</TableHead>
                                     <TableHead>Pc Code</TableHead>
                                     <TableHead>Room</TableHead>
@@ -417,32 +417,41 @@ const handleDelete = (unitId) => {
                                                     </div>
                                                 )}
                                             </TableCell>
-                                            <TableCell>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => setEditUnit(unit)}
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => setQrUnit(unit)}
-                                                    >
-                                                        QR
-                                                    </Button>
-                                                   <Button
-                                                    size="sm"
-                                                    variant="destructive"
-                                                    onClick={() => handleDelete(unit.id)}
-                                                >
-                                                    Delete
-                                                </Button>
+                                           <TableCell>
+  <div className="flex gap-2">
+    {/* Edit Button */}
+    <Button
+      size="sm"
+      className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+      onClick={() => setEditUnit(unit)}
+    >
+      <Edit2 className="h-4 w-4" />
+      Edit
+    </Button>
 
-                                                </div>
-                                            </TableCell>
+    {/* QR Button */}
+    <Button
+      size="sm"
+      className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+      onClick={() => setQrUnit(unit)}
+    >
+      <QrCode className="h-4 w-4" />
+      QR
+    </Button>
+
+    {/* Delete Button */}
+    <Button
+      size="sm"
+      variant="destructive"
+      className="flex items-center gap-2"
+      onClick={() => handleDelete(unit.id)}
+    >
+      <Trash2 className="h-4 w-4" />
+      Delete
+    </Button>
+  </div>
+</TableCell>
+
                                         </TableRow>
                                     ))
                                 ) : (

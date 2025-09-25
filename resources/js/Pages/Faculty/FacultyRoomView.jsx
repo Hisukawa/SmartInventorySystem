@@ -31,32 +31,42 @@ import SuccessModal from "@/Components/FacultyComponents/faculty-sucess-modal";
 
 // Pagination Component
 function Pagination({ page, pageCount, onPageChange }) {
-    return (
-        <div className="flex justify-end items-center gap-2">
-            <Button
-                variant="outline"
-                size="sm"
-                disabled={page === 1}
-                onClick={() => onPageChange(page - 1)}
-            >
-                Previous
-            </Button>
+  return (
+    <div className="flex justify-end items-center gap-2">
+      {/* Previous button */}
+      <Button
+        size="sm"
+        disabled={page === 1}
+        onClick={() => onPageChange(page - 1)}
+        className={`flex items-center gap-1 
+          bg-[hsl(142,34%,51%)] text-white 
+          hover:bg-[hsl(142,34%,45%)] 
+          disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed`}
+      >
+        Previous
+      </Button>
 
-            <span className="text-sm text-muted-foreground">
-                Page {page} of {pageCount}
-            </span>
+      {/* Page counter */}
+      <span className="text-sm text-muted-foreground">
+        Page {page} of {pageCount}
+      </span>
 
-            <Button
-                variant="outline"
-                size="sm"
-                disabled={page === pageCount}
-                onClick={() => onPageChange(page + 1)}
-            >
-                Next
-            </Button>
-        </div>
-    );
+      {/* Next button */}
+      <Button
+        size="sm"
+        disabled={page === pageCount}
+        onClick={() => onPageChange(page + 1)}
+        className={`flex items-center gap-1 
+          bg-[hsl(142,34%,51%)] text-white 
+          hover:bg-[hsl(142,34%,45%)] 
+          disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed`}
+      >
+        Next
+      </Button>
+    </div>
+  );
 }
+
 
 // ✅ Adjusted Filter Component for responsiveness and "All" option
 function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
@@ -106,22 +116,25 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                    <FilterIcon className="h-4 w-4" />
-                    Filter
-                    {(filters.condition ||
-                        ((activeSection === "system-units" ||
+               <Button
+                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                        >
+                        <FilterIcon className="h-4 w-4" />
+                        Filter
+                        {(filters.condition ||
+                            ((activeSection === "system-units" ||
                             activeSection === "peripherals") &&
                             filters.unit_code)) && (
-                        <X
-                            className="h-4 w-4 ml-1"
+                            <X
+                            className="h-4 w-4 ml-1 cursor-pointer"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleReset();
                             }}
-                        />
-                    )}
-                </Button>
+                            />
+                        )}
+                        </Button>
+
             </PopoverTrigger>
             <PopoverContent
                 className="w-[calc(100vw-2rem)] sm:w-[400px] p-4"
@@ -285,7 +298,7 @@ export default function FacultyRoomView({
         // This is the crucial part for navigation with filters
         // Use Inertia's router.get for full page reload with new query params
         // or you could use window.location.href for simpler but less "Inertia-like" navigation
-            window.location.href = route("room.show", {
+            window.location.href = route("faculty.room.show", {
         roomPath: room.room_path,
         section: activeSection,
         condition: newCondition || undefined,
@@ -309,7 +322,7 @@ export default function FacultyRoomView({
                         user={auth.user}
                         // The onSelect prop should navigate to the new section
                         onSelect={(sectionKey) => {
-                            window.location.href = route("room.show", {
+                            window.location.href = route("faculty.room.show", {
                                 roomPath: room.room_path,
                                 section: sectionKey,
                             });
@@ -318,23 +331,16 @@ export default function FacultyRoomView({
                 </div>
 
                 {/* Sidebar Mobile */}
-                {sidebarOpen && (
+                  {sidebarOpen && (
                     <div className="fixed inset-0 z-40 flex md:hidden">
-                        <div
-                            className="fixed inset-0 bg-black/50"
-                            onClick={() => setSidebarOpen(false)}
-                        />
-                        <div className="relative z-50 w-64 bg-white shadow-lg">
+                        <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+                        <div className="relative z-50 w-64 shadow-lg" style={{ backgroundColor: "hsl(142,34%,51%)" }}>
                             <FacultyRoomSidebar
                                 room={room}
                                 active={activeSection}
                                 user={auth.user}
                                 onSelect={(sectionKey) => {
-                                    // Navigate and then close sidebar
-                                    window.location.href = route("room.show", {
-                                        roomPath: room.room_path,
-                                        section: sectionKey,
-                                    });
+                                    window.location.href = route("faculty.room.show", { roomPath: room.room_path, section: sectionKey });
                                     setSidebarOpen(false);
                                 }}
                             />
@@ -347,18 +353,21 @@ export default function FacultyRoomView({
                     {" "}
                     {/* Added bg-gray-50 */}
                     {/* Top Bar for Mobile/Tablet */}
-                    <div className="bg-white p-4 border-b md:hidden flex items-center justify-between shadow-sm">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => setSidebarOpen(true)}
-                        >
-                            <Menu className="h-5 w-5" />
-                        </Button>
-                        <h2 className="text-xl font-semibold text-green-700">
-                            {room.room_name}
-                        </h2>
-                    </div>
+                            <div className="p-4 border-b md:hidden flex items-center justify-between shadow-sm" style={{ backgroundColor: "hsl(142,34%,51%)" }}>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setSidebarOpen(true)}
+                    className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                >
+                    <Menu className="h-5 w-5" />
+                </Button>
+                <h2 className="text-xl font-semibold text-white">
+                    {room.room_name}
+                </h2>
+            </div>
+            
+
                     <div className="p-5 max-w-full md:max-w-5xl lg:max-w-7xl mx-auto w-full">
                         {" "}
                         {/* Added mx-auto w-full */}
@@ -389,26 +398,27 @@ export default function FacultyRoomView({
                                             activeSection={activeSection}
                                             onApplyFilters={applyFilters}
                                         />
-                                        <Input
-                                            placeholder="Search..."
-                                            value={search}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                setSearch(value);
-                                                applyFilters(
-                                                    condition,
-                                                    unitCode,
-                                                    value
-                                                );
-                                            }}
-                                            className="flex-1 min-w-0 sm:max-w-xs w-full"
-                                        />
+                                       <Input
+                                    placeholder="Search..."
+                                    value={search}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setSearch(value);
+                                        applyFilters(condition, unitCode, value);
+                                    }}
+                                    className="flex-1 min-w-0 sm:max-w-xs w-full 
+                                            border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)] 
+                                            focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)] 
+                                            placeholder:text-[hsl(142,34%,40%)]"
+                                />
+
                                     </div>
                                 </div>
 
                                 <Table className="min-w-full divide-y divide-gray-200">
                                     <TableHeader className="bg-gray-50">
-                                        <TableRow>
+                                        <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
+
                                             <TableHead className="w-20 text-center text-gray-600">
                                                 No
                                             </TableHead>
@@ -476,13 +486,13 @@ export default function FacultyRoomView({
                                                                 )}
                                                             >
                                                                 <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    className="flex items-center gap-1 text-blue-600 hover:bg-blue-50"
-                                                                >
-                                                                    <Eye className="h-4 w-4" />{" "}
-                                                                    View
-                                                                </Button>
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
+                                                        >
+                                                            <Eye className="h-4 w-4" /> View
+                                                        </Button>
+
                                                             </Link>
                                                         )}
                                                         {activeSection ===
@@ -497,14 +507,14 @@ export default function FacultyRoomView({
                                                                     }
                                                                 )}
                                                             >
-                                                                <Button
+                                                               <Button
                                                                     size="sm"
                                                                     variant="outline"
-                                                                    className="flex items-center gap-1 text-blue-600 hover:bg-blue-50"
+                                                                    className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
                                                                 >
-                                                                    <Eye className="h-4 w-4" />{" "}
-                                                                    View
+                                                                    <Eye className="h-4 w-4" /> View
                                                                 </Button>
+
                                                             </Link>
                                                         )}
                                                         {activeSection ===
@@ -524,32 +534,28 @@ export default function FacultyRoomView({
                                                                     }
                                                                 )}
                                                             >
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    className="flex items-center gap-1 text-blue-600 hover:bg-blue-50"
-                                                                >
-                                                                    <Eye className="h-4 w-4" />{" "}
-                                                                    View
-                                                                </Button>
+                                                               <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
+                                                            >
+                                                                <Eye className="h-4 w-4" /> View
+                                                            </Button>
+
                                                             </Link>
                                                         )}
-                                                        <Button
+                                                       <Button
                                                             size="sm"
                                                             variant="outline"
-                                                            className="flex items-center gap-1 text-red-600 hover:bg-red-50"
+                                                            className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,45%)] hover:text-white"
                                                             onClick={() => {
-                                                                setSelectedItem(
-                                                                    item
-                                                                );
-                                                                setShowReportModal(
-                                                                    true
-                                                                );
+                                                                setSelectedItem(item);
+                                                                setShowReportModal(true);
                                                             }}
                                                         >
-                                                            <FileText className="h-4 w-4" />{" "}
-                                                            Report
+                                                            <FileText className="h-4 w-4" /> Report
                                                         </Button>
+
                                                     </TableCell>
                                                 </TableRow>
                                             ))

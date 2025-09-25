@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Menu } from "@headlessui/react";
 import { X } from "lucide-react";
 import Notification from "@/Components/AdminComponents/Notification";
-
+import { Eye, Edit2, Trash2 } from "lucide-react";
 import {
     Table,
     TableHeader,
@@ -77,9 +77,13 @@ function EquipmentsFilter({ filters, filterOptions, onApplyFilters }) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="outline" size="sm">
-                    Filters
-                </Button>
+              <Button
+    size="sm"
+    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+>
+    Filters
+</Button>
+
             </PopoverTrigger>
             <PopoverContent className="w-72">
                 <div className="flex flex-col gap-3">
@@ -296,18 +300,22 @@ export default function EquipmentsPage({
                                 filterOptions={filterOptions}
                                 onApplyFilters={onApplyFilters}
                             />
-                            <Input
-                                placeholder="Search Equipment Code..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                onKeyDown={(e) =>
-                                    e.key === "Enter" && onApplyFilters(filters)
-                                }
-                                className="text-sm sm:text-base px-2 sm:px-3 py-1 sm:py-2 flex-1 max-w-xs"
-                            />
+                          <Input
+    placeholder="Search Equipment Code..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    onKeyDown={(e) =>
+        e.key === "Enter" && onApplyFilters(filters)
+    }
+    className="text-sm sm:text-base px-2 sm:px-3 py-1 sm:py-2 flex-1 max-w-xs
+               border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)] 
+               focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)] 
+               placeholder:text-[hsl(142,34%,40%)]"
+/>
+
                         </div>
                         <Button
-                            className="text-sm sm:text-base px-3 py-1 sm:py-2"
+                            className="text-sm sm:text-base px-3 py-1 sm:py-2 bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
                             onClick={() =>
                                 router.visit("/equipments/addequipment")
                             }
@@ -320,7 +328,7 @@ export default function EquipmentsPage({
                     <div className="overflow-x-auto rounded-lg border">
                         <Table>
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
                                     <TableHead>#</TableHead>
                                     <TableHead>Equipment Code</TableHead>
                                     <TableHead>Room</TableHead>
@@ -366,42 +374,39 @@ export default function EquipmentsPage({
                                                     </div>
                                                 )}
                                             </TableCell>
-                                            <TableCell className="text-center">
-                                                <div className="hidden sm:flex gap-2 justify-center">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() =>
-                                                            router.visit(
-                                                                `/equipments/view/${eq.equipment_code}`
-                                                            )
-                                                        }
-                                                    >
-                                                        View
-                                                    </Button>
+                                         <TableCell className="text-center">
+                                                        <div className="hidden sm:flex gap-2 justify-center">
+                                                            <Button
+                                                            size="sm"
+                                                            className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                            onClick={() =>
+                                                                router.visit(`/equipments/view/${eq.equipment_code}`)
+                                                            }
+                                                            >
+                                                            <Eye className="h-4 w-4" />
+                                                            View
+                                                            </Button>
 
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() =>
-                                                            setSelectedEquipment(
-                                                                eq
-                                                            )
-                                                        }
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        onClick={() =>
-                                                            handleDelete(eq)
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
+                                                            <Button
+                                                            size="sm"
+                                                            className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                            onClick={() => setSelectedEquipment(eq)}
+                                                            >
+                                                            <Edit2 className="h-4 w-4" />
+                                                            Edit
+                                                            </Button>
+
+                                                            <Button
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            className="flex items-center gap-2"
+                                                            onClick={() => handleDelete(eq)}
+                                                            >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            Delete
+                                                            </Button>
+                                                        </div>
+                                                        </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (

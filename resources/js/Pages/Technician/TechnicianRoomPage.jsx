@@ -4,7 +4,7 @@ import QRCode from "react-qr-code";
 import Swal from "sweetalert2";
 import { TechnicianAppSidebar } from "@/components/TechnicianComponent/technician-app-sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, } from "@/components/ui/breadcrumb";
-
+import { Edit2, Trash2 } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -317,7 +317,7 @@ const handleDelete = (id) => {
                                     className="w-full sm:w-1/3"
                                 />
 
-                                <Button onClick={() => setAddRoomModalOpen(true)}>
+                                <Button onClick={() => setAddRoomModalOpen(true)}   className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
                                     Add Room
                                 </Button>
                             </div>
@@ -327,7 +327,7 @@ const handleDelete = (id) => {
                                 <div className="max-h-[500px] overflow-y-auto">
                                     <Table>
                                         <TableHeader>
-                                            <TableRow>
+                                             <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
                                                 <TableHead>#</TableHead>
                                                 <TableHead>Room Name</TableHead>
                                                 <TableHead>Room Code</TableHead>
@@ -379,27 +379,27 @@ const handleDelete = (id) => {
                                                                 </span>
                                                             )}
                                                         </TableCell>
-                                                        <TableCell>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    openEditModal(room)
-                                                                }
-                                                                className="mr-2"
-                                                            >
-                                                                Edit
-                                                            </Button>
-                                                            <Button
-                                                                variant="destructive"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    handleDelete(room.id)
-                                                                }
-                                                            >
-                                                                Delete
-                                                            </Button>
+                                                      <TableCell className="flex gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                            onClick={() => openEditModal(room)}
+                                                        >
+                                                            <Edit2 className="h-4 w-4" />
+                                                            Edit
+                                                        </Button>
+
+                                                        <Button
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            className="flex items-center gap-2"
+                                                            onClick={() => handleDelete(room.id)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            Delete
+                                                        </Button>
                                                         </TableCell>
+
                                                     </TableRow>
                                                 );
                                             })}
@@ -475,7 +475,7 @@ const handleDelete = (id) => {
                                     >
                                         Cancel
                                     </Button>
-                                    <Button type="submit" disabled={processing}>
+                                    <Button type="submit" disabled={processing}className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
                                         Save
                                     </Button>
                                 </div>

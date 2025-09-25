@@ -115,8 +115,14 @@ export default function ReportFormModal({
 
           {/* Save Button */}
           <div className="flex justify-end">
-            <Button type="submit">Save</Button>
-          </div>
+    <Button
+        type="submit"
+        className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)]"
+    >
+        Save
+    </Button>
+</div>
+
         </form>
       </DialogContent>
     </Dialog>

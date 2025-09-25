@@ -223,7 +223,7 @@ export default function AddEquipment({ rooms }) {
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                                 className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
                             >
                                 Add Equipment
                             </Button>

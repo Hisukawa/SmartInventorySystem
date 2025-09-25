@@ -123,11 +123,8 @@ export function AppSidebar({ ...props }) {
                             item.items?.some((sub) => sub.url === currentPath);
 
                         // Only show a group header for Assets or Reports
-                        const isGroupHeader =
-                            item.title === "Assets" || item.title === "Reports";
-
-                        // Skip rendering the main button for Assets
-                        const skipMainButton = isGroupHeader;
+                       const isGroupHeader = false; // disable special header logic
+const skipMainButton = false;
 
                         return (
                             <React.Fragment key={item.title}>
@@ -153,8 +150,11 @@ export function AppSidebar({ ...props }) {
                                                 href={item.url}
                                                 className="flex items-center gap-2 w-full"
                                             >
-                                                <item.icon className="text-teal-700" />
-                                                <span>{item.title}</span>
+                                                 <item.icon className="text-white" />   
+<span className="font-sans font-medium text-white">
+  {item.title}
+</span>
+
                                             </a>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>

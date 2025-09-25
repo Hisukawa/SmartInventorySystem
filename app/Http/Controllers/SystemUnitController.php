@@ -10,60 +10,52 @@ use Illuminate\Validation\Rule;
 
 class SystemUnitController extends Controller
 {
-        public function index(Request $request)
-        {
-            $query = SystemUnit::with('room');
+       public function index(Request $request)
+{
+    $query = SystemUnit::with('room');
 
-            // ✅ Apply filters if provided
-            if ($request->filled('room_id')) {
-                $query->where('room_id', $request->room_id);
-            }
-            if ($request->filled('unit_code')) {
-                $query->where('unit_code', $request->unit_code);
-            }
-            if ($request->filled('processor')) {
-                $query->where('processor', $request->processor);
-            }
+    // ✅ List of filterable fields
+    $filterable = [
+        'room_id',
+        'unit_code',
+        'processor',
+        'ram',
+        'storage',
+        'gpu',
+        'motherboard',
+        'condition',
+    ];
 
-            if ($request->filled('ram')) {
-                $query->where('ram', $request->ram);
-            }
-
-            if ($request->filled('storage')) {
-                $query->where('storage', $request->storage);
-            }
-
-            if ($request->filled('gpu')) {
-                $query->where('gpu', $request->gpu);
-            }
-
-            if ($request->filled('motherboard')) {
-                $query->where('motherboard', $request->motherboard);
-            }
-
-            if ($request->filled('condition')) {
-                $query->where('condition', $request->condition);
-            }
-
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function ($q) use ($search) {
-                    $q->where('unit_code', 'LIKE', "%{$search}%")
-                    ->orWhereHas('room', function ($q2) use ($search) {
-                        $q2->where('room_number', 'LIKE', "%{$search}%");
-                    });
-                });
-            }
-
-            $units = $query->get();
-            $rooms = Room::select('id', 'room_number')->get();
-
-            return Inertia::render('SystemUnits/UnitPage', [
-                'units' => $units,
-                'rooms' => $rooms,
-                'filters' => $request->all(), // ✅ keep track of applied filters
-            ]);
+    // ✅ Apply filters dynamically
+    foreach ($filterable as $field) {
+        $value = $request->get($field);
+        if (!empty($value) && $value !== 'all') {
+            $query->where($field, $value);
         }
+    }
+
+    // ✅ Apply search filter
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('unit_code', 'LIKE', "%{$search}%")
+              ->orWhereHas('room', function ($q2) use ($search) {
+                  $q2->where('room_number', 'LIKE', "%{$search}%");
+              });
+        });
+    }
+
+    // ✅ Fetch results
+    $units = $query->get();
+    $rooms = Room::select('id', 'room_number')->get();
+
+    return Inertia::render('SystemUnits/UnitPage', [
+        'units'   => $units,
+        'rooms'   => $rooms,
+        'filters' => $request->all(), // ✅ pass back filters to keep state in frontend
+    ]);
+}
+
 
 
     // Store System Unit
