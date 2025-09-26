@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -15,6 +15,7 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import FaceCapture from "@/Components/Face-Capture-Component/FaceCapture";
+import * as faceapi from "face-api.js";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -28,8 +29,21 @@ export default function Register() {
     });
 
     const [successMessage, setSuccessMessage] = useState("");
+    const [faceReady, setFaceReady] = useState(false);
 
-    // 🔹 Submit function
+    // 🔹 Preload face-api models
+    useEffect(() => {
+        const loadModels = async () => {
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+                faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+                faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+            ]);
+            console.log("Face models loaded");
+        };
+        loadModels();
+    }, []);
+
     const submit = (e) => {
         if (e) e.preventDefault();
 
@@ -43,7 +57,8 @@ export default function Register() {
             onSuccess: () => {
                 setSuccessMessage("User successfully registered with face recognition!");
                 reset("name", "email", "password", "password_confirmation", "photo", "role");
-                setData("face_descriptor", null); // reset face capture
+                setData("face_descriptor", null);
+                setFaceReady(false);
             },
             onError: (err) => console.log("Registration error:", err),
             onFinish: () => console.log("Submitting:", data),
@@ -199,16 +214,21 @@ export default function Register() {
                                         <FaceCapture
                                             onCapture={(descriptor) => {
                                                 setData("face_descriptor", descriptor);
-                                                submit(); // Auto-submit after face capture
+                                                setFaceReady(true);
                                             }}
                                         />
+                                        {faceReady && (
+                                            <div className="mt-2 text-green-600 font-semibold">
+                                                Face captured successfully ✅
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* Optional Manual Submit */}
+                                    {/* Submit Button */}
                                     <Button
                                         type="submit"
-                                        className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white"
-                                        disabled={processing}
+                                        className={`w-full mt-2 text-white ${faceReady ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 cursor-not-allowed"}`}
+                                        disabled={!faceReady || processing}
                                     >
                                         Register
                                     </Button>
