@@ -1,62 +1,78 @@
 <?php
 
 namespace App\Http\Controllers\Faculty;
-
+use App\Models\RoomStatus;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Room;
 class FacultyController extends \App\Http\Controllers\Controller
 {
+
+
+    //Function for Faculty Dashboard
 public function dashboard()
 {
     $user = Auth::user();
 
-    // Last 3 rooms visited by this faculty
-    $recentRooms = \DB::table('room_statuses')
-        ->join('rooms', 'rooms.id', '=', 'room_statuses.room_id')
-        ->where('room_statuses.scanned_by', $user->id)
-        ->orderByDesc('room_statuses.created_at')
-        ->limit(5)
-        ->select('rooms.room_number', 'room_statuses.is_active', 'room_statuses.created_at')
-        ->get();
-
-    // Reports submitted by the faculty, including room number and item type
-    $reports = \DB::table('reports')
-        ->join('rooms', 'rooms.id', '=', 'reports.room_id')
-        ->where('reports.user_id', $user->id)
-        ->orderByDesc('reports.created_at')
-        ->select(
-            'reports.id',
-            'reports.reportable_type',
-            'reports.reportable_id',
-            'reports.condition',
-            'reports.remarks',
-            'reports.created_at',
-            'rooms.room_number'
-        )
+    // === Active rooms with faculty info ===
+    $activeRooms = RoomStatus::where('is_active', 1)
+        ->with(['room', 'faculty'])
+        ->orderBy('updated_at', 'desc')
         ->get()
-        ->map(function ($report) {
-            // Convert reportable_type to a more readable format
-            $report->item = match($report->reportable_type) {
-                'peripheral' => 'Peripheral',
-                'equipment' => 'Equipment',
-                'system_unit' => 'System Unit',
-                default => $report->reportable_type,
-            };
-            return $report;
+        ->map(function ($status) {
+            return [
+                'room_number'   => $status->room->room_number,
+                'room_id'       => $status->room->id,
+                'faculty_name'  => $status->faculty->name ?? 'Unknown',
+                'faculty_photo' => $status->faculty->photo ?? null,
+                'scanned_at'    => $status->updated_at,
+            ];
         });
 
-    // Latest notifications / announcements (last 5)
-    $announcements = \DB::table('notifications')
-        ->orderByDesc('created_at')
-        ->limit(5)
-        ->get();
+    // === Room Stats ===
+    $totalRooms     = Room::count();
+    $occupiedRooms  = RoomStatus::where('is_active', 1)->count();
+    $availableRooms = $totalRooms - $occupiedRooms;
+
+    // === Item Counts ===
+    $systemUnitsTotal = \DB::table('system_units')->count();
+    $peripheralsTotal = \DB::table('peripherals')->count();
+    $equipmentsTotal  = \DB::table('equipments')->count();
+
+    $totalItems = $systemUnitsTotal + $peripheralsTotal + $equipmentsTotal;
+
+    // === Dynamic Equipment Conditions ===
+    $conditions = \DB::table('system_units')->select('condition')->distinct()
+        ->union(\DB::table('peripherals')->select('condition')->distinct())
+        ->union(\DB::table('equipments')->select('condition')->distinct())
+        ->pluck('condition')
+        ->filter()
+        ->unique()
+        ->values(); // reset array keys
+
+    $conditionCounts = $conditions->map(function ($condition) {
+        return [
+            'name'  => $condition,
+            'value' =>
+                \DB::table('system_units')->where('condition', $condition)->count()
+              + \DB::table('peripherals')->where('condition', $condition)->count()
+              + \DB::table('equipments')->where('condition', $condition)->count(),
+        ];
+    });
 
     return Inertia::render('Faculty/FacultyDashboard', [
-        'user' => $user,
-        'recentRooms' => $recentRooms,
-        'reports' => $reports,
-        'announcements' => $announcements,
+        'user'        => $user,
+        'activeRooms' => $activeRooms,
+        'summary'     => [
+            'totalRooms'       => $totalRooms,
+            'availableRooms'   => $availableRooms,
+            'occupiedRooms'    => $occupiedRooms,
+            'totalItems'       => $totalItems,
+            'systemUnitsTotal' => $systemUnitsTotal,
+            'peripheralsTotal' => $peripheralsTotal,
+            'equipmentsTotal'  => $equipmentsTotal,
+            'conditions'       => $conditionCounts, // ✅ dynamic values
+        ],
     ]);
 }
 
@@ -77,18 +93,20 @@ public function showRoom()
             $latestStatus = $room->latestStatus;
 
             if ($latestStatus && $latestStatus->is_active) {
+                // Room is active → show faculty and scanned time
                 $room->is_active = true;
                 $room->scanned_at = $latestStatus->created_at;
                 $room->setRelation('faculties', collect([$latestStatus->faculty]));
             } else {
+                // Room is inactive → hide faculty and scanned time
                 $room->is_active = false;
-                $room->scanned_at = $latestStatus ? $latestStatus->created_at : null;
+                $room->scanned_at = null;
                 $room->setRelation('faculties', collect([]));
             }
 
             return $room;
         })
-        ->values(); // ✅ ensures array, not collection with gaps
+        ->values();
 
     return Inertia::render('Faculty/Faculty-Room-Dashboard', [
         'rooms' => $rooms ?? [],

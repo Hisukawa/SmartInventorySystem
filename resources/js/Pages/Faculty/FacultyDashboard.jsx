@@ -1,91 +1,51 @@
-import React, { useState, useMemo } from "react";
-import { Separator } from "@/components/ui/separator";
+import React, { useState } from "react";
 import { Head } from "@inertiajs/react";
 import { FacultyAppSidebar } from "@/Components/FacultyComponents/faculty-app-sidebar";
-
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-} from "@/components/ui/breadcrumb";
-
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+} from "recharts";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+} from "@/components/ui/breadcrumb";
+import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Building, DoorOpen,  CheckCircle } from "lucide-react"
+// Dummy placeholders for charts
+const Placeholder = ({ label }) => (
+  <Card className="rounded-2xl shadow-md bg-white flex items-center justify-center h-64">
+    <p className="text-gray-500">{label}</p>
+  </Card>
+);
 
-// ✅ Lucide Icons
-import { Building2, FileText, Eye } from "lucide-react";
-
-// Helper function to format date
-const formatDateTime = (dateString) => {
-  return new Date(dateString).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-export default function FacultyDashboard({ user, recentRooms = [], reports = [] }) {
-  const [selectedReport, setSelectedReport] = useState(null);
-  const [activeTab, setActiveTab] = useState("all");
-
-  const filteredReports = useMemo(() => {
-    if (activeTab === "all") return reports;
-    return reports.filter((report) => report.status === activeTab);
-  }, [reports, activeTab]);
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "pending":
-        return (
-          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
-            Pending
-          </Badge>
-        );
-      case "resolved":
-        return (
-          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-            Resolved
-          </Badge>
-        );
-      case "critical":
-        return (
-          <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
-            Critical
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">Unknown</Badge>;
-    }
-  };
+export default function FacultyDashboard({ user, activeRooms = [], summary = {} }) {
+  const [showAll, setShowAll] = useState(false);
+  const roomsToShow = showAll ? activeRooms : activeRooms.slice(0, 2);
 
   return (
     <SidebarProvider>
@@ -101,11 +61,7 @@ export default function FacultyDashboard({ user, recentRooms = [], reports = [] 
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink
-                  href="/faculty/dashboard"
-                  aria-current="page"
-                  className="font-semibold text-foreground"
-                >
+                <BreadcrumbLink href="/faculty/dashboard" className="font-semibold">
                   Dashboard
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -114,162 +70,219 @@ export default function FacultyDashboard({ user, recentRooms = [], reports = [] 
         </header>
 
         {/* Main Content */}
-        <main className="w-full px-6 py-6 bg-gray-50 min-h-screen space-y-8">
-          {/* Recent Rooms Scanned */}
-        <section className="w-full md:max-w-l lg:max-w-5xl">
+        <main className="w-full px-6 py-6 bg-gray-50 min-h-screen space-y-6">
+          {/* === Top Row: Summary Cards === */}
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+  <Card>
+    <CardContent className="p-6 flex items-center justify-between">
+      <div>
+        <h2 className="text-sm font-medium text-gray-500">Total Rooms</h2>
+        <p className="text-2xl font-bold">{summary.totalRooms ?? 0}</p>
+      </div>
+      <Building className="w-8 h-8 text-blue-600" />
+    </CardContent>
+  </Card>
 
-        <Card className="p-4 w-full sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl max-h-[500px]">
-  {/* Header */}
-          <div className="flex items-center gap-2 mb-4">
-            <Building2 className="h-5 w-5 text-green-600" />
-            <h2 className="font-bold text-sm px-3 py-1 rounded-md bg-green-600 border border-green-700 text-white inline-block">
-              Recent Rooms Scanned
-            </h2>
-          </div>
+  <Card>
+    <CardContent className="p-6 flex items-center justify-between">
+      <div>
+        <h2 className="text-sm font-medium text-gray-500">Available Rooms</h2>
+        <p className="text-2xl font-bold">{summary.availableRooms ?? 0}</p>
+      </div>
+      <DoorOpen className="w-8 h-8 text-green-600" />
+    </CardContent>
+  </Card>
 
-  {/* Scrollable List */}
-        <ScrollArea className="max-h-[350px] pr-2">
-          <div className="space-y-3">
-            {(recentRooms || []).map((room) => (
-              <Card
-                key={room.room_number}
-                className="p-3 w-full sm:w-[280px] md:w-[300px] bg-green-100 border border-green-300 text-green-800 hover:shadow-md transition-all hover:scale-[1.01]"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-semibold text-sm">Room {room.room_number}</p>
-                  <Badge
-                    variant={room.is_active ? "default" : "secondary"}
-                    className={
-                      room.is_active
-                        ? "bg-green-600 border border-green-700 text-white"
-                        : "bg-gray-500 border border-gray-600 text-white"
-                    }
-                  >
-                    {room.is_active ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-                <p className="text-xs">Last scanned: {formatDateTime(room.created_at)}</p>
+  <Card>
+    <CardContent className="p-6 flex items-center justify-between">
+      <div>
+        <h2 className="text-sm font-medium text-gray-500">Occupied Rooms</h2>
+        <p className="text-2xl font-bold">{summary.occupiedRooms ?? 0}</p>
+      </div>
+      <Users className="w-8 h-8 text-red-600" />
+    </CardContent>
+  </Card>
+
+  <Card>
+    <CardContent className="p-6 flex items-center justify-between">
+      <div>
+        <h2 className="text-sm font-medium text-gray-500">Items Working %</h2>
+        <p className="text-2xl font-bold">{summary.itemsWorkingPercent ?? 0}%</p>
+      </div>
+      <CheckCircle className="w-8 h-8 text-emerald-600" />
+    </CardContent>
+  </Card>
+</div>
+
+          {/* === Content Area: Left & Right === */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* LEFT SIDE: Active Room Occupancy */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="rounded-2xl shadow-md bg-white">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-green-600" />
+                    Active Room Occupancy
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {activeRooms.length === 0 ? (
+                    <p className="text-gray-500 text-sm text-center">
+                      No active rooms right now
+                    </p>
+                  ) : (
+                    roomsToShow.map((room) => (
+                      <div
+                        key={room.room_id}
+                        className="flex items-center gap-4 border-b pb-4 last:border-b-0"
+                      >
+                        <img
+                          src={
+                            room.faculty_photo
+                              ? `/storage/${room.faculty_photo}`
+                              : "/default-avatar.png"
+                          }
+                          alt="Faculty"
+                          className="w-20 h-20 rounded-full object-cover border-2 border-green-600"
+                        />
+                        <div>
+                          <p className="text-lg font-semibold">
+                            Room {room.room_number}
+                          </p>
+                          <p className="text-sm">
+                            Scanned by{" "}
+                            <span className="font-medium">{room.faculty_name}</span>
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {room.scanned_at
+                              ? new Date(room.scanned_at).toLocaleString()
+                              : "No scan time"}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+                {activeRooms.length > 2 && (
+                  <CardFooter className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowAll(!showAll)}
+                    >
+                      {showAll ? "Show Less" : "View All Active Rooms"}
+                    </Button>
+                  </CardFooter>
+                )}
               </Card>
-            ))}
-          </div>
-        </ScrollArea>
-        </Card>
-
-
-          </section>
-
-          {/* My Reports */}
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <FileText className="h-5 w-5 text-red-600" />
-              <h2 className="font-bold text-lg">My Reports</h2>
             </div>
 
-            <Card>
-              <CardContent className="pt-4">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
-                    <TabsTrigger value="all">All Reports</TabsTrigger>
-                    <TabsTrigger value="pending">Pending</TabsTrigger>
-                    <TabsTrigger value="resolved">Resolved</TabsTrigger>
-                  </TabsList>
+            {/* RIGHT SIDE: Charts */}
+            <div className="lg:col-span-3 space-y-6">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {/* Equipment Condition Pie Chart */}
+   <Card className="rounded-2xl shadow-md bg-white p-6">
+  <h2 className="text-lg font-semibold mb-4">Equipment Condition</h2>
+  {summary.totalItems > 0 ? (
+    <>
+      <ResponsiveContainer width="100%" height={250}>
+        <PieChart>
+          <Pie
+            data={summary.conditions ?? []}
+            cx="50%"
+            cy="50%"
+            outerRadius={80}
+            dataKey="value"
+            label
+          >
+            {(summary.conditions ?? []).map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={
+                  ["#4CAF50", "#FFC107", "#FF9800", "#F44336", "#2196F3", "#9C27B0"][index % 6]
+                }
+              />
+            ))}
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
 
-                  {/* Shared table for reports */}
-                  <TabsContent value={activeTab} className="mt-4">
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Item</TableHead>
-                            <TableHead>Room</TableHead>
-                            <TableHead>Condition</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredReports.length > 0 ? (
-                            filteredReports.map((report) => (
-                              <TableRow key={report.id}>
-                                <TableCell className="font-medium">{report.item}</TableCell>
-                                <TableCell>Room {report.room_number}</TableCell>
-                                <TableCell>{report.condition}</TableCell>
-                                <TableCell>{getStatusBadge(report.status)}</TableCell>
-                                <TableCell className="text-right">
-                                  <Dialog>
-                                    <DialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setSelectedReport(report)}
-                                      >
-                                        <Eye className="h-4 w-4 mr-2" /> View
-                                      </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="sm:max-w-[425px]">
-                                      <DialogHeader>
-                                        <DialogTitle>Report Details</DialogTitle>
-                                        <DialogDescription>
-                                          Detailed information about this report.
-                                        </DialogDescription>
-                                      </DialogHeader>
-                                      {selectedReport && (
-                                        <div className="grid gap-4 py-4">
-                                          <div className="grid grid-cols-4 items-center gap-4">
-                                            <p className="text-sm font-semibold col-span-1">Item:</p>
-                                            <p className="text-sm col-span-3">{selectedReport.item}</p>
-                                          </div>
-                                          <div className="grid grid-cols-4 items-center gap-4">
-                                            <p className="text-sm font-semibold col-span-1">Room:</p>
-                                            <p className="text-sm col-span-3">Room {selectedReport.room_number}</p>
-                                          </div>
-                                          <div className="grid grid-cols-4 items-center gap-4">
-                                            <p className="text-sm font-semibold col-span-1">Condition:</p>
-                                            <p className="text-sm col-span-3">{selectedReport.condition}</p>
-                                          </div>
-                                          <div className="grid grid-cols-4 items-center gap-4">
-                                            <p className="text-sm font-semibold col-span-1">Status:</p>
-                                            <p className="text-sm col-span-3">{getStatusBadge(selectedReport.status)}</p>
-                                          </div>
-                                          {selectedReport.remarks && (
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                              <p className="text-sm font-semibold col-span-1">Remarks:</p>
-                                              <p className="text-sm col-span-3">{selectedReport.remarks}</p>
-                                            </div>
-                                          )}
-                                          <div className="grid grid-cols-4 items-center gap-4">
-                                            <p className="text-sm font-semibold col-span-1">Submitted:</p>
-                                            <p className="text-sm col-span-3">
-                                              {formatDateTime(selectedReport.created_at)}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      )}
-                                      <DialogFooter>
-                                        <Button type="button" onClick={() => setSelectedReport(null)}>
-                                          Close
-                                        </Button>
-                                      </DialogFooter>
-                                    </DialogContent>
-                                  </Dialog>
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={5} className="h-24 text-center text-gray-500">
-                                No reports to display for this category.
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          </section>
+      {/* ✅ Legend */}
+      <div className="flex flex-wrap justify-center gap-4 mt-4">
+        {(summary.conditions ?? []).map((entry, index) => (
+          <div key={index} className="flex items-center space-x-2 text-sm">
+            <span
+              className="w-4 h-4 inline-block rounded"
+              style={{
+                backgroundColor: ["#4CAF50", "#FFC107", "#FF9800", "#F44336", "#2196F3", "#9C27B0"][index % 6],
+              }}
+            ></span>
+            <span>{entry.name} ({entry.value})</span>
+          </div>
+        ))}
+      </div>
+    </>
+  ) : (
+    <p className="text-gray-500 text-sm text-center">No equipment data</p>
+  )}
+</Card>
+
+
+    {/* Items by Category Bar Chart */}
+    <Card className="rounded-2xl shadow-md bg-white p-6">
+      <h2 className="text-lg font-semibold mb-4">Items by Category</h2>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart
+          data={[
+            { category: "Computers", total: summary.systemUnitsTotal ?? 0 },
+            { category: "Peripherals", total: summary.peripheralsTotal ?? 0 },
+            { category: "Equipments", total: summary.equipmentsTotal ?? 0 },
+          ]}
+          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="category" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="total" fill="#2196F3" />
+        </BarChart>
+      </ResponsiveContainer>
+    </Card>
+  </div>
+
+  {/* Overview Section */}
+  <Card className="rounded-2xl shadow-md bg-white p-6">
+    <h2 className="text-lg font-semibold mb-4">
+      Equipment Overview Across Rooms
+    </h2>
+    <ul className="space-y-2 text-gray-700">
+      <li>
+        Total items in all rooms:{" "}
+        <span className="font-medium">{summary.totalItems ?? 0}</span>
+      </li>
+      <li>
+        Items working:{" "}
+        <span className="font-medium">{summary.workingItems ?? 0}</span>
+      </li>
+      <li>
+        Percentage working / not working:{" "}
+        <span className="font-medium">
+          {summary.itemsWorkingPercent ?? 0}%
+        </span>
+      </li>
+      <li>
+        Room Occupancy:{" "}
+        <span className="font-medium">
+          {summary.occupiedRooms ?? 0}/{summary.totalRooms ?? 0}
+        </span>
+      </li>
+    </ul>
+  </Card>
+</div>
+
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
