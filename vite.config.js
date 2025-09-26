@@ -10,6 +10,10 @@ export default defineConfig({
         }),
         react(),
     ],
-
-
+    server: {
+        host: "192.168.1.25",      // Listen on all network interfaces (0.0.0.0)
+        port: 5173,      // optional, default Vite port
+        strictPort: true ,// fail if port is already in usephp artisan serve --host=0.0.0.0 --port=8000
+ cors: true, // ✅ allow cross-origin requests
+    },
 });

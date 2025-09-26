@@ -495,7 +495,7 @@ function resetFilters() {
                         <TableHeader>
                         <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
                             <TableHead className="px-2 py-1">#</TableHead>
-                            <TableHead className="px-2 py-1">Unit Code</TableHead>
+                            <TableHead className="px-2 py-1">Pc Code</TableHead>
                             <TableHead className="px-2 py-1">Room</TableHead>
                             <TableHead className="px-2 py-1">Processor</TableHead>
                             <TableHead className="px-2 py-1">RAM</TableHead>
