@@ -1,12 +1,21 @@
-import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; import { Input } from "@/components/ui/input"; import { Label } from "@/components/ui/label"; import { Button } from "@/components/ui/button"; import { Checkbox } from "@/components/ui/checkbox"; import { Head, Link, useForm } from "@inertiajs/react"; import axios from "axios"; import FaceCapture from "@/Components/Face-Capture-Component/FaceCapture";
+import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Head, useForm } from "@inertiajs/react";
+import axios from "axios";
+import FaceCapture from "@/Components/Face-Capture-Component/FaceCapture";
+import { useState } from "react";
 
 export default function Login({ status, canResetPassword }) {
-    
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
         remember: false,
     });
+
+    const [faceLoginActive, setFaceLoginActive] = useState(false);
 
     // 🔹 Normal email/password login
     const submit = (e) => {
@@ -24,12 +33,12 @@ export default function Login({ status, canResetPassword }) {
             });
 
             alert("Login successful: " + res.data.user.name);
-
-            // Optional: redirect to dashboard
-            window.location.href = "/dashboard";
+            window.location.href = "/dashboard"; // Redirect
 
         } catch (err) {
             alert("Face not recognized");
+        } finally {
+            setFaceLoginActive(false); // Close face capture after attempt
         }
     };
 
@@ -115,21 +124,32 @@ export default function Login({ status, canResetPassword }) {
                             >
                                 Login
                             </Button>
-
-                            {/* Face Login */}
-                            <div className="mt-6">
-                                <h3 className="font-semibold mb-2">Login with Face</h3>
-                                <FaceCapture onCapture={handleFaceLogin} />
-                            </div>
-
-                            {/* Info */}
-                            <div className="text-center text-sm mt-6">
-                                Don’t have an account?{" "}
-                                <span className="text-gray-600">
-                                    Please contact the ICT Department Chairperson to request one.
-                                </span>
-                            </div>
                         </form>
+
+                        {/* Face Login */}
+                        <div className="mt-6">
+                            {!faceLoginActive ? (
+                                <Button
+                                    className="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white"
+                                    onClick={() => setFaceLoginActive(true)}
+                                >
+                                    Login with Face
+                                </Button>
+                            ) : (
+                                <>
+                                    <h3 className="font-semibold mb-2 mt-4">Scanning Face...</h3>
+                                    <FaceCapture onCapture={handleFaceLogin} />
+                                </>
+                            )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="text-center text-sm mt-6">
+                            Don’t have an account?{" "}
+                            <span className="text-gray-600">
+                                Please contact the ICT Department Chairperson to request one.
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
