@@ -15,14 +15,8 @@ import {
     BreadcrumbList,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-
+import FaceCapture from "@/Components/Face-Capture-Component/FaceCapture";
 // 🔹 Helper function
-function base64urlToUint8Array(base64url) {
-    const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, "=");
-    const rawData = atob(padded);
-    return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
-}
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -32,6 +26,7 @@ export default function Register() {
         password_confirmation: "",
         role: "guest",
         photo: null,
+        face_descriptor: null,
     });
 const submit = (e) => {
     e.preventDefault();
@@ -46,51 +41,6 @@ const submit = (e) => {
 
 
     // 🔹 WebAuthn Registration
-const registerWithDevice = async () => {
-    try {
-        // Step 1: Create user in DB first
-         const formData = new FormData();
-        formData.append("name", data.name);
-        formData.append("email", data.email);
-        formData.append("password", data.password);
-        formData.append("password_confirmation", data.password_confirmation);
-        formData.append("role", data.role);
-        if (data.photo) {
-            formData.append("photo", data.photo); // Add photo here too
-        }
-
-        // Step 1: Create user in DB first
-        const userRes = await axios.post("/register", formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data' // Important for axios with FormData
-            }
-        });
-        // Step 2: get challenge/options
-        const { data: options } = await axios.post("/webauthn/register/options", {
-            email: data.email, // so backend knows which user
-        });
-
-        options.challenge = base64urlToUint8Array(options.challenge);
-        options.user.id = base64urlToUint8Array(options.user.id);
-
-        // Step 3: ask authenticator
-        const credential = await navigator.credentials.create({
-            publicKey: options,
-        });
-
-        // Step 4: send credential to backend
-        await axios.post("/webauthn/register", {
-            email: data.email,
-            credential: JSON.stringify(credential),
-        });
-
-        alert("Device registered successfully!");
-        window.location.href = "/admin/users"; // go back to list
-    } catch (err) {
-        console.error(err);
-        alert("WebAuthn registration failed.");
-    }
-};
 
     return (
         <>
@@ -336,7 +286,9 @@ const registerWithDevice = async () => {
                                         </div>
 
                                         </div>
-
+                     <FaceCapture onCapture={(descriptor) =>
+    setData("face_descriptor", descriptor)
+} />
                                         {/* Submit */}
                                         <Button
                                             type="submit"
@@ -347,13 +299,7 @@ const registerWithDevice = async () => {
                                         </Button>
 
 
-                                              <Button
-                                        type="button"
-                                        className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white"
-                                        onClick={registerWithDevice}
-                                    >
-                                        Register with Device
-                                    </Button>
+                                  
                                         {/* Link to Login */}
                                         {/* <div className="text-center text-sm mt-6">
                                 Already have an account?{" "}

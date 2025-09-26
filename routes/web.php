@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\FaceLoginController;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
@@ -24,6 +25,8 @@ use App\Http\Controllers\Reports;
 use App\Http\Controllers\RoomHistoryController;
 use App\Http\Controllers\SystemUnitHistoryController;
 use App\Http\Controllers\UserHistoryController;
+
+
 use App\Models\Equipment;
 use App\Models\Room;
 use App\Models\User;
@@ -49,7 +52,7 @@ Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'show
 Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
     ->name('equipment.public.show');
 
-
+Route::post('/face-login', [FaceLoginController::class, 'login']);
 // Login page
 Route::get('/login', function () {
     return Inertia::render('Auth/Login', [
@@ -64,6 +67,8 @@ Route::post('/webauthn/login/options', [WebAuthnController::class, 'loginOptions
 Route::post('/webauthn/login', [WebAuthnController::class, 'login']);
 Route::post('/webauthn/register/options', [WebAuthnController::class, 'registerOptions']);
 Route::post('/webauthn/register', [WebAuthnController::class, 'register']);
+
+
 
 
 // Auth routes (Laravel Breeze/Fortify/etc.)
