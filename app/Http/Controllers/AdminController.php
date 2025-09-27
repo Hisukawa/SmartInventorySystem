@@ -30,7 +30,6 @@ class AdminController extends Controller
             'totalEquipments'  => Equipment::count(),
 
             // Room Occupancy
-            // Ensure you have a 'latestStatus' relationship defined in your Room model
             'occupiedRooms'    => Room::whereHas('latestStatus', fn($q) => $q->where('is_active', true))->count(),
 
             // Reports
@@ -40,8 +39,10 @@ class AdminController extends Controller
             // Extra stats
             'availablePeripherals' => Peripheral::where('condition', 'Good')->count(),
             'activeUsers'          => User::whereNotNull('email_verified_at')->count(),
+            'totalUsers'           => User::count(), // ✅ Added
         ]);
     }
+
 
     // 📝 Recent activity logs
     public function activityLogs()

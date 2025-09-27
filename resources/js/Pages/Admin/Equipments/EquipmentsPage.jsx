@@ -77,13 +77,12 @@ function EquipmentsFilter({ filters, filterOptions, onApplyFilters }) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-              <Button
-    size="sm"
-    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
->
-    Filters
-</Button>
-
+                <Button
+                    size="sm"
+                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                >
+                    Filters
+                </Button>
             </PopoverTrigger>
             <PopoverContent className="w-72">
                 <div className="flex flex-col gap-3">
@@ -182,6 +181,17 @@ function EquipmentsFilter({ filters, filterOptions, onApplyFilters }) {
     );
 }
 
+/* ✅ Equipment Condition Options with Color */
+const EQUIPMENT_CONDITION_OPTIONS = [
+    { label: "Functional", color: "bg-green-500" },
+    { label: "Defective", color: "bg-red-500" },
+    { label: "Intermittent Issue", color: "bg-yellow-500" },
+    { label: "Needs Cleaning", color: "bg-blue-500" },
+    { label: "For Replacement", color: "bg-orange-500" },
+    { label: "For Disposal", color: "bg-gray-500" },
+    { label: "Condemn", color: "bg-black" },
+];
+
 export default function EquipmentsPage({
     equipments,
     existingRooms,
@@ -193,6 +203,15 @@ export default function EquipmentsPage({
     const itemsPerPage = 10;
 
     const { delete: destroy } = useInertiaForm();
+
+    /* ✅ Utility to get condition object */
+    const getCondition = (condition) => {
+        return (
+            EQUIPMENT_CONDITION_OPTIONS.find(
+                (c) => c.label.toLowerCase() === condition.toLowerCase()
+            ) || { label: condition, color: "bg-gray-400" }
+        );
+    };
 
     const filterOptions = useMemo(() => {
         const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
@@ -300,19 +319,18 @@ export default function EquipmentsPage({
                                 filterOptions={filterOptions}
                                 onApplyFilters={onApplyFilters}
                             />
-                          <Input
-    placeholder="Search Equipment Code..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    onKeyDown={(e) =>
-        e.key === "Enter" && onApplyFilters(filters)
-    }
-    className="text-sm sm:text-base px-2 sm:px-3 py-1 sm:py-2 flex-1 max-w-xs
-               border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)] 
-               focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)] 
+                            <Input
+                                placeholder="Search Equipment Code..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                onKeyDown={(e) =>
+                                    e.key === "Enter" && onApplyFilters(filters)
+                                }
+                                className="text-sm sm:text-base px-2 sm:px-3 py-1 sm:py-2 flex-1 max-w-xs
+               border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
+               focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
                placeholder:text-[hsl(142,34%,40%)]"
-/>
-
+                            />
                         </div>
                         <Button
                             className="text-sm sm:text-base px-3 py-1 sm:py-2 bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
@@ -331,6 +349,8 @@ export default function EquipmentsPage({
                                 <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
                                     <TableHead>#</TableHead>
                                     <TableHead>Equipment Code</TableHead>
+                                    <TableHead>Equipment Name</TableHead>{" "}
+                                    {/* ✅ New column */}
                                     <TableHead>Room</TableHead>
                                     <TableHead>Type</TableHead>
                                     <TableHead>Condition</TableHead>
@@ -353,66 +373,80 @@ export default function EquipmentsPage({
                                                 {eq.equipment_code}
                                             </TableCell>
                                             <TableCell>
+                                                {eq.equipment_name}
+                                            </TableCell>{" "}
+                                            {/* ✅ Display name */}
+                                            <TableCell>
                                                 ROOM{" "}
                                                 {eq.room?.room_number || "N/A"}
                                             </TableCell>
                                             <TableCell>{eq.type}</TableCell>
                                             <TableCell>
-                                                {eq.condition && (
-                                                    <div className="mt-1 text-sm flex items-center gap-2">
-                                                        <span
-                                                            className={cn(
-                                                                "inline-block w-3 h-3 rounded-full",
-                                                                getConditionColor(
-                                                                    eq.condition
-                                                                )
-                                                            )}
-                                                        />
-                                                        <span className="capitalize">
-                                                            {eq.condition}
-                                                        </span>
-                                                    </div>
+                                                {eq.condition ? (
+                                                    <span
+                                                        className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                                                            getCondition(
+                                                                eq.condition
+                                                            ).color
+                                                        }`}
+                                                    >
+                                                        {
+                                                            getCondition(
+                                                                eq.condition
+                                                            ).label
+                                                        }
+                                                    </span>
+                                                ) : (
+                                                    "N/A"
                                                 )}
                                             </TableCell>
-                                         <TableCell className="text-center">
-                                                        <div className="hidden sm:flex gap-2 justify-center">
-                                                            <Button
-                                                            size="sm"
-                                                            className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                                                            onClick={() =>
-                                                                router.visit(`/equipments/view/${eq.equipment_code}`)
-                                                            }
-                                                            >
-                                                            <Eye className="h-4 w-4" />
-                                                            View
-                                                            </Button>
+                                            <TableCell className="text-center">
+                                                <div className="hidden sm:flex gap-2 justify-center">
+                                                    <Button
+                                                        size="sm"
+                                                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                        onClick={() =>
+                                                            router.visit(
+                                                                `/equipments/view/${eq.equipment_code}`
+                                                            )
+                                                        }
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                        View
+                                                    </Button>
 
-                                                            <Button
-                                                            size="sm"
-                                                            className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                                                            onClick={() => setSelectedEquipment(eq)}
-                                                            >
-                                                            <Edit2 className="h-4 w-4" />
-                                                            Edit
-                                                            </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                        onClick={() =>
+                                                            setSelectedEquipment(
+                                                                eq
+                                                            )
+                                                        }
+                                                    >
+                                                        <Edit2 className="h-4 w-4" />
+                                                        Edit
+                                                    </Button>
 
-                                                            <Button
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            className="flex items-center gap-2"
-                                                            onClick={() => handleDelete(eq)}
-                                                            >
-                                                            <Trash2 className="h-4 w-4" />
-                                                            Delete
-                                                            </Button>
-                                                        </div>
-                                                        </TableCell>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        className="flex items-center gap-2"
+                                                        onClick={() =>
+                                                            handleDelete(eq)
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={6}
+                                            colSpan={7}
                                             className="text-center py-4"
                                         >
                                             No equipments found.
@@ -510,12 +544,31 @@ export default function EquipmentsPage({
 
 // ✅ Edit Modal
 function EditEquipmentModal({ equipment, rooms, onClose }) {
+    /* ✅ Equipment Type Options */
+    const TYPE_OPTIONS = ["Furniture", "Appliances", "Networking", "Safety"];
+
+    /* ✅ Equipment Condition Options with Color */
+    const EQUIPMENT_CONDITION_OPTIONS = [
+        { label: "Functional", color: "bg-green-500" },
+        { label: "Defective", color: "bg-red-500" },
+        { label: "Intermittent Issue", color: "bg-yellow-500" },
+        { label: "Needs Cleaning", color: "bg-blue-500" },
+        { label: "For Replacement", color: "bg-orange-500" },
+        { label: "For Disposal", color: "bg-gray-500" },
+        { label: "Condemn", color: "bg-black" },
+    ];
+
     const { data, setData, put, processing, errors } = useInertiaForm({
         equipment_code: equipment.equipment_code || "",
+        equipment_name: equipment.equipment_name || "",
+        brand: equipment.brand || "",
         type: equipment.type || "",
         condition: equipment.condition || "",
         room_id: equipment.room_id || "",
     });
+
+    // ✅ Condition options are the same for all types (unified)
+    const availableConditions = EQUIPMENT_CONDITION_OPTIONS.map((c) => c.label);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -548,10 +601,45 @@ function EditEquipmentModal({ equipment, rooms, onClose }) {
                             onChange={(e) =>
                                 setData("equipment_code", e.target.value)
                             }
+                            disabled // usually code should not be editable
                         />
                         {errors.equipment_code && (
                             <p className="text-red-500 text-sm">
                                 {errors.equipment_code}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Equipment Name */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">
+                            Equipment Name
+                        </label>
+                        <Input
+                            value={data.equipment_name}
+                            onChange={(e) =>
+                                setData("equipment_name", e.target.value)
+                            }
+                        />
+                        {errors.equipment_name && (
+                            <p className="text-red-500 text-sm">
+                                {errors.equipment_name}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Brand */}
+                    <div>
+                        <label className="block text-sm font-medium mb-1">
+                            Brand
+                        </label>
+                        <Input
+                            value={data.brand}
+                            onChange={(e) => setData("brand", e.target.value)}
+                        />
+                        {errors.brand && (
+                            <p className="text-red-500 text-sm">
+                                {errors.brand}
                             </p>
                         )}
                     </div>
@@ -561,10 +649,21 @@ function EditEquipmentModal({ equipment, rooms, onClose }) {
                         <label className="block text-sm font-medium mb-1">
                             Type
                         </label>
-                        <Input
+                        <select
+                            className="w-full border rounded px-2 py-1"
                             value={data.type}
-                            onChange={(e) => setData("type", e.target.value)}
-                        />
+                            onChange={(e) => {
+                                setData("type", e.target.value);
+                                setData("condition", ""); // reset condition
+                            }}
+                        >
+                            <option value="">Select Type</option>
+                            {TYPE_OPTIONS.map((t) => (
+                                <option key={t} value={t}>
+                                    {t}
+                                </option>
+                            ))}
+                        </select>
                         {errors.type && (
                             <p className="text-red-500 text-sm">
                                 {errors.type}
@@ -578,16 +677,25 @@ function EditEquipmentModal({ equipment, rooms, onClose }) {
                             Condition
                         </label>
                         <select
-                            className="w-full border rounded px-2 py-1"
+                            className={`w-full border rounded px-2 py-1 ${
+                                EQUIPMENT_CONDITION_OPTIONS.find(
+                                    (c) => c.label === data.condition
+                                )?.color || ""
+                            }`}
                             value={data.condition}
                             onChange={(e) =>
                                 setData("condition", e.target.value)
                             }
+                            disabled={!data.type}
                         >
-                            <option value="">Select Condition</option>
-                            {CONDITION_OPTIONS.map((c) => (
-                                <option key={c.label} value={c.label}>
-                                    {c.label}
+                            <option value="">
+                                {data.type
+                                    ? "Select Condition"
+                                    : "Select a type first"}
+                            </option>
+                            {availableConditions.map((c) => (
+                                <option key={c} value={c}>
+                                    {c}
                                 </option>
                             ))}
                         </select>

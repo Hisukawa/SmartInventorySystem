@@ -17,46 +17,29 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 
-// Equipment Types
-const TYPE_OPTIONS = ["Hardware", "Furniture"];
+// ✅ Equipment Types (excluding Hardware & Peripherals)
+const TYPE_OPTIONS = ["Furniture", "Appliances", "Networking", "Safety"];
 
-// Hardware condition options
-const HARDWARE_CONDITION_OPTIONS = [
+// ✅ Unified Equipment Condition Options
+const EQUIPMENT_CONDITION_OPTIONS = [
     "Functional",
     "Defective",
-    "Under Maintenance",
-    "Needs Upgrade",
+    "Intermittent Issue",
+    "Needs Cleaning",
+    "For Replacement",
     "For Disposal",
-    "Spare / Backup",
-    "Not Installed",
+    "Condemn",
 ];
 
-// Furniture condition options
-const FURNITURE_CONDITION_OPTIONS = [
-    "Good",
-    "Slightly Damaged",
-    "Damaged",
-    "Under Repair",
-    "For Disposal",
-    "New",
-    "Missing Parts",
-];
-
-// Condition colors
+// ✅ Condition colors
 const CONDITION_COLORS = {
     Functional: "bg-green-200 text-green-800",
     Defective: "bg-red-200 text-red-800",
-    "Under Maintenance": "bg-yellow-200 text-yellow-800",
-    "Needs Upgrade": "bg-orange-200 text-orange-800",
+    "Intermittent Issue": "bg-yellow-200 text-yellow-800",
+    "Needs Cleaning": "bg-blue-200 text-blue-800",
+    "For Replacement": "bg-orange-200 text-orange-800",
     "For Disposal": "bg-gray-200 text-gray-800",
-    "Spare / Backup": "bg-blue-200 text-blue-800",
-    "Not Installed": "bg-purple-200 text-purple-800",
-    Good: "bg-green-200 text-green-800",
-    "Slightly Damaged": "bg-yellow-200 text-yellow-800",
-    Damaged: "bg-red-200 text-red-800",
-    "Under Repair": "bg-orange-200 text-orange-800",
-    New: "bg-blue-200 text-blue-800",
-    "Missing Parts": "bg-gray-200 text-gray-800",
+    Condemn: "bg-black text-white",
 };
 
 export default function AddEquipment({ rooms }) {
@@ -66,19 +49,11 @@ export default function AddEquipment({ rooms }) {
     const [condition, setCondition] = useState("");
     const [room, setRoom] = useState("");
 
-    // Dynamically change condition options depending on type
-    const availableConditions =
-        type === "Hardware"
-            ? HARDWARE_CONDITION_OPTIONS
-            : type === "Furniture"
-            ? FURNITURE_CONDITION_OPTIONS
-            : [];
-
     const handleSubmit = (e) => {
         e.preventDefault();
 
         router.post("/equipments", {
-            equipment_name: name, // send equipment name
+            equipment_name: name,
             type,
             brand,
             condition,
@@ -145,6 +120,7 @@ export default function AddEquipment({ rooms }) {
                                     ))}
                                 </select>
                             </div>
+
                             {/* Equipment Name */}
                             <div className="flex flex-col">
                                 <label className="mb-1 font-medium">
@@ -194,7 +170,7 @@ export default function AddEquipment({ rooms }) {
                                             ? "Select condition"
                                             : "Select a type first"}
                                     </option>
-                                    {availableConditions.map((c) => (
+                                    {EQUIPMENT_CONDITION_OPTIONS.map((c) => (
                                         <option key={c} value={c}>
                                             {c}
                                         </option>
@@ -203,7 +179,6 @@ export default function AddEquipment({ rooms }) {
                             </div>
 
                             {/* Room */}
-
                             <div className="flex flex-col">
                                 <label className="mb-1 font-medium">Room</label>
                                 <select
@@ -223,7 +198,7 @@ export default function AddEquipment({ rooms }) {
 
                             <Button
                                 type="submit"
-                                 className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                                className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
                             >
                                 Add Equipment
                             </Button>
