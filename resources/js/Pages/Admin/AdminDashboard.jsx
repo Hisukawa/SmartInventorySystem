@@ -58,28 +58,12 @@ export default function AdminDashboard() {
         occupiedRooms: 0,
         pendingRequests: 0,
         forRepair: 0,
-        // availablePeripherals: 0,
         activeUsers: 0,
         totalUsers: 0,
     });
 
     const { auth } = usePage().props;
     const user = auth.user;
-
-    const fetchDashboardStats = async () => {
-        try {
-            const res = await axios.get(`/admin/dashboard-stats`);
-            setDashboardStats(res.data);
-        } catch (err) {
-            console.error("Failed to fetch stats:", err);
-        }
-    };
-
-    useEffect(() => {
-        fetchDashboardStats();
-        const interval = setInterval(fetchDashboardStats, 5000);
-        return () => clearInterval(interval);
-    }, []);
 
     const [activityLogs, setActivityLogs] = useState([]);
     const [roomsStatus, setRoomsStatus] = useState([]);
@@ -88,40 +72,62 @@ export default function AdminDashboard() {
         peripherals: {},
         equipments: {},
     });
-
     const [roomConditionData, setRoomConditionData] = useState([]);
     const [conditions, setConditions] = useState([]);
 
+    // ✅ Unified data fetcher (runs every 5s)
     useEffect(() => {
-        axios
-            .get("/admin/activity-logs")
-            .then((res) => setActivityLogs(res.data));
-        axios
-            .get("/admin/rooms-status")
-            .then((res) => setRoomsStatus(res.data));
-        axios
-            .get("/admin/equipment-condition")
-            .then((res) => setConditionData(res.data));
+        const fetchAllData = async () => {
+            try {
+                // Dashboard Stats
+                const statsRes = await axios.get(`/admin/dashboard-stats`);
+                setDashboardStats(statsRes.data);
 
-        axios
-            .get("/admin/equipment-condition-by-room")
-            .then((res) => {
-                setRoomConditionData(res.data);
-                if (res.data.length > 0) {
-                    const keys = Object.keys(res.data[0]).filter(
+                // Rooms Status
+                const roomsRes = await axios.get("/admin/rooms-status");
+                setRoomsStatus(roomsRes.data);
+
+                // Sync Occupied Rooms with active rooms
+                if (roomsRes.data.details) {
+                    const activeCount = roomsRes.data.details.filter(
+                        (r) => r.is_active
+                    ).length;
+                    setDashboardStats((prev) => ({
+                        ...prev,
+                        occupiedRooms: activeCount,
+                    }));
+                }
+
+                // Activity Logs
+                const logsRes = await axios.get("/admin/activity-logs");
+                setActivityLogs(logsRes.data);
+
+                // Equipment Condition
+                const condRes = await axios.get("/admin/equipment-condition");
+                setConditionData(condRes.data);
+
+                // Equipment Condition by Room
+                const condByRoomRes = await axios.get(
+                    "/admin/equipment-condition-by-room"
+                );
+                setRoomConditionData(condByRoomRes.data);
+                if (condByRoomRes.data.length > 0) {
+                    const keys = Object.keys(condByRoomRes.data[0]).filter(
                         (k) => k !== "room"
                     );
                     setConditions(keys);
                 }
-            })
-            .catch((error) =>
-                console.error(
-                    "Error fetching equipment-condition-by-room:",
-                    error
-                )
-            );
+            } catch (error) {
+                console.error("Error fetching dashboard data:", error);
+            }
+        };
+
+        fetchAllData();
+        const interval = setInterval(fetchAllData, 5000);
+        return () => clearInterval(interval);
     }, []);
 
+    // ✅ Animation for card values
     const animatedValue = (val) => useSpring({ val, from: { val: 0 } });
     const renderCardValue = (anim) => (
         <animated.p className="text-lg font-bold text-black">
@@ -172,12 +178,6 @@ export default function AdminDashboard() {
             icon: Activity,
             link: "/admin/repairs",
         },
-        // {
-        //     title: "Available Peripherals",
-        //     value: animatedValue(dashboardStats.availablePeripherals),
-        //     icon: Mouse,
-        //     link: "/admin/peripherals",
-        // },
         {
             title: "Active Users",
             value: animatedValue(dashboardStats.activeUsers),
@@ -185,7 +185,7 @@ export default function AdminDashboard() {
             link: "/admin/users",
         },
         {
-            title: "Total Users", // ✅ New card
+            title: "Total Users",
             value: animatedValue(dashboardStats.totalUsers),
             icon: Users,
             link: "/admin/users",
@@ -258,8 +258,6 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Main Analytics Section */}
-
-                    {/* Left (2 cols) */}
                     <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Active Room Occupancy */}
                         <Card className="rounded-2xl shadow-md bg-white">
@@ -365,7 +363,7 @@ export default function AdminDashboard() {
                         </Card>
                     </div>
 
-                    {/* Right (1 col) */}
+                    {/* Right Column */}
                     <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                         {/* Equipment Condition by Type */}
                         <Card className="rounded-2xl shadow-md bg-white">
