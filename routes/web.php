@@ -20,6 +20,7 @@ use App\Http\Controllers\PeripheralController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SystemUnitController;
 use App\Http\Controllers\Auth\WebAuthnController;
+use App\Http\Controllers\Guest\GuestDashboardController;
 use App\Http\Controllers\Technician\TechnicianController;
 use App\Http\Controllers\Reports;
 use App\Http\Controllers\RoomHistoryController;
@@ -69,8 +70,6 @@ Route::post('/webauthn/register/options', [WebAuthnController::class, 'registerO
 Route::post('/webauthn/register', [WebAuthnController::class, 'register']);
 
 
-
-
 // Auth routes (Laravel Breeze/Fortify/etc.)
 require __DIR__ . '/auth.php';
 
@@ -79,7 +78,6 @@ require __DIR__ . '/auth.php';
 Route::middleware(['auth'])->group(function () {
     // API endpoint to fetch rooms with status for Admin Dashboard
     Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
-
 
 
     // Shared Dashboard
@@ -93,18 +91,28 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+
     //Route::get('/room/{roomPath}', [RoomController::class, 'show'])->where('roomPath', '.*') // <-- this allows slashes in parameter
                                                                     //->name('room.show');
 
     // for checking IP address in the console
     Route::get('/test-ip', [AdminController::class, 'showIp']);
 
+
     Route::post('/logout', [MonitoringController::class, 'deactivateOnLogout'])
     ->name('logout');
 
 
+    // Shared QR scan route (all authenticated users)
+    Route::get('/room/{roomPath}', [RoomController::class, 'show'])
+        ->where('roomPath', '.*')
+        ->name('room.show');
+
+// =======================================================================
+//                           ADMIN
+// =======================================================================
     // Admin-only routes
-        Route::middleware('role:admin')->group(function () {
+    Route::middleware('role:admin')->group(function () {
 
 
         Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
@@ -143,7 +151,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Peripherals
         Route::get('/admin/peripherals', [PeripheralController::class, 'index'])->name('peripherals.index');
-        Route::get('/admin/peripherals/create', [PeripheralController::class, 'create'])->name('peripherals.create');
+        Route::get('/admin/peripherals/create', [PeripheralController::class, 'create'])->name('admin.peripherals.create');
         Route::post('/admin/peripherals', [PeripheralController::class, 'store'])->name('peripherals.store');
         Route::get('/admin/peripherals/{peripheral}/edit', [PeripheralController::class, 'edit'])->name('peripherals.edit');
         Route::put('/admin/peripherals/{peripheral}', [PeripheralController::class, 'update'])->name('peripherals.update');
@@ -218,14 +226,17 @@ Route::middleware(['auth'])->group(function () {
 
 
     // Shared QR scan route (works for any logged-in role)
-   //Route::get('/room/{slug}', [RoomController::class, 'show'])
+    //Route::get('/room/{slug}', [RoomController::class, 'show'])
         //->where('slug', '.*')
       // ->name('room.show');
 
 
+// =======================================================================
+//                           FACULTY
+// =======================================================================
+
     // Faculty-only routes
     Route::middleware(['auth', 'role:faculty'])->group(function () {
-
 
         Route::get('/units', [SystemUnitController::class, 'index'])->name('units.index');
         Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
@@ -233,12 +244,13 @@ Route::middleware(['auth'])->group(function () {
         // Faculty dashboard
         Route::get('/faculty/dashboard', [FacultyController::class, 'dashboard'])
             ->name('faculty.dashboard');
- 
+
         Route::get('/faculty-room-dashboard', [FacultyController::class, 'showRoom'])->name('faculty.rooms.dashboard');
+
         // Faculty room view (QR scan)
-        Route::get('/room/{roomPath}', [RoomController::class, 'show'])
-            ->where('roomPath', '.*')
-            ->name('faculty.room.show');
+        // Route::get('/room/{roomPath}', [RoomController::class, 'show'])
+        //     ->where('roomPath', '.*')
+        //     ->name('faculty.room.show');
 
         Route::get('/rooms/{room}/units/{unit}', [FacultyRoomController::class, 'showUnit'])
         ->name('faculty.units.show');
@@ -265,64 +277,58 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
-    // Technician-only routes
-    Route::middleware('role:technician')->group(function () {
-        Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])
-            ->name('technician.dashboard');
+// =======================================================================
+//                           TECHNICIAN
+// =======================================================================
+    Route::prefix('technician')->middleware('role:technician')->group(function () {
+        Route::get('/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
-        Route::get('/technician/rooms', [TechnicianController::class, 'showRooms'])
-            ->name('technician.rooms');
+        Route::get('/rooms', [TechnicianController::class, 'showRooms'])->name('technician.rooms');
+        Route::get('/units', [TechnicianController::class, 'showAllUnits'])->name('technician.units');
+        Route::get('/peripherals', [TechnicianController::class , 'showAllPeripherals'])->name('technician.peripherals');
+        Route::get('/peripherals/create', [TechnicianController::class, 'createPeripherals'])->name('technician.createPeripherals');
+        Route::get('/equipments', [TechnicianController::class, 'showAllRoomEquipments'])->name('technician.equipments');
 
-        Route::get('/technician/units', [TechnicianController::class, 'showAllUnits'])->name('technicia.units');
+        // Rooms
+        Route::post('/rooms/create', [TechnicianController::class, 'createRoom'])->name('technician.create.rooms');
+        Route::put('/rooms/{id}', [TechnicianController::class, 'editRoom'])->name('technician.rooms.edit');
+        Route::delete('/rooms/{id}', [TechnicianController::class, 'deleteRoom'])->name('technician.rooms.delete');
 
-        Route::get('technician/peripherals', [TechnicianController::class , 'showAllPeripherals'])->name('technician.peripherals');
+        // System Units
+        Route::post('/units/create', [TechnicianController::class, 'addSystemUnit'])->name('technician.units.create');
+        Route::put('/units/{id}', [TechnicianController::class, 'editSystemUnit'])->name('technician.units.update');
+        Route::delete('/units/{id}', [TechnicianController::class, 'deleteSystemUnit'])->name('technician.units.delete');
 
-        Route::get('/technician/peripherals/create', [TechnicianController::class, 'createPeripherals'])->name('techncian.createPeripherals');
-        Route::get('/technician/equipments', [TechnicianController::class, 'showAllRoomEquipments'])->name('technician.equipments');
+        // Peripherals
+        Route::post('/peripherals/create', [TechnicianController::class, 'addPeripheral'])->name('technician.peripherals.create');
+        Route::put('/peripherals/{id}/update', [TechnicianController::class, 'updatePeripheral'])->name('technician.peripherals.update');
+        Route::delete('/peripherals/{id}', [TechnicianController::class, 'deletePeripheral'])->name('technician.peripherals.delete');
 
-        //Route For Adding Rooms
-        Route::post('/technician/rooms/create', [TechnicianController::class, 'createRoom'])
-            ->name('technician.create.rooms');
-        Route::put('/technician/rooms/{id}', [TechnicianController::class, 'editRoom'])
-            ->name('technician.rooms.edit');
-
-        Route::delete('/technician/rooms/{id}', [TechnicianController::class, 'deleteRoom'])
-        ->name('technician.rooms.delete');
-
-            // Add system unit
-            Route::post('/technician/units/create', [TechnicianController::class, 'addSystemUnit'])->name('units.create');
-
-        // Edit / Update System Unit
-        Route::put('/technician/units/{id}', [TechnicianController::class, 'editSystemUnit'])->name('units.update');
-
-        // Delete System Unit
-        Route::delete('/technician/units/{id}', [TechnicianController::class, 'deleteSystemUnit'])->name('units.delete');
-
-        //Add for Peripherals
-        Route::post('/technician/peripherals/create', [TechnicianController::class, 'addPeripheral'])->name('peripherals.create');
-
-        Route::put('/peripherals/{id}/update', [TechnicianController::class, 'updatePeripheral'])->name('technician.update');
-        Route::delete('/technician/peripherals/{id}', [TechnicianController::class, 'deletePeripheral'])->name('technician.destroy');
-
-        //Adding For Room Equipments
-        // Show the form
-        Route::get('/technician/equipments/create', [TechnicianController::class, 'createEquipments'])
-            ->name('technician.createEquipments');
-
-        // Handle the form submit
-        Route::post('/technician/equipments', [TechnicianController::class, 'addEquipment'])
-            ->name('technician.storeEquipments');
+        // Equipments
+        Route::get('/equipments/create', [TechnicianController::class, 'createEquipments'])->name('technician.createEquipments');
+        Route::post('/equipments', [TechnicianController::class, 'addEquipment'])->name('technician.storeEquipments');
         Route::put('/equipments/{id}/update', [TechnicianController::class, 'updateEquipment'])->name('technician.equipments.update');
-        Route::delete('/technician/equipments/{id}', [TechnicianController::class, 'deleteEquipment'])->name('technician.equipment.delete');
+        Route::delete('/equipments/{id}', [TechnicianController::class, 'deleteEquipment'])->name('technician.equipments.delete');
 
+        // Dashboard APIs
+        Route::get('/dashboard-stats', [TechnicianController::class, "dashboardStats"]);
+        Route::get('/activity-logs', [TechnicianController::class, "activityLogs"]);
+        Route::get('/rooms-status', [TechnicianController::class, "roomsStatus"]);
+        Route::get('/equipment-condition', [TechnicianController::class, "equipmentCondition"]);
+        Route::get('/equipment-condition-by-room', [TechnicianController::class, "equipmentConditionByRoom"]);
     });
 
+
+
+// =======================================================================
+//                           GUEST
+// =======================================================================
     // Guest-only routes
     Route::middleware('role:guest')->group(function () {
-        Route::get('/guest/dashboard', function () {
-            return Inertia::render('GuestDashboard');
-        });
-    })->name('guest.dashboard');
+        Route::get('/guest/dashboard', [GuestDashboardController::class, 'index'])
+            ->name('guest.dashboard');
+
+    });
 
 
 });

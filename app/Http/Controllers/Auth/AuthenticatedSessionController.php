@@ -35,22 +35,25 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        // Redirect based on role
+        // Redirect based on role with intended fallback
         switch ($user->role) {
             case 'admin':
-                return redirect()->route('admin.dashboard');
+                return redirect()->intended(route('admin.dashboard'));
+
             case 'faculty':
                 return redirect()->intended(route('faculty.dashboard'));
 
-
             case 'technician':
-                return redirect('/technician/dashboard');
+                return redirect()->intended(route('technician.dashboard'));
+
             case 'guest':
-                return redirect('/guest/dashboard');
+                return redirect()->intended(route('guest.dashboard'));
+
             default:
                 return redirect()->route('dashboard'); // fallback
         }
     }
+
 
 
     /**

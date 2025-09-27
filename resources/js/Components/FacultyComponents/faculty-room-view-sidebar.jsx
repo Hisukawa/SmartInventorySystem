@@ -58,7 +58,7 @@ export default function FacultyRoomSidebar({ room, user, active, onSelect }) {
                         <button
                             key={key}
                             onClick={() => {
-                                window.location.href = route("faculty.room.show", {
+                                window.location.href = route("room.show", {
                                     roomPath: room.room_path,
                                     section: key,
                                 });
@@ -89,8 +89,12 @@ export default function FacultyRoomSidebar({ room, user, active, onSelect }) {
                                 {user.name.charAt(0)}
                             </div>
                             <div className="flex flex-col items-start">
-                                <p className="text-sm font-medium">{user.name}</p>
-                                <p className="text-xs opacity-90">{user.email}</p>
+                                <p className="text-sm font-medium">
+                                    {user.name}
+                                </p>
+                                <p className="text-xs opacity-90">
+                                    {user.email}
+                                </p>
                             </div>
                         </Button>
                     </DropdownMenuTrigger>

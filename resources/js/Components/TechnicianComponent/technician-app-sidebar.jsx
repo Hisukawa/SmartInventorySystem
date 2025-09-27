@@ -1,11 +1,5 @@
 import * as React from "react";
-import {
-    LayoutDashboard,
-    Home,
-    Boxes,
-    Send,
-    User,
-} from "lucide-react";
+import { LayoutDashboard, Home, Boxes, Send, User } from "lucide-react";
 
 import { TechnicianNavMain } from "@/components/TechnicianComponent/technician-nav-main";
 import { TechnicianNavProjects } from "@/components/TechnicianComponent/technician-nav-projects";
@@ -40,7 +34,7 @@ const data = {
             url: "/technician/rooms",
             icon: Home,
         },
-          {
+        {
             title: "Assets",
             url: "#",
             icon: Boxes,
@@ -60,7 +54,6 @@ const data = {
                 },
             ],
         },
-      
     ],
 
     navSecondary: [

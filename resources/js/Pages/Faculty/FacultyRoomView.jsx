@@ -31,42 +31,41 @@ import SuccessModal from "@/Components/FacultyComponents/faculty-sucess-modal";
 
 // Pagination Component
 function Pagination({ page, pageCount, onPageChange }) {
-  return (
-    <div className="flex justify-end items-center gap-2">
-      {/* Previous button */}
-      <Button
-        size="sm"
-        disabled={page === 1}
-        onClick={() => onPageChange(page - 1)}
-        className={`flex items-center gap-1 
-          bg-[hsl(142,34%,51%)] text-white 
-          hover:bg-[hsl(142,34%,45%)] 
+    return (
+        <div className="flex justify-end items-center gap-2">
+            {/* Previous button */}
+            <Button
+                size="sm"
+                disabled={page === 1}
+                onClick={() => onPageChange(page - 1)}
+                className={`flex items-center gap-1
+          bg-[hsl(142,34%,51%)] text-white
+          hover:bg-[hsl(142,34%,45%)]
           disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed`}
-      >
-        Previous
-      </Button>
+            >
+                Previous
+            </Button>
 
-      {/* Page counter */}
-      <span className="text-sm text-muted-foreground">
-        Page {page} of {pageCount}
-      </span>
+            {/* Page counter */}
+            <span className="text-sm text-muted-foreground">
+                Page {page} of {pageCount}
+            </span>
 
-      {/* Next button */}
-      <Button
-        size="sm"
-        disabled={page === pageCount}
-        onClick={() => onPageChange(page + 1)}
-        className={`flex items-center gap-1 
-          bg-[hsl(142,34%,51%)] text-white 
-          hover:bg-[hsl(142,34%,45%)] 
+            {/* Next button */}
+            <Button
+                size="sm"
+                disabled={page === pageCount}
+                onClick={() => onPageChange(page + 1)}
+                className={`flex items-center gap-1
+          bg-[hsl(142,34%,51%)] text-white
+          hover:bg-[hsl(142,34%,45%)]
           disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed`}
-      >
-        Next
-      </Button>
-    </div>
-  );
+            >
+                Next
+            </Button>
+        </div>
+    );
 }
-
 
 // ✅ Adjusted Filter Component for responsiveness and "All" option
 function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
@@ -80,7 +79,8 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
             setSelectedValue(filters.condition);
         } else if (
             filters.unit_code &&
-            (activeSection === "system-units" || activeSection === "peripherals")
+            (activeSection === "system-units" ||
+                activeSection === "peripherals")
         ) {
             setSelectedField("unit_code");
             setSelectedValue(filters.unit_code);
@@ -107,7 +107,10 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
 
     const getAvailableFields = () => {
         const fields = [{ value: "condition", label: "Condition" }];
-        if (activeSection === "system-units" || activeSection === "peripherals") {
+        if (
+            activeSection === "system-units" ||
+            activeSection === "peripherals"
+        ) {
             fields.push({ value: "unit_code", label: "Unit Code" });
         }
         return fields;
@@ -116,25 +119,22 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-               <Button
-                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                        >
-                        <FilterIcon className="h-4 w-4" />
-                        Filter
-                        {(filters.condition ||
-                            ((activeSection === "system-units" ||
+                <Button className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]">
+                    <FilterIcon className="h-4 w-4" />
+                    Filter
+                    {(filters.condition ||
+                        ((activeSection === "system-units" ||
                             activeSection === "peripherals") &&
                             filters.unit_code)) && (
-                            <X
+                        <X
                             className="h-4 w-4 ml-1 cursor-pointer"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleReset();
                             }}
-                            />
-                        )}
-                        </Button>
-
+                        />
+                    )}
+                </Button>
             </PopoverTrigger>
             <PopoverContent
                 className="w-[calc(100vw-2rem)] sm:w-[400px] p-4"
@@ -230,7 +230,6 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
     );
 }
 
-
 export default function FacultyRoomView({
     room,
     equipments,
@@ -240,7 +239,6 @@ export default function FacultyRoomView({
     filters = {}, // ✅ default to empty object
     filterOptions = { conditions: [], unit_codes: [] }, // ✅ safe default
 }) {
-      
     const { auth } = usePage().props;
 
     const [activeSection, setActiveSection] = useState(
@@ -288,9 +286,13 @@ export default function FacultyRoomView({
         if (newCondition) {
             params.append("condition", newCondition);
         }
-            if (newUnitCode && (activeSection === "system-units" || activeSection === "peripherals")) {
-    params.append("unit_code", newUnitCode);
-    }
+        if (
+            newUnitCode &&
+            (activeSection === "system-units" ||
+                activeSection === "peripherals")
+        ) {
+            params.append("unit_code", newUnitCode);
+        }
         if (newSearch) {
             params.append("search", newSearch);
         }
@@ -298,16 +300,17 @@ export default function FacultyRoomView({
         // This is the crucial part for navigation with filters
         // Use Inertia's router.get for full page reload with new query params
         // or you could use window.location.href for simpler but less "Inertia-like" navigation
-            window.location.href = route("faculty.room.show", {
-        roomPath: room.room_path,
-        section: activeSection,
-        condition: newCondition || undefined,
-        unit_code: (activeSection === "system-units" || activeSection === "peripherals") 
-            ? newUnitCode || undefined 
-            : undefined,
-        search: newSearch || undefined,
+        window.location.href = route("faculty.room.show", {
+            roomPath: room.room_path,
+            section: activeSection,
+            condition: newCondition || undefined,
+            unit_code:
+                activeSection === "system-units" ||
+                activeSection === "peripherals"
+                    ? newUnitCode || undefined
+                    : undefined,
+            search: newSearch || undefined,
         });
-
     };
 
     return (
@@ -331,16 +334,28 @@ export default function FacultyRoomView({
                 </div>
 
                 {/* Sidebar Mobile */}
-                  {sidebarOpen && (
+                {sidebarOpen && (
                     <div className="fixed inset-0 z-40 flex md:hidden">
-                        <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-                        <div className="relative z-50 w-64 shadow-lg" style={{ backgroundColor: "hsl(142,34%,51%)" }}>
+                        <div
+                            className="fixed inset-0 bg-black/50"
+                            onClick={() => setSidebarOpen(false)}
+                        />
+                        <div
+                            className="relative z-50 w-64 shadow-lg"
+                            style={{ backgroundColor: "hsl(142,34%,51%)" }}
+                        >
                             <FacultyRoomSidebar
                                 room={room}
                                 active={activeSection}
                                 user={auth.user}
                                 onSelect={(sectionKey) => {
-                                    window.location.href = route("faculty.room.show", { roomPath: room.room_path, section: sectionKey });
+                                    window.location.href = route(
+                                        "faculty.room.show",
+                                        {
+                                            roomPath: room.room_path,
+                                            section: sectionKey,
+                                        }
+                                    );
                                     setSidebarOpen(false);
                                 }}
                             />
@@ -353,21 +368,22 @@ export default function FacultyRoomView({
                     {" "}
                     {/* Added bg-gray-50 */}
                     {/* Top Bar for Mobile/Tablet */}
-                            <div className="p-4 border-b md:hidden flex items-center justify-between shadow-sm" style={{ backgroundColor: "hsl(142,34%,51%)" }}>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setSidebarOpen(true)}
-                    className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                >
-                    <Menu className="h-5 w-5" />
-                </Button>
-                <h2 className="text-xl font-semibold text-white">
-                    {room.room_name}
-                </h2>
-            </div>
-            
-
+                    <div
+                        className="p-4 border-b md:hidden flex items-center justify-between shadow-sm"
+                        style={{ backgroundColor: "hsl(142,34%,51%)" }}
+                    >
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setSidebarOpen(true)}
+                            className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                        >
+                            <Menu className="h-5 w-5" />
+                        </Button>
+                        <h2 className="text-xl font-semibold text-white">
+                            {room.room_name}
+                        </h2>
+                    </div>
                     <div className="p-5 max-w-full md:max-w-5xl lg:max-w-7xl mx-auto w-full">
                         {" "}
                         {/* Added mx-auto w-full */}
@@ -398,27 +414,29 @@ export default function FacultyRoomView({
                                             activeSection={activeSection}
                                             onApplyFilters={applyFilters}
                                         />
-                                       <Input
-                                    placeholder="Search..."
-                                    value={search}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        setSearch(value);
-                                        applyFilters(condition, unitCode, value);
-                                    }}
-                                    className="flex-1 min-w-0 sm:max-w-xs w-full 
-                                            border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)] 
-                                            focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)] 
+                                        <Input
+                                            placeholder="Search..."
+                                            value={search}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setSearch(value);
+                                                applyFilters(
+                                                    condition,
+                                                    unitCode,
+                                                    value
+                                                );
+                                            }}
+                                            className="flex-1 min-w-0 sm:max-w-xs w-full
+                                            border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
+                                            focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
                                             placeholder:text-[hsl(142,34%,40%)]"
-                                />
-
+                                        />
                                     </div>
                                 </div>
 
                                 <Table className="min-w-full divide-y divide-gray-200">
                                     <TableHeader className="bg-gray-50">
                                         <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
-
                                             <TableHead className="w-20 text-center text-gray-600">
                                                 No
                                             </TableHead>
@@ -448,117 +466,131 @@ export default function FacultyRoomView({
 
                                     <TableBody className="divide-y divide-gray-200">
                                         {paginated.length > 0 ? (
-                                            paginated.map((item, index) => (
-                                                   console.log("Equipment item:", item),
-                                                <TableRow key={item.id}>
-                                                    <TableCell className="text-center">
-                                                        {(page - 1) * pageSize +
-                                                            index +
-                                                            1}
-                                                    </TableCell>
-                                                    <TableCell className="font-medium text-gray-900 whitespace-nowrap">
-                                                        {item.name}
-                                                    </TableCell>
-                                                    {activeSection !==
-                                                        "system-units" && (
-                                                        <TableCell className="text-gray-700">
-                                                            {item.type}
-                                                        </TableCell>
-                                                    )}
-                                                    <TableCell>
-                                                        <ConditionBadge
-                                                            condition={
-                                                                item.condition
-                                                            }
-                                                        />
-                                                    </TableCell>
-
-                                                    <TableCell className="flex gap-2 py-3">
-                                                        {activeSection ===
-                                                            "system-units" && (
-                                                            <Link
-                                                                href={route(
-                                                                    "faculty.units.show",
-                                                                    {
-                                                                        room: room.id,
-                                                                        unit: item.id,
+                                            paginated.map(
+                                                (item, index) => (
+                                                    console.log(
+                                                        "Equipment item:",
+                                                        item
+                                                    ),
+                                                    (
+                                                        <TableRow key={item.id}>
+                                                            <TableCell className="text-center">
+                                                                {(page - 1) *
+                                                                    pageSize +
+                                                                    index +
+                                                                    1}
+                                                            </TableCell>
+                                                            <TableCell className="font-medium text-gray-900 whitespace-nowrap">
+                                                                {item.name}
+                                                            </TableCell>
+                                                            {activeSection !==
+                                                                "system-units" && (
+                                                                <TableCell className="text-gray-700">
+                                                                    {item.type}
+                                                                </TableCell>
+                                                            )}
+                                                            <TableCell>
+                                                                <ConditionBadge
+                                                                    condition={
+                                                                        item.condition
                                                                     }
+                                                                />
+                                                            </TableCell>
+
+                                                            <TableCell className="flex gap-2 py-3">
+                                                                {activeSection ===
+                                                                    "system-units" && (
+                                                                    <Link
+                                                                        href={route(
+                                                                            "faculty.units.show",
+                                                                            {
+                                                                                room: room.id,
+                                                                                unit: item.id,
+                                                                            }
+                                                                        )}
+                                                                    >
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
+                                                                        >
+                                                                            <Eye className="h-4 w-4" />{" "}
+                                                                            View
+                                                                        </Button>
+                                                                    </Link>
                                                                 )}
-                                                            >
+                                                                {activeSection ===
+                                                                    "peripherals" && (
+                                                                    <Link
+                                                                        href={route(
+                                                                            "faculty.peripherals.show",
+                                                                            {
+                                                                                room: room.id,
+                                                                                peripheral:
+                                                                                    item.id,
+                                                                            }
+                                                                        )}
+                                                                    >
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
+                                                                        >
+                                                                            <Eye className="h-4 w-4" />{" "}
+                                                                            View
+                                                                        </Button>
+                                                                    </Link>
+                                                                )}
+                                                                {activeSection ===
+                                                                    "equipments" &&
+                                                                    (console.log(
+                                                                        "Room ID:",
+                                                                        room.id,
+                                                                        "Equipment ID:",
+                                                                        item.id
+                                                                    ),
+                                                                    (
+                                                                        <Link
+                                                                            href={route(
+                                                                                "faculty.equipments.show",
+                                                                                {
+                                                                                    room: room.id,
+                                                                                    equipment:
+                                                                                        item.id,
+                                                                                }
+                                                                            )}
+                                                                        >
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                                className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
+                                                                            >
+                                                                                <Eye className="h-4 w-4" />{" "}
+                                                                                View
+                                                                            </Button>
+                                                                        </Link>
+                                                                    ))}
                                                                 <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
-                                                        >
-                                                            <Eye className="h-4 w-4" /> View
-                                                        </Button>
-
-                                                            </Link>
-                                                        )}
-                                                        {activeSection ===
-                                                            "peripherals" && (
-                                                            <Link
-                                                                href={route(
-                                                                    "faculty.peripherals.show",
-                                                                    {
-                                                                        room: room.id,
-                                                                        peripheral:
-                                                                            item.id,
-                                                                    }
-                                                                )}
-                                                            >
-                                                               <Button
                                                                     size="sm"
                                                                     variant="outline"
-                                                                    className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
+                                                                    className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,45%)] hover:text-white"
+                                                                    onClick={() => {
+                                                                        setSelectedItem(
+                                                                            item
+                                                                        );
+                                                                        setShowReportModal(
+                                                                            true
+                                                                        );
+                                                                    }}
                                                                 >
-                                                                    <Eye className="h-4 w-4" /> View
+                                                                    <FileText className="h-4 w-4" />{" "}
+                                                                    Report
                                                                 </Button>
-
-                                                            </Link>
-                                                        )}
-                                                        {activeSection ===
-                                                            "equipments" && (
-                                                                console.log("Room ID:", room.id, "Equipment ID:", item.id),
-
-                                                            <Link
-                                                                href={route(
-                                                                    "faculty.equipments.show",
-                                                                    {
-                                                                        
-                                                                        room: room.id,
-                                                                        equipment:
-                                                                        item.id,
-                                                                        
-                                                                   
-                                                                    }
-                                                                )}
-                                                            >
-                                                               <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
-                                                            >
-                                                                <Eye className="h-4 w-4" /> View
-                                                            </Button>
-
-                                                            </Link>
-                                                        )}
-                                                       <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,45%)] hover:text-white"
-                                                            onClick={() => {
-                                                                setSelectedItem(item);
-                                                                setShowReportModal(true);
-                                                            }}
-                                                        >
-                                                            <FileText className="h-4 w-4" /> Report
-                                                        </Button>
-
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )
+                                                )
+                                            )
                                         ) : (
                                             <TableRow>
                                                 <TableCell
@@ -610,7 +642,6 @@ export default function FacultyRoomView({
             />
         </>
     );
-      
 }
 
 function ConditionBadge({ condition }) {
