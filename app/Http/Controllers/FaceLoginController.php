@@ -1,11 +1,11 @@
 <?php
 
-
-
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class FaceLoginController extends Controller
 {
@@ -15,32 +15,69 @@ class FaceLoginController extends Controller
             'face_descriptor' => 'required|array',
         ]);
 
-        $inputDescriptor = collect($request->face_descriptor);
+        $inputDescriptor = array_map('floatval', $request->face_descriptor);
 
-        // Find user by comparing descriptors
+        Log::info("📸 Incoming face embedding", [
+            'length' => count($inputDescriptor),
+            'first10' => array_slice($inputDescriptor, 0, 10),
+        ]);
+
         $users = User::whereNotNull('face_descriptor')->get();
+        Log::info("👥 Users with stored embeddings", ['count' => $users->count()]);
+
+        $bestDistance = INF;
+        $bestUser = null;
 
         foreach ($users as $user) {
-            $dbDescriptor = collect(json_decode($user->face_descriptor));
+            $dbDescriptor = json_decode($user->face_descriptor, true);
+
+            if (!$dbDescriptor || !is_array($dbDescriptor)) {
+                continue;
+            }
+
+            $dbDescriptor = array_map('floatval', $dbDescriptor);
             $distance = $this->euclideanDistance($inputDescriptor, $dbDescriptor);
 
-            if ($distance < 0.6) { // threshold for recognition
-                Auth::login($user);
-                return response()->json([
-                    'message' => 'Login successful',
-                    'user' => $user,
-                ]);
+            if ($distance < $bestDistance) {
+                $bestDistance = $distance;
+                $bestUser = $user;
             }
         }
 
-        return response()->json(['message' => 'Face not recognized'], 401);
+        Log::info("🔍 Best match", [
+            'distance' => $bestDistance,
+            'user_id' => $bestUser?->id,
+        ]);
+
+        // ✅ Threshold can be tuned (0.6–0.8 works for Human.js)
+        if ($bestUser && $bestDistance < 0.7) {
+            Auth::login($bestUser);
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful',
+                'redirect' => route('dashboard'),
+                'user' => [
+                    'id' => $bestUser->id,
+                    'email' => $bestUser->email,
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Face not recognized',
+        ], 401);
     }
 
-    private function euclideanDistance($a, $b)
+    private function euclideanDistance(array $a, array $b): float
     {
-        $sum = 0;
-        for ($i = 0; $i < count($a); $i++) {
-            $sum += pow($a[$i] - $b[$i], 2);
+        if (count($a) !== count($b)) {
+            return INF;
+        }
+
+        $sum = 0.0;
+        foreach ($a as $i => $val) {
+            $sum += ($val - $b[$i]) ** 2;
         }
         return sqrt($sum);
     }

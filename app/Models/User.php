@@ -14,14 +14,14 @@ class User extends Authenticatable
      * The attributes that are mass assignable.
      * Add 'webauthn_key' here.
      */
-    protected $fillable = [
+     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
         'active_room_id',
         'photo',
-
+        'face_descriptor', // ✅ allow saving
     ];
 
     /**
@@ -36,11 +36,12 @@ class User extends Authenticatable
      * The attributes that should be cast.
      * Cast 'webauthn_key' to 'array' so Laravel handles JSON encoding/decoding automatically.
      */
-    protected $casts = [
+   protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-
+        'face_descriptor' => 'array', // ✅ auto decode/encode JSON
     ];
+
 
     /**
      * Relationship with WebAuthn credentials (Currently simplified to a single JSON field).

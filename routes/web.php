@@ -52,7 +52,7 @@ Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'show
 Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
     ->name('equipment.public.show');
 
-Route::post('/face-login', [FaceLoginController::class, 'login']);
+Route::post('/face-login', [FaceLoginController::class, 'login'])->name('face.login');
 // Login page
 Route::get('/login', function () {
     return Inertia::render('Auth/Login', [

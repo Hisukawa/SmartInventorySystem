@@ -21,41 +21,50 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|string',
-            'photo' => 'nullable|image|max:2048',
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:8|confirmed',
+        'role' => 'required|string',
+        'photo' => 'nullable|image|max:2048',
+    ]);
 
-        $photoPath = null;
+    $photoPath = null;
 
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('photos', 'public');
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role' => $request->role,
-            'photo' => $photoPath,
-        ]);
-
-        // Log User Creation
-        UserHistory::create([
-            'user_name' => Auth::user()->name,
-            'action' => 'Created User',
-            'component' => 'Role',
-            'old_value' => '-',
-            'new_value' => $request->role . ' - ' . $request->name,
-        ]);
-
-        return redirect()->route('admin.users.index');
+    if ($request->hasFile('photo')) {
+        $photoPath = $request->file('photo')->store('photos', 'public');
     }
+
+    // ✅ Store raw floats, no rounding/truncation
+    $descriptor = null;
+    if ($request->has('face_descriptor') && is_array($request->face_descriptor)) {
+        $descriptor = array_map('floatval', $request->face_descriptor);
+        $descriptor = json_encode($descriptor, JSON_UNESCAPED_UNICODE);
+    }
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => bcrypt($request->password),
+        'role' => $request->role,
+        'photo' => $photoPath,
+        'face_descriptor' => $descriptor,
+    ]);
+
+    // Log User Creation
+    UserHistory::create([
+        'user_name' => Auth::user()->name,
+        'action' => 'Created User',
+        'component' => 'Role',
+        'old_value' => '-',
+        'new_value' => $request->role . ' - ' . $request->name,
+    ]);
+
+    return redirect()->route('admin.users.index');
+}
+
 
     public function edit(User $user)
     {

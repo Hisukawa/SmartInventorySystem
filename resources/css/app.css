@@ -108,3 +108,29 @@
 .kpi-value {
   color: #000 !important;
 }
+/* 🔹 Slow spin (for rotating border or loader ring) */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 6s linear infinite;
+}
+
+/* 🔹 Progress bar animation */
+@keyframes progress {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+.animate-progress {
+  animation: progress 4s linear forwards;
+}
+
+/* 🔹 Scanning line inside face circle */
+@keyframes scan {
+  0% { top: 0%; }
+  100% { top: 100%; }
+}
+.animate-scan {
+  animation: scan 2s linear infinite alternate;
+}
