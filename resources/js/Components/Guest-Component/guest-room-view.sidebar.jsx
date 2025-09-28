@@ -86,7 +86,7 @@ export default function GuestRoomSidebar({ room, user, active, onSelect }) {
 
     </div>
 
-    {/* Faculty Account - Sticks to bottom */}
+    {/* Guest Account - Sticks to bottom */}
     <div className="px-4 py-3 mt-auto">
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
