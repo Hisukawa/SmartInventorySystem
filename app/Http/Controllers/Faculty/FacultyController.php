@@ -9,6 +9,8 @@ use App\Models\Equipment;
 use App\Models\Peripheral;
 use App\Models\SystemUnit;
 use Illuminate\Http\Request;
+
+use Illuminate\Support\Facades\DB;
 class FacultyController extends \App\Http\Controllers\Controller
 {
 
@@ -39,9 +41,10 @@ class FacultyController extends \App\Http\Controllers\Controller
         $availableRooms = $totalRooms - $occupiedRooms;
 
         // === Item Counts ===
-        $systemUnitsTotal = \DB::table('users')::table('system_units')->count();
-        $peripheralsTotal = \DB::table('peripherals')->count();
-        $equipmentsTotal  = \DB::table('equipments')->count();
+      $systemUnitsTotal = DB::table('system_units')->count();
+$peripheralsTotal = DB::table('peripherals')->count();
+$equipmentsTotal  = DB::table('equipments')->count();
+
 
         $totalItems = $systemUnitsTotal + $peripheralsTotal + $equipmentsTotal;
 
@@ -259,7 +262,7 @@ class FacultyController extends \App\Http\Controllers\Controller
                 'unit_codes' => $unitCodeOptions,
             ],
             'auth' => ['user' => $user],
-            'section' => $request->query('section', 'system-units'),
+            'section' => $request->query('section', 'dashboard'),
         ]);
     }
 public function ShowFacultyDashboard($encodedRoomPath)

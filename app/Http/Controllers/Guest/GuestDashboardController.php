@@ -16,7 +16,7 @@ use App\Models\SystemUnit;
 use Illuminate\Http\Request;
 class GuestDashboardController extends Controller
 {
-    public function index()
+    public function dashboard()
     {
         // === Active rooms with faculty info ===
         $activeRooms = RoomStatus::where('is_active', 1)
@@ -84,16 +84,15 @@ class GuestDashboardController extends Controller
     }
 
 
-     public function ShowScannedRoom(Request $request, $encodedRoomPath){
-  $roomPath = urldecode($encodedRoomPath);
-        $room     = Room::where('room_path', $roomPath)->firstOrFail();
-        $user     = Auth::user();
+     public function ShowScannedRoom(Request $request, $roomPath){
+  $roomPath = urldecode($roomPath); // decode URL path
+    $room = Room::where('room_path', $roomPath)->firstOrFail();
+    $user = Auth::user();
 
-        RoomStatus::updateOrCreate(
-            ['room_id' => $room->id],
-            ['scanned_by' => $user?->id, 'is_active' => 1]
-        );
-
+    RoomStatus::updateOrCreate(
+        ['room_id' => $room->id],
+        ['scanned_by' => $user->id ?? null, 'is_active' => 1]
+    );
         $condition = $request->query('condition');
         $unitCode  = $request->query('unit_code');
         $search    = $request->query('search');
@@ -167,7 +166,7 @@ class GuestDashboardController extends Controller
                 'unit_codes' => $unitCodeOptions,
             ],
             'auth' => ['user' => $user],
-            'section' => $request->query('section', 'system-units'),
+            'section' => $request->query('section', 'dashboard'),
         ]);
     }
 
@@ -185,25 +184,19 @@ class GuestDashboardController extends Controller
     ]);
 }
 
-    public function showPeripherals(Room $room, $peripheralId)
-    {
-        $room->load(['equipments', 'systemUnits', 'peripherals']);
-        $peripheral = Peripheral::findOrFail($peripheralId);
-
-        return Inertia::render('Guest/GuestPeripheralsView', [
-            'room'        => $room,
-            'peripheral'  => $peripheral,
-            'user'        => Auth::user(),
-            'equipments'  => $room->equipments,
-            'systemUnits' => $room->systemUnits,
-            'peripherals' => $room->peripherals,
-        ]);
-    }
-
-       public function showRoomEquipments(Room $room, $equipmentId)
+public function showPeripherals(Room $room, Peripheral $peripheral)
 {
-    $equipment = Equipment::findOrFail($equipmentId);
-
+    return Inertia::render('Guest/GuestPeripheralsView', [
+        'room' => $room,
+        'peripheral' => $peripheral,
+        'user' => Auth::user(),
+        'equipments' => $room->equipments,
+        'systemUnits' => $room->systemUnits,
+        'peripherals' => $room->peripherals,
+    ]);
+}
+public function showRoomEquipments(Room $room, Equipment $equipment)
+{
     if ($equipment->room_id !== $room->id) {
         abort(404, 'Equipment not found in this room.');
     }
@@ -219,6 +212,7 @@ class GuestDashboardController extends Controller
         'peripherals' => $room->peripherals,
     ]);
 }
+
 
 public function ShowGuestDashboard($encodedRoomPath)
 {
@@ -262,7 +256,7 @@ public function ShowGuestDashboard($encodedRoomPath)
             ->map->count();
     }
 
-    return Inertia::render('Guest/Guest-Scannned-Dashboard', [
+    return Inertia::render('Guest/Guest-Scanned-Dashboard', [
         'room' => $room,
         'user' => $user,
         'stats' => [

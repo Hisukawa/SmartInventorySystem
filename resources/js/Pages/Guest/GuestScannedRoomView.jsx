@@ -25,7 +25,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import FacultyRoomSidebar from "@/Components/Guest-Component/guest-room-view.sidebar";
+import GuestRoomSidebar from "@/Components/Guest-Component/guest-room-view.sidebar";
 import ReportFormModal from "@/Components/Guest-Component/guest-report-form-modal";
 import SuccessModal from "@/Components/Guest-Component/guest-success.modal";
 
@@ -242,7 +242,7 @@ export default function GuestRoomView({
     const { auth } = usePage().props;
 
     const [activeSection, setActiveSection] = useState(
-        section || "system-units"
+        section ||  "dashboard"
     );
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
@@ -256,13 +256,19 @@ export default function GuestRoomView({
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
-    const data =
-        activeSection === "system-units"
-            ? systemUnits
-            : activeSection === "peripherals"
-            ? peripherals
-            : equipments;
-
+   const data =
+    activeSection === "system-units"
+        ? systemUnits
+        : activeSection === "peripherals"
+        ? peripherals
+        : activeSection === "equipments"
+        ? equipments
+        : []; // ← dashboard shows no table
+        useEffect(() => {
+    if (activeSection === "dashboard") {
+        window.location.href = route("guest.ScannedRoom.dashboard", { roomPath: room.room_path });
+    }
+}, [activeSection]);
     const pageCount = Math.ceil(data.length / pageSize);
     const paginated = data.slice((page - 1) * pageSize, page * pageSize);
 
@@ -319,7 +325,7 @@ export default function GuestRoomView({
             <div className="flex h-screen overflow-hidden">
                 {/* Sidebar */}
                 <div className="hidden md:flex">
-                    <FacultyRoomSidebar
+                    <GuestRoomSidebar
                         room={room}
                         active={activeSection}
                         user={auth.user}
@@ -344,7 +350,7 @@ export default function GuestRoomView({
                             className="relative z-50 w-64 shadow-lg"
                             style={{ backgroundColor: "hsl(142,34%,51%)" }}
                         >
-                            <FacultyRoomSidebar
+                            <GuestRoomSidebar
                                 room={room}
                                 active={activeSection}
                                 user={auth.user}
