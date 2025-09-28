@@ -25,7 +25,7 @@ const data = {
         },
         {
             title: "Peripherals History",
-            url: "#",
+            url: "/admin/peripherals-history",
             icon: Keyboard,
         },
         { title: "Equipments History", url: "#", icon: HardDrive },

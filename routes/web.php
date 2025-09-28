@@ -28,6 +28,7 @@ use App\Http\Controllers\SystemUnitHistoryController;
 use App\Http\Controllers\UserHistoryController;
 
 use App\Http\Controllers\FaceController;
+use App\Http\Controllers\PeripheralHistoryController;
 use App\Models\Equipment;
 use App\Models\Room;
 use App\Models\User;
@@ -117,20 +118,20 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->group(function () {
 
 
-    Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
-Route::get('/admin/activity-logs', [AdminController::class, 'activityLogs']);
-Route::get('/admin/maintenance-requests', [AdminController::class, 'maintenanceRequests']);
+        Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
+        Route::get('/admin/activity-logs', [AdminController::class, 'activityLogs']);
+        Route::get('/admin/maintenance-requests', [AdminController::class, 'maintenanceRequests']);
 
-Route::get('/admin/rooms-status', [AdminController::class, 'roomsStatus']);
-Route::get('/admin/equipment-condition', [AdminController::class, 'equipmentCondition']);
-Route::get('/admin/equipment-condition-by-room', [AdminController::class, 'equipmentConditionByRoom']);
+        Route::get('/admin/rooms-status', [AdminController::class, 'roomsStatus']);
+        Route::get('/admin/equipment-condition', [AdminController::class, 'equipmentCondition']);
+        Route::get('/admin/equipment-condition-by-room', [AdminController::class, 'equipmentConditionByRoom']);
 
-// ✅ New routes for filtering
-Route::get('/admin/equipment-condition-filtered', [AdminController::class, 'equipmentConditionFiltered']);
-Route::get('/admin/peripheral-types', [AdminController::class, 'peripheralTypes']);
-Route::get('/admin/rooms-list', [AdminController::class, 'roomsList']);
+        // ✅ New routes for filtering
+        Route::get('/admin/equipment-condition-filtered', [AdminController::class, 'equipmentConditionFiltered']);
+        Route::get('/admin/peripheral-types', [AdminController::class, 'peripheralTypes']);
+        Route::get('/admin/rooms-list', [AdminController::class, 'roomsList']);
 
-Route::get('/admin/equipment-types', [AdminController::class, 'equipmentTypes']);
+        Route::get('/admin/equipment-types', [AdminController::class, 'equipmentTypes']);
         // Admin Dashboard
         Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
@@ -229,6 +230,10 @@ Route::get('/admin/equipment-types', [AdminController::class, 'equipmentTypes'])
 
         // User History
         Route::get('/admin/user-histories', [UserHistoryController::class, 'index']);
+
+        // Peripheral History
+        Route::get('/admin/peripherals-history', [PeripheralHistoryController::class, 'index'])->name('peripherals.history');
+        Route::delete('/peripherals-history/{id}', [PeripheralHistoryController::class, 'destroy'])->name('peripherals-history.destroy');
     });
 
 
@@ -255,8 +260,8 @@ Route::get('/admin/equipment-types', [AdminController::class, 'equipmentTypes'])
         Route::get('/faculty-room-dashboard', [FacultyController::class, 'showRoom'])->name('faculty.rooms.dashboard');
 
         // Faculty room view (QR scan)
-         Route::get('/faculty/{roomPath}', [FacultyController::class, 'ShowScannedRoom'])
-             ->where('roomPath', '.*')
+        Route::get('/faculty/{roomPath}', [FacultyController::class, 'ShowScannedRoom'])
+            ->where('roomPath', '.*')
             ->name('faculty.room.show');
 
             //Dashboard of scanned room
@@ -285,7 +290,7 @@ Route::get('/admin/equipment-types', [AdminController::class, 'equipmentTypes'])
         Route::resource('reports', Reports::class);
 
 
-   
+
 
 
 

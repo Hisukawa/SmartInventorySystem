@@ -2,12 +2,17 @@
 
 namespace App\Providers;
 
-use App\Models\Room;
-use App\Observers\RoomObserver;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use App\Observers\SystemUnitObserver;
+
+use App\Models\Room;
+use App\Observers\RoomObserver;
+
 use App\Models\SystemUnit;
+use App\Observers\SystemUnitObserver;
+
+use App\Models\Peripheral;
+use App\Observers\PeripheralObserver;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
 
@@ -37,5 +42,6 @@ class AppServiceProvider extends ServiceProvider
 
         Room::observe(RoomObserver::class);
         SystemUnit::observe(SystemUnitObserver::class);
+        Peripheral::observe(PeripheralObserver::class);
     }
 }
