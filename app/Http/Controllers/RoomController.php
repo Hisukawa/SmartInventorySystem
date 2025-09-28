@@ -107,91 +107,105 @@ class RoomController extends Controller
      */
     public function show(Request $request, $encodedRoomPath)
     {
-        $roomPath = urldecode($encodedRoomPath);
-        $room     = Room::where('room_path', $roomPath)->firstOrFail();
-        $user     = Auth::user();
+         $roomPath = urldecode($encodedRoomPath);
+    $user     = Auth::user();
 
-        RoomStatus::updateOrCreate(
-            ['room_id' => $room->id],
-            ['scanned_by' => $user?->id, 'is_active' => 1]
-        );
+    // Delegate to role-specific controllers
+    switch ($user?->role) {
+        case 'guest':
+            return app(\App\Http\Controllers\Guest\GuestDashboardController::class)
+                       ->ShowScannedRoom($request, $roomPath);
 
-        $condition = $request->query('condition');
-        $unitCode  = $request->query('unit_code');
-        $search    = $request->query('search');
+        case 'faculty':
+            return app(\App\Http\Controllers\Faculty\FacultyController::class)
+                       ->ShowScannedRoom($request, $roomPath);
 
-        $equipments = Equipment::with('room')
-            ->where('room_id', $room->id)
-            ->when($condition, fn($q) => $q->where('condition', $condition))
-            ->when($search, fn($q) => $q->where('equipment_code', 'like', "%$search%"))
-            ->get()
-            ->map(fn($e) => [
-                'id' => $e->id,
-                'name' => $e->equipment_code,
-                'condition' => $e->condition ?? 'Good',
-                'type' => $e->type,
-                'room_path' => $room->room_path,
-                'room_number' => $e->room?->room_number,
+        default:
+            // Default view for admin/technician/others
+            $room = Room::where('room_path', $roomPath)->firstOrFail();
+
+            RoomStatus::updateOrCreate(
+                ['room_id' => $room->id],
+                ['scanned_by' => $user?->id, 'is_active' => 1]
+            );
+
+            $condition = $request->query('condition');
+            $unitCode  = $request->query('unit_code');
+            $search    = $request->query('search');
+
+            $equipments = Equipment::with('room')
+                ->where('room_id', $room->id)
+                ->when($condition, fn($q) => $q->where('condition', $condition))
+                ->when($search, fn($q) => $q->where('equipment_code', 'like', "%$search%"))
+                ->get()
+                ->map(fn($e) => [
+                    'id' => $e->id,
+                    'name' => $e->equipment_code,
+                    'condition' => $e->condition ?? 'Good',
+                    'type' => $e->type,
+                    'room_path' => $room->room_path,
+                    'room_number' => $e->room?->room_number,
+                ]);
+
+            $systemUnits = SystemUnit::where('room_id', $room->id)
+                ->when($condition, fn($q) => $q->where('condition', $condition))
+                ->when($unitCode, fn($q) => $q->where('unit_code', $unitCode))
+                ->when($search, fn($q) => $q->where('unit_code', 'like', "%$search%"))
+                ->get()
+                ->map(fn($s) => [
+                    'id' => $s->id,
+                    'name' => $s->unit_code,
+                    'condition' => $s->condition ?? 'Good',
+                    'room_path' => $room->room_path,
+                ]);
+
+            $peripherals = Peripheral::with('unit')
+                ->where('room_id', $room->id)
+                ->when($condition, fn($q) => $q->where('condition', $condition))
+                ->when($unitCode, fn($q) => $q->whereHas('unit', fn($sub) => $sub->where('unit_code', $unitCode)))
+                ->when($search, fn($q) => $q->where('peripheral_code', 'like', "%$search%"))
+                ->get()
+                ->map(fn($p) => [
+                    'id' => $p->id,
+                    'name' => $p->peripheral_code,
+                    'condition' => $p->condition ?? 'Good',
+                    'type' => $p->type,
+                    'room_path' => $room->room_path,
+                    'unit_code' => $p->unit?->unit_code,
+                ]);
+
+            $conditionOptions = collect()
+                ->merge(Equipment::select('condition')->distinct()->pluck('condition'))
+                ->merge(SystemUnit::select('condition')->distinct()->pluck('condition'))
+                ->merge(Peripheral::select('condition')->distinct()->pluck('condition'))
+                ->unique()
+                ->filter()
+                ->values();
+
+            $unitCodeOptions = SystemUnit::where('room_id', $room->id)
+                ->select('unit_code')
+                ->distinct()
+                ->pluck('unit_code');
+
+            return Inertia::render('Room/RoomView', [
+                'room' => $room,
+                'equipments' => $equipments,
+                'systemUnits' => $systemUnits,
+                'peripherals' => $peripherals,
+                'filters' => [
+                    'condition' => $condition,
+                    'unit_code' => $unitCode,
+                    'search' => $search,
+                ],
+                'filterOptions' => [
+                    'conditions' => $conditionOptions,
+                    'unit_codes' => $unitCodeOptions,
+                ],
+                'auth' => ['user' => $user],
+                'section' => $request->query('section', 'system-units'),
             ]);
-
-        $systemUnits = SystemUnit::where('room_id', $room->id)
-            ->when($condition, fn($q) => $q->where('condition', $condition))
-            ->when($unitCode, fn($q) => $q->where('unit_code', $unitCode))
-            ->when($search, fn($q) => $q->where('unit_code', 'like', "%$search%"))
-            ->get()
-            ->map(fn($s) => [
-                'id' => $s->id,
-                'name' => $s->unit_code,
-                'condition' => $s->condition ?? 'Good',
-                'room_path' => $room->room_path,
-            ]);
-
-        $peripherals = Peripheral::with('unit')
-            ->where('room_id', $room->id)
-            ->when($condition, fn($q) => $q->where('condition', $condition))
-            ->when($unitCode, fn($q) => $q->whereHas('unit', fn($sub) => $sub->where('unit_code', $unitCode)))
-            ->when($search, fn($q) => $q->where('peripheral_code', 'like', "%$search%"))
-            ->get()
-            ->map(fn($p) => [
-                'id' => $p->id,
-                'name' => $p->peripheral_code,
-                'condition' => $p->condition ?? 'Good',
-                'type' => $p->type,
-                'room_path' => $room->room_path,
-                'unit_code' => $p->unit?->unit_code,
-            ]);
-
-        $conditionOptions = collect()
-            ->merge(Equipment::select('condition')->distinct()->pluck('condition'))
-            ->merge(SystemUnit::select('condition')->distinct()->pluck('condition'))
-            ->merge(Peripheral::select('condition')->distinct()->pluck('condition'))
-            ->unique()
-            ->filter()
-            ->values();
-
-        $unitCodeOptions = SystemUnit::where('room_id', $room->id)
-            ->select('unit_code')
-            ->distinct()
-            ->pluck('unit_code');
-
-        return Inertia::render('Faculty/FacultyRoomView', [
-            'room' => $room,
-            'equipments' => $equipments,
-            'systemUnits' => $systemUnits,
-            'peripherals' => $peripherals,
-            'filters' => [
-                'condition' => $condition,
-                'unit_code' => $unitCode,
-                'search' => $search,
-            ],
-            'filterOptions' => [
-                'conditions' => $conditionOptions,
-                'unit_codes' => $unitCodeOptions,
-            ],
-            'auth' => ['user' => $user],
-            'section' => $request->query('section', 'system-units'),
-        ]);
     }
+}
 
     /**
      * API: Return rooms status for Admin Dashboard

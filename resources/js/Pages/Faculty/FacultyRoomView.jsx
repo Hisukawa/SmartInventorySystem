@@ -242,7 +242,7 @@ export default function FacultyRoomView({
     const { auth } = usePage().props;
 
     const [activeSection, setActiveSection] = useState(
-        section || "system-units"
+        section || "dashboard"
     );
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
@@ -256,12 +256,19 @@ export default function FacultyRoomView({
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
-    const data =
-        activeSection === "system-units"
-            ? systemUnits
-            : activeSection === "peripherals"
-            ? peripherals
-            : equipments;
+   const data =
+    activeSection === "system-units"
+        ? systemUnits
+        : activeSection === "peripherals"
+        ? peripherals
+        : activeSection === "equipments"
+        ? equipments
+        : []; // ← dashboard shows no table
+        useEffect(() => {
+    if (activeSection === "dashboard") {
+        window.location.href = route("faculty.ScannedRoom.dashboard", { roomPath: room.room_path });
+    }
+}, [activeSection]);
 
     const pageCount = Math.ceil(data.length / pageSize);
     const paginated = data.slice((page - 1) * pageSize, page * pageSize);
