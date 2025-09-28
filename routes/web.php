@@ -117,15 +117,20 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin')->group(function () {
 
 
-        Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
-        Route::get('/admin/activity-logs', [AdminController::class, 'activityLogs']);
-        Route::get('/admin/maintenance-requests', [AdminController::class, 'maintenanceRequests']);
+    Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
+Route::get('/admin/activity-logs', [AdminController::class, 'activityLogs']);
+Route::get('/admin/maintenance-requests', [AdminController::class, 'maintenanceRequests']);
 
-        Route::get('/admin/rooms-status', [AdminController::class, 'roomsStatus']);
-        Route::get('/admin/equipment-condition', [AdminController::class, 'equipmentCondition']);
-        Route::get('/admin/equipment-condition-by-room' ,[AdminController::class, 'equipmentConditionByRoom']);
+Route::get('/admin/rooms-status', [AdminController::class, 'roomsStatus']);
+Route::get('/admin/equipment-condition', [AdminController::class, 'equipmentCondition']);
+Route::get('/admin/equipment-condition-by-room', [AdminController::class, 'equipmentConditionByRoom']);
 
+// ✅ New routes for filtering
+Route::get('/admin/equipment-condition-filtered', [AdminController::class, 'equipmentConditionFiltered']);
+Route::get('/admin/peripheral-types', [AdminController::class, 'peripheralTypes']);
+Route::get('/admin/rooms-list', [AdminController::class, 'roomsList']);
 
+Route::get('/admin/equipment-types', [AdminController::class, 'equipmentTypes']);
         // Admin Dashboard
         Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
@@ -250,19 +255,24 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/faculty-room-dashboard', [FacultyController::class, 'showRoom'])->name('faculty.rooms.dashboard');
 
         // Faculty room view (QR scan)
-        // Route::get('/room/{roomPath}', [RoomController::class, 'show'])
-        //     ->where('roomPath', '.*')
-        //     ->name('faculty.room.show');
+         Route::get('/faculty/{roomPath}', [FacultyController::class, 'ShowScannedRoom'])
+             ->where('roomPath', '.*')
+            ->name('faculty.room.show');
 
-        Route::get('/rooms/{room}/units/{unit}', [FacultyRoomController::class, 'showUnit'])
-        ->name('faculty.units.show');
+            //Dashboard of scanned room
+        Route::get('{roomPath}/dashboard', [FacultyController::class, 'ShowFacultyDashboard'])
+        ->where('roomPath', '.*') // allow slashes
+        ->name('faculty.ScannedRoom.dashboard');
+
+        Route::get('/{roomId}/units/{unitId}', [FacultyRoomController::class, 'showUnit'])
+            ->name('faculty.units.show');
 
 
         //Showing Peripherals if the faculty Click The View Action
-        Route::get('/rooms/{room}/peripherals/{peripheral}', [PeripheralController::class, 'showPeripherals'])->name('faculty.peripherals.show');
+        Route::get('/{room}/peripherals/{peripheral}', [PeripheralController::class, 'showPeripherals'])->name('faculty.peripherals.show');
 
 
-        Route::get('/rooms/{room}/equipments/{equipment}', [EquipmentController::class, 'showRoomEquipments'])
+        Route::get('/{room}/equipments/{equipment}', [EquipmentController::class, 'showRoomEquipments'])
         ->scopeBindings()
         ->name('faculty.equipments.show');
 
@@ -273,6 +283,9 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware('auth')->get('/faculty/rooms-status', [FacultyController::class, 'roomsStatus']);
 
         Route::resource('reports', Reports::class);
+
+
+   
 
 
 
@@ -326,13 +339,30 @@ Route::middleware(['auth'])->group(function () {
 //                           GUEST
 // =======================================================================
     // Guest-only routes
-    Route::middleware('role:guest')->group(function () {
-        Route::get('/guest/dashboard', [GuestDashboardController::class, 'index'])
-            ->name('guest.dashboard');
 
-    });
+Route::middleware(['auth', 'role:guest'])->group(function () {
 
 
+    Route::get('/guest/{roomPath}', [GuestDashboardController::class, 'showScannedRoom'])
+        ->where('roomPath', '.*')
+        ->name('guest.room.show');
+
+        Route::get('/rooms/{room}/units/{unit}', [GuestDashboardController::class, 'showUnit'])
+        ->name('guest.units.show');
+
+
+        //Showing Peripherals if the faculty Click The View Action
+        Route::get('/{room}/peripherals/{peripheral}', [GuestDashboardController::class, 'showPeripherals'])->name('guest.peripherals.show');
+
+
+        Route::get('{room}/equipments/{equipment}', [GuestDashboardController::class, 'showRoomEquipments'])
+        ->scopeBindings()
+        ->name('guest.equipments.show');
+
+          Route::get('/room/{roomPath}/dashboard', [GuestDashboardController::class, 'ShowGuestDashboard'])
+        ->where('roomPath', '.*') // allow slashes
+        ->name('guest.ScannedRoom.dashboard');
+});
 });
 
 

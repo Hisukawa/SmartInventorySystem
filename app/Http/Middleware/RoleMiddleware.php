@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-
+use Illuminate\Support\Facades\Auth;
 class RoleMiddleware
 {
     /**
@@ -15,10 +15,18 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (!in_array($request->user()->role, $roles)) {
-            abort(403, 'Unauthorized'); // or redirect to a fallback
-        }
+      if (!Auth::check()) {
+    return redirect()->route('login')->with('error', 'Please login to continue.');
+}
 
-        return $next($request);
+$role = Auth::user()->role;
+
+// Debug: show current role vs allowed roles
+// You can log it instead of dd()
+if (!in_array($role, $roles)) {
+    abort(403, "Unauthorized. Your role is [$role], allowed: " . implode(',', $roles));
+}
+
+return $next($request);
     }
 }

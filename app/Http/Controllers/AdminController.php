@@ -10,6 +10,7 @@ use App\Models\SystemUnit;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
@@ -28,21 +29,14 @@ class AdminController extends Controller
             'totalSystemUnits' => SystemUnit::count(),
             'totalPeripherals' => Peripheral::count(),
             'totalEquipments'  => Equipment::count(),
-
-            // Room Occupancy
             'occupiedRooms'    => Room::whereHas('latestStatus', fn($q) => $q->where('is_active', true))->count(),
-
-            // Reports
             'pendingRequests'  => Report::where('condition', '!=', 'Resolved')->count(),
             'forRepair'        => Report::whereIn('condition', ['For Repair', 'Defective'])->count(),
-
-            // Extra stats
             'availablePeripherals' => Peripheral::where('condition', 'Good')->count(),
-            'activeUsers'          => User::whereNotNull('email_verified_at')->count(),
-            'totalUsers'           => User::count(), // ✅ Added
+            'activeUsers'      => User::whereNotNull('email_verified_at')->count(),
+            'totalUsers'       => User::count(),
         ]);
     }
-
 
     // 📝 Recent activity logs
     public function activityLogs()
@@ -69,7 +63,7 @@ class AdminController extends Controller
             ->limit(5)
             ->get()
             ->map(fn($report) => [
-                'equipment'   => 'EQP-' . $report->reportable_id, // Assuming reportable_id exists
+                'equipment'   => 'EQP-' . $report->reportable_id,
                 'issue'       => $report->condition,
                 'reported_by' => $report->user?->name ?? 'Unknown',
             ]);
@@ -89,11 +83,8 @@ class AdminController extends Controller
         foreach ($rooms as $room) {
             $isActive = (bool) ($room->latestStatus->is_active ?? false);
 
-            if ($isActive) {
-                $occupiedCount++;
-            } else {
-                $availableCount++;
-            }
+            if ($isActive) $occupiedCount++;
+            else $availableCount++;
 
             $details[] = [
                 'id'              => $room->id,
@@ -112,20 +103,80 @@ class AdminController extends Controller
         ]);
     }
 
-    // 🖥 Equipment condition breakdown by type
-    public function equipmentCondition()
+    // 🖥 Overall equipment condition (all rooms)
+// 🖥 Overall equipment condition (all rooms or filtered by room)
+public function equipmentCondition(Request $request)
+{
+    $roomId = $request->query('room_id');
+
+    // System Units
+    $systemUnitsQuery = SystemUnit::query();
+    if ($roomId) $systemUnitsQuery->where('room_id', $roomId);
+    $systemUnits = $systemUnitsQuery->select('condition')->get()
+        ->groupBy('condition')
+        ->map->count()
+        ->toArray();
+
+    // Peripherals
+    $peripheralsQuery = Peripheral::query();
+    if ($roomId) $peripheralsQuery->where('room_id', $roomId);
+    $peripherals_typeQuery = Peripheral::query();
+    if ($roomId) $peripherals_typeQuery->where('room_id', $roomId);
+
+    $peripherals = $peripheralsQuery->select('condition')->get()
+        ->groupBy('condition')
+        ->map->count()
+        ->toArray();
+
+    $peripherals_type = $peripherals_typeQuery->select('type', 'condition')->get()
+        ->groupBy('type')
+        ->map(fn($group) => $group->count())
+        ->toArray();
+
+    // Equipments
+    $equipmentsQuery = Equipment::query();
+    if ($roomId) $equipmentsQuery->where('room_id', $roomId);
+    $equipments = $equipmentsQuery->select('condition')->get()
+        ->groupBy('condition')
+        ->map->count()
+        ->toArray();
+
+    return response()->json([
+        'system_units'     => $systemUnits,
+        'peripherals'      => $peripherals,
+        'peripherals_type' => $peripherals_type,
+        'equipments'       => $equipments,
+    ]);
+}
+
+    // 🖥 Filtered equipment condition by room/type
+    public function equipmentConditionFiltered(Request $request)
     {
-        $systemUnits = SystemUnit::select('condition')->get()
+        $roomId = $request->query('room_id');
+        $type   = $request->query('type');
+
+        // Computers (SystemUnits)
+        $systemUnitsQuery = SystemUnit::query();
+        if ($roomId) $systemUnitsQuery->where('room_id', $roomId);
+        $systemUnits = $systemUnitsQuery->select('condition')->get()
             ->groupBy('condition')
             ->map->count()
             ->toArray();
 
-        $peripherals = Peripheral::select('condition')->get()
+        // Peripherals
+        $peripheralsQuery = Peripheral::query();
+        if ($roomId) $peripheralsQuery->where('room_id', $roomId);
+        if ($type)   $peripheralsQuery->where('type', $type);
+        $peripherals = $peripheralsQuery->select('condition')->get()
             ->groupBy('condition')
             ->map->count()
             ->toArray();
 
-        $equipments = Equipment::select('condition')->get()
+        // Equipments
+        $equipmentsQuery = Equipment::query();
+        if ($roomId) $equipmentsQuery->where('room_id', $roomId);
+        if ($type)   $equipmentsQuery->where('type', $type);
+        $equipments = $equipmentsQuery->select('condition')->get()
             ->groupBy('condition')
             ->map->count()
             ->toArray();
@@ -137,6 +188,14 @@ class AdminController extends Controller
         ]);
     }
 
+    // Peripheral types (for filters)
+    public function peripheralTypes()
+    {
+        $types = Peripheral::select('type')->distinct()->pluck('type');
+        return response()->json($types);
+    }
+
+    // Equipment condition by room (summary)
     public function equipmentConditionByRoom()
     {
         try {
@@ -162,7 +221,6 @@ class AdminController extends Controller
                     ->toArray();
 
                 $merged = [];
-
                 foreach ([$systemUnits, $peripherals, $equipments] as $dataset) {
                     foreach ($dataset as $condition => $count) {
                         $merged[$condition] = ($merged[$condition] ?? 0) + $count;
@@ -179,5 +237,18 @@ class AdminController extends Controller
         }
     }
 
+    // Equipment types (for filters)
+public function equipmentTypes()
+{
+    $types = Equipment::select('type')->distinct()->pluck('type');
+    return response()->json($types);
+}
 
+
+    // Rooms list (for filters)
+    public function roomsList()
+    {
+        $rooms = Room::select('id', 'room_number')->get();
+        return response()->json($rooms);
+    }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -7,7 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 export default function Register() {
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -20,97 +26,10 @@ export default function Register() {
   });
 
   const [successMessage, setSuccessMessage] = useState("");
-  const [scanning, setScanning] = useState(false);
-  const [faceCaptured, setFaceCaptured] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
-
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const scanIntervalRef = useRef(null);
-
-  // Start webcam automatically
-  useEffect(() => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices
-        .getUserMedia({ video: { facingMode: "user" } })
-        .then((stream) => {
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            videoRef.current.play();
-          }
-        })
-        .catch((err) => console.warn("Camera not available:", err));
-    }
-  }, []);
-const startFaceScan = async () => {
-  if (!videoRef.current) return;
-  setScanning(true);
-  setFaceCaptured(false);
-
-  const video = videoRef.current;
-
-  if (!video.videoWidth || !video.videoHeight) {
-    alert("Camera not ready, try again.");
-    setScanning(false);
-    return;
-  }
-
-  const canvas = canvasRef.current;
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  // Use PNG for better compatibility
-const imageBase64 = canvas.toDataURL("image/png");
-const base64Data = imageBase64.split(",")[1].trim();
-
-  try {
-    console.log("Using Luxand API Key:", import.meta.env.VITE_LUXAND_API_KEY);
-
-    const response = await fetch("https://api.luxand.cloud/photo/detect", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "token": import.meta.env.VITE_LUXAND_API_KEY
-      },
-      body: JSON.stringify({ photo: base64Data, mode: "oneface" }) // optional mode
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`API returned status ${response.status}: ${text}`);
-    }
-
-    const result = await response.json();
-    console.log("Luxand API response:", result);
-
-    if (!result.faces || result.faces.length === 0) {
-      alert("No face detected, please ensure your face is clearly visible.");
-      return;
-    }
-
-    setCapturedImage(imageBase64);
-    setFaceCaptured(true);
-  } catch (err) {
-    console.error("Face scan error:", err);
-    alert("Error during face scan. Check console for details.");
-  } finally {
-    setScanning(false);
-  }
-};
-
-
-
-
 
   // Submit registration form
   const submit = (e) => {
     e.preventDefault();
-    if (!faceCaptured) {
-      alert("Please register your face before submitting.");
-      return;
-    }
 
     const formData = new FormData();
     formData.append("name", data.name);
@@ -119,16 +38,13 @@ const base64Data = imageBase64.split(",")[1].trim();
     formData.append("password_confirmation", data.password_confirmation);
     formData.append("role", data.role);
     formData.append("photo", data.photo);
-    formData.append("face_descriptor", capturedImage);
 
     post(route("admin.users.store"), {
       data: formData,
       forceFormData: true,
       onSuccess: () => {
-        setSuccessMessage("User successfully registered with face!");
+        setSuccessMessage("User successfully registered!");
         reset();
-        setCapturedImage(null);
-        setFaceCaptured(false);
       },
       onError: (err) => console.log("Registration error:", err),
     });
@@ -173,7 +89,9 @@ const base64Data = imageBase64.split(",")[1].trim();
                     <img src="ict.png" alt="Logo 2" className="w-full h-full object-contain" />
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold text-center">ICT INVENTORY SYSTEM MANAGEMENT</h2>
+                <h2 className="text-2xl font-bold text-center">
+                  ICT INVENTORY SYSTEM MANAGEMENT
+                </h2>
                 <p className="mt-3 text-sm opacity-90 text-center">Secure • Fast • Organized</p>
               </div>
 
@@ -181,11 +99,13 @@ const base64Data = imageBase64.split(",")[1].trim();
               <div className="p-8 flex flex-col justify-center">
                 <CardHeader className="p-0 mb-6">
                   <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-                  <CardDescription>Fill in your details and scan your face</CardDescription>
+                  <CardDescription>Fill in your details to register</CardDescription>
                 </CardHeader>
 
                 {successMessage && (
-                  <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{successMessage}</div>
+                  <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+                    {successMessage}
+                  </div>
                 )}
 
                 <form onSubmit={submit} className="space-y-4">
@@ -273,47 +193,15 @@ const base64Data = imageBase64.split(",")[1].trim();
                     {errors.photo && <p className="text-sm text-red-500">{errors.photo}</p>}
                   </div>
 
-                  {/* Face Scanner */}
-                  <div className="space-y-1">
-                    <Label>Face Scan</Label>
-                    <div className="relative w-64 h-64 mx-auto">
-                      <video
-                        ref={videoRef}
-                        className="w-full h-full rounded-full border-4 border-green-500 object-cover"
-                      />
-                      <div className="absolute inset-0 border-4 border-dashed border-green-300 rounded-full pointer-events-none"></div>
-                      {scanning && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white font-semibold rounded-full">
-                          Scanning...
-                        </div>
-                      )}
-                      {faceCaptured && (
-                        <div className="absolute bottom-2 left-0 right-0 text-center text-green-600 font-semibold">
-                          Face captured!
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      type="button"
-                      className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white"
-                      onClick={startFaceScan}
-                      disabled={scanning || faceCaptured}
-                    >
-                      Register Face
-                    </Button>
-                  </div>
-
                   {/* Submit */}
                   <Button
                     type="submit"
                     className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white"
-                    disabled={processing || !faceCaptured}
+                    disabled={processing}
                   >
                     Register
                   </Button>
                 </form>
-
-                <canvas ref={canvasRef} style={{ display: "none" }} />
               </div>
             </div>
           </div>

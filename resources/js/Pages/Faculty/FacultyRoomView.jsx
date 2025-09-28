@@ -443,7 +443,7 @@ export default function FacultyRoomView({
                                             <TableHead className="text-gray-600  whitespace-nowrap">
                                                 {activeSection ===
                                                 "system-units"
-                                                    ? "Unit Code"
+                                                    ? "Pc Code"
                                                     : activeSection ===
                                                       "peripherals"
                                                     ? "Peripheral Code"
@@ -504,8 +504,8 @@ export default function FacultyRoomView({
                                                                         href={route(
                                                                             "faculty.units.show",
                                                                             {
-                                                                                room: room.id,
-                                                                                unit: item.id,
+                                                                                roomId: room.id,
+                                                                                unitId: item.id,
                                                                             }
                                                                         )}
                                                                     >

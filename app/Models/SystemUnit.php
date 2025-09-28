@@ -33,4 +33,6 @@ class SystemUnit extends Model
 
         return static::select('condition')->distinct()->pluck('condition');
     }
+
+    
 }

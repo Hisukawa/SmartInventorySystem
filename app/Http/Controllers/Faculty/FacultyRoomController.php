@@ -30,18 +30,21 @@ public function show($room_path)
     ]);
 }
 
-public function showUnit(Room $room, SystemUnit $unit)
+public function showUnit($roomId, $unitId)
 {
-    $room->load(['equipments', 'systemUnits', 'peripherals']);
+    $room = Room::findOrFail($roomId);
+    $unit = $room->systemUnits()->findOrFail($unitId);
 
     return Inertia::render('Faculty/FacultyUnitView', [
         'room' => $room,
         'unit' => $unit,
-        'user' => Auth::user(),
+        'user' => \Auth::user(),
         'equipments' => $room->equipments,
         'systemUnits' => $room->systemUnits,
         'peripherals' => $room->peripherals,
     ]);
 }
+
+
 }
 

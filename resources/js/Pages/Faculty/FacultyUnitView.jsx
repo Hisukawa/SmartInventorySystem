@@ -27,7 +27,7 @@ export default function FacultyUnitView({ room, unit, user }) {
                     room={room}
                     user={user}
                     onSelect={(section) => {
-                        window.location.href = route("room.show", {
+                        window.location.href = route("faculty.room.show", {
                             roomPath: room.room_path,
                             section: section,
                         });
@@ -51,7 +51,7 @@ export default function FacultyUnitView({ room, unit, user }) {
                             user={user}
                             onSelect={(section) => {
                                 setSidebarOpen(false);
-                                window.location.href = route("room.show", {
+                                window.location.href = route("faculty.room.show", {
                                     roomPath: room.room_path,
                                     section: section,
                                 });
