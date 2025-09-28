@@ -29,6 +29,7 @@ public function store(Request $request)
         'password' => 'required|string|min:8|confirmed',
         'role' => 'required|string',
         'photo' => 'nullable|image|max:2048',
+        'face_descriptor' => 'nullable|string', // base64 string from frontend
     ]);
 
     $photoPath = null;
@@ -37,20 +38,13 @@ public function store(Request $request)
         $photoPath = $request->file('photo')->store('photos', 'public');
     }
 
-    // ✅ Store raw floats, no rounding/truncation
-    $descriptor = null;
-    if ($request->has('face_descriptor') && is_array($request->face_descriptor)) {
-        $descriptor = array_map('floatval', $request->face_descriptor);
-        $descriptor = json_encode($descriptor, JSON_UNESCAPED_UNICODE);
-    }
-
     $user = User::create([
         'name' => $request->name,
         'email' => $request->email,
         'password' => bcrypt($request->password),
         'role' => $request->role,
         'photo' => $photoPath,
-        'face_descriptor' => $descriptor,
+        'face_descriptor' => $request->face_descriptor ?? null, // store Luxand face descriptor
     ]);
 
     // Log User Creation

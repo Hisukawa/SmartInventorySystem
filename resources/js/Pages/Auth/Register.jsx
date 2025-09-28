@@ -1,27 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import FaceCapture from "@/Components/Face-Capture-Component/FaceCapture";
-
-// ✅ Human.js import (replace face-api.js)
-import Human from "@vladmandic/human";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 export default function Register() {
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -29,88 +15,129 @@ export default function Register() {
     email: "",
     password: "",
     password_confirmation: "",
-    role: "guest",
+    role: "faculty",
     photo: null,
-    face_descriptor: null,
   });
 
   const [successMessage, setSuccessMessage] = useState("");
-  const [faceStep, setFaceStep] = useState(1); // 1=prep, 2=scanning, 3=verified, 4=failed
-  const [loading, setLoading] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [faceCaptured, setFaceCaptured] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
 
-  // 🔹 Setup Human.js
-  const [human, setHuman] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const scanIntervalRef = useRef(null);
 
+  // Start webcam automatically
   useEffect(() => {
-    const loadHuman = async () => {
-      const h = new Human({
-        modelBasePath: "https://vladmandic.github.io/human/models",
-        face: { enabled: true, mesh: true, detector: { rotation: true } },
-      });
-      await h.load();
-      console.log("✅ Human.js models loaded");
-      setHuman(h);
-    };
-    loadHuman();
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices
+        .getUserMedia({ video: { facingMode: "user" } })
+        .then((stream) => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play();
+          }
+        })
+        .catch((err) => console.warn("Camera not available:", err));
+    }
   }, []);
+const startFaceScan = async () => {
+  if (!videoRef.current) return;
+  setScanning(true);
+  setFaceCaptured(false);
 
-  const handleFaceCapture = async (videoEl) => {
-    if (!human) return;
+  const video = videoRef.current;
 
-    setLoading(true);
+  if (!video.videoWidth || !video.videoHeight) {
+    alert("Camera not ready, try again.");
+    setScanning(false);
+    return;
+  }
 
-    // 🔍 Run detection on captured video frame
-    const result = await human.detect(videoEl);
+  const canvas = canvasRef.current;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    if (result.face && result.face.length > 0) {
-      const descriptor = result.face[0].embedding; // ✅ 512-d vector
-      const plainArray = Array.from(descriptor).map((v) =>
-        parseFloat(v.toFixed(6))
-      );
+  // Use PNG for better compatibility
+const imageBase64 = canvas.toDataURL("image/png");
+const base64Data = imageBase64.split(",")[1].trim();
 
-      setData("face_descriptor", plainArray);
-      setFaceStep(3); // success
-    } else {
-      setFaceStep(4); // failed
+  try {
+    console.log("Using Luxand API Key:", import.meta.env.VITE_LUXAND_API_KEY);
+
+    const response = await fetch("https://api.luxand.cloud/photo/detect", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "token": import.meta.env.VITE_LUXAND_API_KEY
+      },
+      body: JSON.stringify({ photo: base64Data, mode: "oneface" }) // optional mode
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`API returned status ${response.status}: ${text}`);
     }
 
-    setLoading(false);
-  };
+    const result = await response.json();
+    console.log("Luxand API response:", result);
 
-  const submit = (e) => {
-    if (e) e.preventDefault();
-
-    if (!data.face_descriptor) {
-      alert("Please complete face registration before proceeding!");
+    if (!result.faces || result.faces.length === 0) {
+      alert("No face detected, please ensure your face is clearly visible.");
       return;
     }
 
+    setCapturedImage(imageBase64);
+    setFaceCaptured(true);
+  } catch (err) {
+    console.error("Face scan error:", err);
+    alert("Error during face scan. Check console for details.");
+  } finally {
+    setScanning(false);
+  }
+};
+
+
+
+
+
+  // Submit registration form
+  const submit = (e) => {
+    e.preventDefault();
+    if (!faceCaptured) {
+      alert("Please register your face before submitting.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("email", data.email);
+    formData.append("password", data.password);
+    formData.append("password_confirmation", data.password_confirmation);
+    formData.append("role", data.role);
+    formData.append("photo", data.photo);
+    formData.append("face_descriptor", capturedImage);
+
     post(route("admin.users.store"), {
+      data: formData,
       forceFormData: true,
       onSuccess: () => {
-        setSuccessMessage(
-          "User successfully registered with face recognition!"
-        );
-        reset(
-          "name",
-          "email",
-          "password",
-          "password_confirmation",
-          "photo",
-          "role"
-        );
-        setData("face_descriptor", null);
-        setFaceStep(1);
+        setSuccessMessage("User successfully registered with face!");
+        reset();
+        setCapturedImage(null);
+        setFaceCaptured(false);
       },
       onError: (err) => console.log("Registration error:", err),
-      onFinish: () => console.log("Submitting:", data),
     });
   };
 
   return (
     <SidebarProvider>
       <Head>
-        <title>Dashboard</title>
+        <title>Register User</title>
       </Head>
       <AppSidebar />
       <SidebarInset>
@@ -120,9 +147,7 @@ export default function Register() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/admin/users" aria-current="page">
-                  User Lists
-                </BreadcrumbLink>
+                <BreadcrumbLink href="/admin/users">User Lists</BreadcrumbLink>
                 <BreadcrumbSeparator />
                 <BreadcrumbLink
                   href={`/admin/register`}
@@ -142,43 +167,25 @@ export default function Register() {
               <div className="hidden md:flex flex-col items-center justify-center bg-green-500 text-white p-8">
                 <div className="flex space-x-4 mb-6">
                   <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white bg-white shadow-md">
-                    <img
-                      src="logo.png"
-                      alt="Logo 1"
-                      className="w-full h-full object-contain"
-                    />
+                    <img src="logo.png" alt="Logo 1" className="w-full h-full object-contain" />
                   </div>
                   <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white bg-white shadow-md">
-                    <img
-                      src="ict.png"
-                      alt="Logo 2"
-                      className="w-full h-full object-contain"
-                    />
+                    <img src="ict.png" alt="Logo 2" className="w-full h-full object-contain" />
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold text-center">
-                  ICT INVENTORY SYSTEM MANAGEMENT
-                </h2>
-                <p className="mt-3 text-sm opacity-90 text-center">
-                  Secure • Fast • Organized
-                </p>
+                <h2 className="text-2xl font-bold text-center">ICT INVENTORY SYSTEM MANAGEMENT</h2>
+                <p className="mt-3 text-sm opacity-90 text-center">Secure • Fast • Organized</p>
               </div>
 
               {/* RIGHT PANEL */}
               <div className="p-8 flex flex-col justify-center">
                 <CardHeader className="p-0 mb-6">
-                  <CardTitle className="text-2xl font-bold">
-                    Create Account
-                  </CardTitle>
-                  <CardDescription>
-                    Fill in your details to sign up
-                  </CardDescription>
+                  <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
+                  <CardDescription>Fill in your details and scan your face</CardDescription>
                 </CardHeader>
 
                 {successMessage && (
-                  <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-                    {successMessage}
-                  </div>
+                  <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{successMessage}</div>
                 )}
 
                 <form onSubmit={submit} className="space-y-4">
@@ -192,9 +199,7 @@ export default function Register() {
                       onChange={(e) => setData("name", e.target.value)}
                       required
                     />
-                    {errors.name && (
-                      <p className="text-sm text-red-500">{errors.name}</p>
-                    )}
+                    {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
                   </div>
 
                   {/* Email */}
@@ -207,9 +212,7 @@ export default function Register() {
                       onChange={(e) => setData("email", e.target.value)}
                       required
                     />
-                    {errors.email && (
-                      <p className="text-sm text-red-500">{errors.email}</p>
-                    )}
+                    {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
                   </div>
 
                   {/* Password */}
@@ -222,29 +225,21 @@ export default function Register() {
                       onChange={(e) => setData("password", e.target.value)}
                       required
                     />
-                    {errors.password && (
-                      <p className="text-sm text-red-500">{errors.password}</p>
-                    )}
+                    {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
                   </div>
 
                   {/* Confirm Password */}
                   <div className="space-y-1">
-                    <Label htmlFor="password_confirmation">
-                      Confirm Password
-                    </Label>
+                    <Label htmlFor="password_confirmation">Confirm Password</Label>
                     <Input
                       id="password_confirmation"
                       type="password"
                       value={data.password_confirmation}
-                      onChange={(e) =>
-                        setData("password_confirmation", e.target.value)
-                      }
+                      onChange={(e) => setData("password_confirmation", e.target.value)}
                       required
                     />
                     {errors.password_confirmation && (
-                      <p className="text-sm text-red-500">
-                        {errors.password_confirmation}
-                      </p>
+                      <p className="text-sm text-red-500">{errors.password_confirmation}</p>
                     )}
                   </div>
 
@@ -263,93 +258,62 @@ export default function Register() {
                       <option value="technician">Technician</option>
                       <option value="guest">Guest</option>
                     </select>
-                    {errors.role && (
-                      <p className="text-sm text-red-500">{errors.role}</p>
-                    )}
+                    {errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
                   </div>
 
-                  {/* Photo */}
+                  {/* Photo Upload */}
                   <div className="space-y-1">
-                    <Label htmlFor="photo">Profile Photo</Label>
+                    <Label htmlFor="photo">Profile Photo (for display)</Label>
                     <Input
                       id="photo"
                       type="file"
                       accept="image/*"
                       onChange={(e) => setData("photo", e.target.files[0])}
                     />
-                    {errors.photo && (
-                      <p className="text-sm text-red-500">{errors.photo}</p>
-                    )}
+                    {errors.photo && <p className="text-sm text-red-500">{errors.photo}</p>}
                   </div>
 
-                  {/* Face Capture Flow */}
-                  <div className="mt-4">
-                    <h3 className="font-semibold mb-2">Face Verification</h3>
-
-                    {faceStep === 1 && (
-                      <div className="text-center">
-                        <p className="text-gray-500">
-                          Make sure your face is uncovered & in good lighting.
-                        </p>
-                        <Button
-                          type="button"
-                          className="mt-3 bg-green-500 text-white"
-                          onClick={() => {
-                            setFaceStep(2);
-                            setLoading(true);
-                          }}
-                        >
-                          Start Face Scan
-                        </Button>
-                      </div>
-                    )}
-
-                    {faceStep === 2 && (
-                      <div className="flex flex-col items-center justify-center">
-                        <p className="text-gray-500 mb-4">
-                          Align your face within the frame
-                        </p>
-                        {/* ✅ Pass video element into handler */}
-                        <FaceCapture
-                          autoCapture
-                          onCapture={(videoEl) => handleFaceCapture(videoEl)}
-                        />
-                      </div>
-                    )}
-
-                    {faceStep === 3 && (
-                      <div className="text-green-600 font-semibold text-center">
-                        ✅ Face captured successfully!
-                      </div>
-                    )}
-
-                    {faceStep === 4 && (
-                      <div className="text-red-600 font-semibold text-center">
-                        ❌ Face not recognized. Please try again.
-                        <Button
-                          type="button"
-                          className="mt-2 bg-yellow-500 text-white"
-                          onClick={() => setFaceStep(1)}
-                        >
-                          Retry
-                        </Button>
-                      </div>
-                    )}
+                  {/* Face Scanner */}
+                  <div className="space-y-1">
+                    <Label>Face Scan</Label>
+                    <div className="relative w-64 h-64 mx-auto">
+                      <video
+                        ref={videoRef}
+                        className="w-full h-full rounded-full border-4 border-green-500 object-cover"
+                      />
+                      <div className="absolute inset-0 border-4 border-dashed border-green-300 rounded-full pointer-events-none"></div>
+                      {scanning && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white font-semibold rounded-full">
+                          Scanning...
+                        </div>
+                      )}
+                      {faceCaptured && (
+                        <div className="absolute bottom-2 left-0 right-0 text-center text-green-600 font-semibold">
+                          Face captured!
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white"
+                      onClick={startFaceScan}
+                      disabled={scanning || faceCaptured}
+                    >
+                      Register Face
+                    </Button>
                   </div>
 
-                  {/* Submit Button */}
+                  {/* Submit */}
                   <Button
                     type="submit"
-                    className={`w-full mt-2 text-white ${
-                      faceStep === 3
-                        ? "bg-green-500 hover:bg-green-600"
-                        : "bg-gray-400 cursor-not-allowed"
-                    }`}
-                    disabled={faceStep !== 3 || processing}
+                    className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white"
+                    disabled={processing || !faceCaptured}
                   >
                     Register
                   </Button>
                 </form>
+
+                <canvas ref={canvasRef} style={{ display: "none" }} />
               </div>
             </div>
           </div>

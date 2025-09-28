@@ -27,7 +27,7 @@ use App\Http\Controllers\RoomHistoryController;
 use App\Http\Controllers\SystemUnitHistoryController;
 use App\Http\Controllers\UserHistoryController;
 
-
+use App\Http\Controllers\FaceController;
 use App\Models\Equipment;
 use App\Models\Room;
 use App\Models\User;
@@ -52,8 +52,10 @@ Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'show
 //Route to see all users equipment details without logging in
 Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
     ->name('equipment.public.show');
+Route::post('/face/register', [FaceController::class, 'register'])->name('face.register');
+Route::post('/login/face', [FaceController::class, 'login'])->name('login.face');
 
-Route::post('/face-login', [FaceLoginController::class, 'login'])->name('face.login');
+
 // Login page
 Route::get('/login', function () {
     return Inertia::render('Auth/Login', [
