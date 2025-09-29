@@ -30,10 +30,13 @@ class Equipment extends Model
 
 public function getRouteKeyName()
 {
-    if (request()->routeIs('faculty.*') || request()->routeIs('guest.*')) {
+    if (
+        request()->routeIs('faculty.*') ||
+        request()->routeIs('guest.*') ||
+        request()->routeIs('technician.*') // 👈 added this
+    ) {
         return 'id';
     }
-
 
     return 'equipment_code'; // Admin
 }

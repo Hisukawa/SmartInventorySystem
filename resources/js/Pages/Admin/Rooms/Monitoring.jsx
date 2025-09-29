@@ -3,12 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Head } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import Notification from "@/Components/AdminComponents/Notification";
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -22,14 +17,39 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
+import { X, Filter } from "lucide-react";
 import axios from "axios";
 
 export default function AdminDashboard({ children }) {
     const [rooms, setRooms] = useState([]);
+    const [logs, setLogs] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [currentLogPage, setCurrentLogPage] = useState(1);
     const perPage = 10;
+    const [search, setSearch] = useState("");
+
+    const [activeFilters, setActiveFilters] = useState([]);
+
+    const [showFilters, setShowFilters] = useState(false);
+    const [facultyId, setFacultyId] = useState("");
+    const [roomId, setRoomId] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+
+    const [faculties, setFaculties] = useState([]);
 
     // Fetch rooms from API
     const fetchRooms = async () => {
@@ -43,13 +63,34 @@ export default function AdminDashboard({ children }) {
             console.error("Failed to fetch rooms:", err);
         }
     };
+    const fetchLogs = async () => {
+        try {
+            const res = await axios.get(`/admin/faculty-logs`, {
+                params: {
+                    page: currentLogPage,
+                    search,
+                    faculty_id: facultyId,
+                    room_id: roomId,
+                    date_from: dateFrom,
+                    date_to: dateTo,
+                },
+            });
+            setLogs(res.data.data);
+        } catch (err) {
+            console.error("Failed to fetch logs:", err);
+        }
+    };
 
     // Initial fetch and auto-refresh every 5 seconds
     useEffect(() => {
         fetchRooms();
-        const interval = setInterval(fetchRooms, 5000);
+        fetchLogs();
+        const interval = setInterval(() => {
+            fetchRooms();
+            fetchLogs();
+        }, 5000);
         return () => clearInterval(interval);
-    }, [currentPage]);
+    }, [currentLogPage]);
 
     return (
         <SidebarProvider>
@@ -91,92 +132,377 @@ export default function AdminDashboard({ children }) {
                             Room Monitoring
                         </h1>
 
-                                                {/* Room Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {rooms.length === 0 && (
-          <p className="col-span-full text-center text-gray-500">
-            No rooms found.
-          </p>
-        )}
+                        {/* Room Cards */}
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                            {rooms.length === 0 && (
+                                <p className="col-span-full text-center text-gray-500">
+                                    No rooms found.
+                                </p>
+                            )}
 
-        {rooms.map((room) => (
-          <Card
-            key={room.id}
-            className={`rounded-2xl transition-all duration-200 ease-in-out shadow-md 
+                            {rooms.map((room) => (
+                                <Card
+                                    key={room.id}
+                                    className={`rounded-2xl transition-all duration-200 ease-in-out shadow-md 
               hover:scale-[1.02] hover:shadow-lg
-              ${room.is_active
-                ? "bg-[#59AC77]  border border-green-700 text-white"
-                : "bg-[#59AC77]  border border-gray-300 text-gray-900"
-              }`}
-          >
-            {/* Header: Room Name + Status */}
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle
-                className={`text-lg md:text-xl font-semibold ${
-                  room.is_active ? "text-white" : "text-gray-900"
-                }`}
-              >
-                {room.name}
-              </CardTitle>
-              <Badge
-                className={`px-3 py-1 text-xs font-medium rounded-full ${
+              ${
                   room.is_active
-                    ? "bg-white text-green-700"
-                    : "bg-gray-500 text-white"
-                }`}
-              >
-                {room.is_active ? "Active" : "Inactive"}
-              </Badge>
-            </CardHeader>
-
-      {/* Content: Faculty Info */}
-      <CardContent>
-        <div className="flex items-center space-x-4">
-          {/* Faculty Photo */}
-          {room.is_active && room.last_scanned_user?.photo ? (
-            <img
-              src={room.last_scanned_user.photo}
-              alt={room.last_scanned_user.name}
-              className="w-20 h-20 rounded-full object-cover border-2 border-green-500"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm border-2 border-gray-300">
-              No Photo
-            </div>
-          )}
-
-          {/* Faculty Info */}
-          <div className="flex flex-col">
-            <span
-              className={`font-medium ${
-                room.is_active ? "text-white" : "text-gray-900"
+                      ? "bg-[#59AC77]  border border-green-700 text-white"
+                      : "bg-[#59AC77]  border border-gray-300 text-gray-900"
               }`}
-            >
-              {room.is_active && room.last_scanned_user
-                ? room.last_scanned_user.name
-                : "No Faculty"}
-            </span>
-            <span
-              className={`text-xs ${
-                room.is_active ? "text-green-100" : "text-gray-600"
-              }`}
-            >
-              {room.is_active && room.last_scanned_at
-                ? new Date(room.last_scanned_at).toLocaleString()
-                : "Not yet scanned"}
-            </span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  ))}
-</div>
+                                >
+                                    {/* Header: Room Name + Status */}
+                                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                        <CardTitle
+                                            className={`text-lg md:text-xl font-semibold ${
+                                                room.is_active
+                                                    ? "text-white"
+                                                    : "text-gray-900"
+                                            }`}
+                                        >
+                                            {room.name}
+                                        </CardTitle>
+                                        <Badge
+                                            className={`px-3 py-1 text-xs font-medium rounded-full ${
+                                                room.is_active
+                                                    ? "bg-white text-green-700"
+                                                    : "bg-gray-500 text-white"
+                                            }`}
+                                        >
+                                            {room.is_active
+                                                ? "Active"
+                                                : "Inactive"}
+                                        </Badge>
+                                    </CardHeader>
 
+                                    {/* Content: Faculty Info */}
+                                    <CardContent>
+                                        <div className="flex items-center space-x-4">
+                                            {/* Faculty Photo */}
+                                            {room.is_active &&
+                                            room.last_scanned_user?.photo ? (
+                                                <img
+                                                    src={
+                                                        room.last_scanned_user
+                                                            .photo
+                                                    }
+                                                    alt={
+                                                        room.last_scanned_user
+                                                            .name
+                                                    }
+                                                    className="w-20 h-20 rounded-full object-cover border-2 border-green-500"
+                                                />
+                                            ) : (
+                                                <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm border-2 border-gray-300">
+                                                    No Photo
+                                                </div>
+                                            )}
 
+                                            {/* Faculty Info */}
+                                            <div className="flex flex-col">
+                                                <span
+                                                    className={`font-medium ${
+                                                        room.is_active
+                                                            ? "text-white"
+                                                            : "text-gray-900"
+                                                    }`}
+                                                >
+                                                    {room.is_active &&
+                                                    room.last_scanned_user
+                                                        ? room.last_scanned_user
+                                                              .name
+                                                        : "No Faculty"}
+                                                </span>
+                                                <span
+                                                    className={`text-xs ${
+                                                        room.is_active
+                                                            ? "text-green-100"
+                                                            : "text-gray-600"
+                                                    }`}
+                                                >
+                                                    {room.is_active &&
+                                                    room.last_scanned_at
+                                                        ? new Date(
+                                                              room.last_scanned_at
+                                                          ).toLocaleString(
+                                                              "en-PH",
+                                                              {
+                                                                  timeZone:
+                                                                      "Asia/Manila",
+                                                                  year: "numeric",
+                                                                  month: "numeric",
+                                                                  day: "numeric",
+                                                                  hour: "numeric",
+                                                                  minute: "2-digit",
+                                                                  hour12: true,
+                                                              }
+                                                          )
+                                                        : "Not yet scanned"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
 
+                        {/* Faculty Logs Table */}
+                        {/* 🔍 Search + Filters */}
+                        <div className="flex items-center justify-between mb-4">
+                            {/* Search */}
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    type="text"
+                                    placeholder="Search by faculty or room..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-64"
+                                />
+                                <Button onClick={fetchLogs}>Search</Button>
+                            </div>
 
-                        {/* Pagination */}
-                        
+                            {/* Active Filter Pills */}
+                            <div className="flex flex-wrap gap-2">
+                                {facultyId && (
+                                    <Badge
+                                        variant="secondary"
+                                        className="flex items-center gap-1"
+                                    >
+                                        Faculty: {facultyId}
+                                        <X
+                                            size={14}
+                                            className="cursor-pointer"
+                                            onClick={() => setFacultyId("")}
+                                        />
+                                    </Badge>
+                                )}
+                                {roomId && (
+                                    <Badge
+                                        variant="secondary"
+                                        className="flex items-center gap-1"
+                                    >
+                                        Room: {roomId}
+                                        <X
+                                            size={14}
+                                            className="cursor-pointer"
+                                            onClick={() => setRoomId("")}
+                                        />
+                                    </Badge>
+                                )}
+                                {dateFrom && (
+                                    <Badge
+                                        variant="secondary"
+                                        className="flex items-center gap-1"
+                                    >
+                                        From: {dateFrom}
+                                        <X
+                                            size={14}
+                                            className="cursor-pointer"
+                                            onClick={() => setDateFrom("")}
+                                        />
+                                    </Badge>
+                                )}
+                                {dateTo && (
+                                    <Badge
+                                        variant="secondary"
+                                        className="flex items-center gap-1"
+                                    >
+                                        To: {dateTo}
+                                        <X
+                                            size={14}
+                                            className="cursor-pointer"
+                                            onClick={() => setDateTo("")}
+                                        />
+                                    </Badge>
+                                )}
+                            </div>
+
+                            {/* Filter Dropdown */}
+                            <div className="relative">
+                                <Button
+                                    variant="outline"
+                                    className="flex items-center gap-2"
+                                    onClick={() => setShowFilters(!showFilters)}
+                                >
+                                    <Filter size={16} /> Filters
+                                </Button>
+
+                                {showFilters && (
+                                    <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow p-4 space-y-3 z-50">
+                                        {/* Faculty */}
+                                        <div>
+                                            <label className="text-sm font-medium">
+                                                Faculty ID
+                                            </label>
+                                            <Input
+                                                type="number"
+                                                placeholder="Enter Faculty ID"
+                                                value={facultyId}
+                                                onChange={(e) =>
+                                                    setFacultyId(e.target.value)
+                                                }
+                                            />
+                                        </div>
+
+                                        {/* Room */}
+                                        <div>
+                                            <label className="text-sm font-medium">
+                                                Room ID
+                                            </label>
+                                            <Input
+                                                type="number"
+                                                placeholder="Enter Room ID"
+                                                value={roomId}
+                                                onChange={(e) =>
+                                                    setRoomId(e.target.value)
+                                                }
+                                            />
+                                        </div>
+
+                                        {/* Dates */}
+                                        <div>
+                                            <label className="text-sm font-medium">
+                                                From
+                                            </label>
+                                            <Input
+                                                type="date"
+                                                value={dateFrom}
+                                                onChange={(e) =>
+                                                    setDateFrom(e.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium">
+                                                To
+                                            </label>
+                                            <Input
+                                                type="date"
+                                                value={dateTo}
+                                                onChange={(e) =>
+                                                    setDateTo(e.target.value)
+                                                }
+                                            />
+                                        </div>
+
+                                        {/* Reset */}
+                                        <Button
+                                            variant="outline"
+                                            className="w-full mt-2"
+                                            onClick={() => {
+                                                setFacultyId("");
+                                                setRoomId("");
+                                                setDateFrom("");
+                                                setDateTo("");
+                                            }}
+                                        >
+                                            Reset Filters
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <Card className="shadow-md rounded-2xl">
+                            <CardHeader>
+                                <CardTitle>Faculty Logs History</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableCaption>
+                                        A list of recent faculty room logs.
+                                    </TableCaption>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>#</TableHead>
+                                            <TableHead>Faculty</TableHead>
+                                            <TableHead>
+                                                LogIn Date & Time
+                                            </TableHead>
+                                            <TableHead>Logout Time</TableHead>
+                                            <TableHead>Room</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {logs.length === 0 && (
+                                            <TableRow>
+                                                <TableCell
+                                                    colSpan={5}
+                                                    className="text-center text-gray-500"
+                                                >
+                                                    No logs found.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+
+                                        {logs.map((log, idx) => (
+                                            <TableRow key={log.id}>
+                                                {/* Index */}
+                                                <TableCell>
+                                                    {idx +
+                                                        1 +
+                                                        (currentLogPage - 1) *
+                                                            perPage}
+                                                </TableCell>
+
+                                                {/* Faculty (scanned_by relation) */}
+                                                <TableCell>
+                                                    {log.scanned_by?.name ??
+                                                        "N/A"}
+                                                </TableCell>
+
+                                                {/* LogIn Date & Time */}
+                                                <TableCell>
+                                                    {log.created_at
+                                                        ? new Date(
+                                                              log.created_at
+                                                          ).toLocaleString(
+                                                              "en-PH",
+                                                              {
+                                                                  timeZone:
+                                                                      "Asia/Manila",
+                                                                  year: "numeric",
+                                                                  month: "numeric",
+                                                                  day: "numeric",
+                                                                  hour: "numeric",
+                                                                  minute: "2-digit",
+                                                                  hour12: true,
+                                                              }
+                                                          )
+                                                        : "—"}
+                                                </TableCell>
+
+                                                <TableCell>
+                                                    {log.logged_out_at
+                                                        ? new Date(
+                                                              log.logged_out_at
+                                                          ).toLocaleString(
+                                                              "en-PH",
+                                                              {
+                                                                  timeZone:
+                                                                      "Asia/Manila",
+                                                                  year: "numeric",
+                                                                  month: "numeric",
+                                                                  day: "numeric",
+                                                                  hour: "numeric",
+                                                                  minute: "2-digit",
+                                                                  hour12: true,
+                                                              }
+                                                          )
+                                                        : "—"}
+                                                </TableCell>
+
+                                                {/* Room */}
+                                                <TableCell>
+                                                    {log.room?.room_number ??
+                                                        "N/A"}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
                     </div>
                 </main>
             </SidebarInset>
