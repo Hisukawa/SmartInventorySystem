@@ -62,19 +62,33 @@ export default function ViewUnit({ unit }) {
             type: "image/svg+xml;charset=utf-8",
         });
         const url = URL.createObjectURL(blob);
+
         img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
+            const padding = 20; // padding around QR
+            const textHeight = 40; // space for labels
+            canvas.width = img.width + padding * 2;
+            canvas.height = img.height + padding * 2 + textHeight;
+
             const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0);
+            ctx.fillStyle = "#fff"; // background
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw QR
+            ctx.drawImage(img, padding, padding);
+
+            // Add labels below QR
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(
+                `Room ${unit.room?.room_number || ""} - ${unit.unit_code}`,
+                canvas.width / 2,
+                img.height + padding + 30
+            );
+
             URL.revokeObjectURL(url);
 
-            // 🔑 Format filename as Sentence Case
-            const formattedRoom = `Room-${unit.room_number}`;
-            const formattedUnit = `Unit-${unit.unit_code
-                .replace(/^unit[-_]?/i, "")
-                .replace(/^0+/, "0")}`;
-
+            // Filename: ROOM-101_PC-01.png
             const fileName = `ROOM-${unit.room?.room_number}_${unit.unit_code}.png`;
 
             const link = document.createElement("a");
@@ -146,22 +160,24 @@ export default function ViewUnit({ unit }) {
                             <strong>Condition:</strong> {unit.condition}
                         </div>
                         <div className="col-span-2 flex flex-col items-center mt-4">
-               <div
-                        className="bg-white p-2 rounded cursor-pointer hover:shadow-md transition"
-                        onClick={() => {
-                            handleQRCodeClick(
-                            route("units.public.show", { unit_path: unit.unit_path }),
-                            unit.room?.room_number || "room"
-                            );
-                        }}
-                        >
-                        <QRCode
-                            value={route("units.public.show", { unit_path: unit.unit_path })}
-                            size={128}
-                        />
-                        </div>
-
-             
+                            <div
+                                className="bg-white p-2 rounded cursor-pointer hover:shadow-md transition"
+                                onClick={() => {
+                                    handleQRCodeClick(
+                                        route("units.public.show", {
+                                            unit_path: unit.unit_path,
+                                        }),
+                                        unit.room?.room_number || "room"
+                                    );
+                                }}
+                            >
+                                <QRCode
+                                    value={route("units.public.show", {
+                                        unit_path: unit.unit_path,
+                                    })}
+                                    size={128}
+                                />
+                            </div>
 
                             <span className="mt-2 text-sm text-muted-foreground">
                                 Scan to view public info

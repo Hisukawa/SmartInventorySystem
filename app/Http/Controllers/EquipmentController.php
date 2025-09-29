@@ -113,25 +113,25 @@ class EquipmentController extends Controller
             return redirect()->route('equipments.index')->with('success', 'Equipment deleted successfully.');
         }
 
-   public function showRoomEquipments(Room $room, $equipmentId)
-{
-    $equipment = Equipment::findOrFail($equipmentId);
+    public function showRoomEquipments(Room $room, $equipmentId)
+    {
+        $equipment = Equipment::findOrFail($equipmentId);
 
-    if ($equipment->room_id !== $room->id) {
-        abort(404, 'Equipment not found in this room.');
+        if ($equipment->room_id !== $room->id) {
+            abort(404, 'Equipment not found in this room.');
+        }
+
+        $room->load(['equipments', 'systemUnits', 'peripherals']);
+
+        return Inertia::render('Faculty/FacultyEquipmentView', [
+            'room'        => $room,
+            'equipment'   => $equipment,
+            'user'        => Auth::user(),
+            'equipments'  => $room->equipments,
+            'systemUnits' => $room->systemUnits,
+            'peripherals' => $room->peripherals,
+        ]);
     }
-
-    $room->load(['equipments', 'systemUnits', 'peripherals']);
-
-    return Inertia::render('Faculty/FacultyEquipmentView', [
-        'room'        => $room,
-        'equipment'   => $equipment,
-        'user'        => Auth::user(),
-        'equipments'  => $room->equipments,
-        'systemUnits' => $room->systemUnits,
-        'peripherals' => $room->peripherals,
-    ]);
-}
 
     // ✅ Public equipment details by QR path
     public function showEquipmentsDetails($equipment_code)

@@ -16,6 +16,9 @@ use App\Observers\PeripheralObserver;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
 
+use App\Models\Equipment;
+use App\Observers\EquipmentObserver;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,5 +46,6 @@ class AppServiceProvider extends ServiceProvider
         Room::observe(RoomObserver::class);
         SystemUnit::observe(SystemUnitObserver::class);
         Peripheral::observe(PeripheralObserver::class);
+        Equipment::observe(EquipmentObserver::class);
     }
 }

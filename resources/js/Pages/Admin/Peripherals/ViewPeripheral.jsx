@@ -57,21 +57,55 @@ export default function ViewPeripheral({ peripheral }) {
         const url = DOMURL.createObjectURL(svgBlob);
 
         img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            DOMURL.revokeObjectURL(url);
+            const padding = 20; // padding around QR
+            const textHeight = 60; // space for 3 lines of text
+            canvas.width = img.width + padding * 2;
+            canvas.height = img.height + padding * 2 + textHeight;
 
-            const imgURI = canvas
-                .toDataURL("image/png")
-                .replace("image/png", "image/octet-stream");
+            // background
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // draw QR in center horizontally
+            const qrX = (canvas.width - img.width) / 2;
+            ctx.drawImage(img, qrX, padding);
+
+            // text values
             const roomNumber = selectedRoomNumber || "N/A";
             const unitCode = peripheral.unit?.unit_code || "N/A";
             const peripheralCode = peripheral.peripheral_code || "N/A";
+
+            ctx.fillStyle = "#000";
+            ctx.textAlign = "center";
+            ctx.font = "bold 18px Arial";
+
+            // line 1: Room
+            ctx.fillText(
+                `Room ${roomNumber}`,
+                canvas.width / 2,
+                img.height + padding + 20
+            );
+            // line 2: Unit
+            ctx.fillText(
+                `${unitCode}`,
+                canvas.width / 2,
+                img.height + padding + 40
+            );
+            // line 3: Peripheral
+            ctx.fillText(
+                `${peripheralCode}`,
+                canvas.width / 2,
+                img.height + padding + 60
+            );
+
+            DOMURL.revokeObjectURL(url);
+
+            // filename
+            const fileName = `ROOM-${roomNumber}_${unitCode}_${peripheralCode}-QR.png`;
+
             const link = document.createElement("a");
-            link.download = `ROOM-${roomNumber}_${unitCode}_${peripheralCode}-QR.png`;
-            link.href = imgURI;
+            link.download = fileName;
+            link.href = canvas.toDataURL("image/png");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

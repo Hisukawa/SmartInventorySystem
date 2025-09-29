@@ -9,7 +9,10 @@ class RoomEquipmentsSeeder extends Seeder
 {
     public function run(): void
     {
-        $rooms = DB::table('rooms')->get();
+        $rooms = DB::table('rooms')
+                ->whereIn('room_number', ['102', '201', '202', '203', '204'])
+                ->get();
+
 
         if ($rooms->isEmpty()) {
             $this->command->error('No rooms found! Please seed rooms first.');

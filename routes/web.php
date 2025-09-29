@@ -27,6 +27,7 @@ use App\Http\Controllers\RoomHistoryController;
 use App\Http\Controllers\SystemUnitHistoryController;
 use App\Http\Controllers\UserHistoryController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\EquipmentHistoryController;
 use App\Http\Controllers\FaceController;
 use App\Http\Controllers\PeripheralHistoryController;
 use App\Models\Equipment;
@@ -49,6 +50,10 @@ Route::get('/unit/{unit_path}', [SystemUnitController::class, 'showUnitsDetails'
 //Route to see all users peripherals details without logging in
 Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'showPeripheralsDetails'])
     ->name('peripherals.public.show');
+
+// ✅ Public (no login) route – by QR code
+Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
+    ->name('equipments.public.show');
 
 //Route to see all users equipment details without logging in
 
@@ -240,17 +245,21 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/peripherals-history', [PeripheralHistoryController::class, 'index'])->name('peripherals.history');
         Route::delete('/peripherals-history/{id}', [PeripheralHistoryController::class, 'destroy'])->name('peripherals-history.destroy');
 
+        // Equipment History
+        Route::get('/admin/equipment-history', [EquipmentHistoryController::class, 'index'])->name('equipment.history.index');
+        Route::delete('/equipment-history/{id}', [EquipmentHistoryController::class, 'destroy'])->name('equipment.history.destroy');
+
 
 
         //Admin Announcement
-    Route::get('/admin/announcement', [AnnouncementController::class, 'index'])
-            ->name('admin.announcement');
+        Route::get('/admin/announcement', [AnnouncementController::class, 'index'])
+                ->name('admin.announcement');
 
-    Route::post('/admin/announcement', [AnnouncementController::class, 'store'])->name('admin.announcement.store');
-    Route::get('/admin/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('announcement.edit');
-    Route::put('/admin/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcement.update');
-    Route::delete('/admin/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcement.destroy');
-    });
+        Route::post('/admin/announcement', [AnnouncementController::class, 'store'])->name('admin.announcement.store');
+        Route::get('/admin/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('announcement.edit');
+        Route::put('/admin/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcement.update');
+        Route::delete('/admin/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcement.destroy');
+        });
 
 
     // Shared QR scan route (works for any logged-in role)
@@ -264,7 +273,7 @@ Route::middleware(['auth'])->group(function () {
 // =======================================================================
 
     // Faculty-only routes
-Route::prefix('faculty')->middleware(['auth', 'role:faculty'])->group(function () {
+    Route::prefix('faculty')->middleware(['auth', 'role:faculty'])->group(function () {
 
         Route::get('/units', [SystemUnitController::class, 'index'])->name('units.index');
         Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
@@ -318,7 +327,7 @@ Route::prefix('faculty')->middleware(['auth', 'role:faculty'])->group(function (
 Route::middleware(['auth', 'role:technician'])->group(function () {
 
     // Dashboard
-    
+
   Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
     // Technician scanned room dashboard
@@ -377,23 +386,23 @@ Route::middleware(['auth', 'role:technician'])->group(function () {
 
         // Update peripheral
         Route::put('/technician/equipments/{id}', [TechnicianController::class, 'TechnicianUpdateEquipments'])->name('technician.equipments.update');
-            
+
         Route::delete(
         '/technician/equipments/{id}',
         [TechnicianController::class, 'technicianDeleteEquipment']
     )->name('technician.equipments.delete');
 
 
-    /* 
-    
+    /*
+
     //Route::get('/rooms', [TechnicianController::class, 'showRooms'])->name('technician.rooms');
     Route::post('/rooms', [TechnicianController::class, 'createRoom'])->name('technician.rooms.create');
     Route::put('/rooms/{id}', [TechnicianController::class, 'editRoom'])->name('technician.rooms.update');
     Route::delete('/rooms/{id}', [TechnicianController::class, 'deleteRoom'])->name('technician.rooms.delete');
 */
     // Rooms
-    
-    /*  
+
+    /*
      Route::get('/units', [TechnicianController::class, 'showAllUnits'])->name('technician.units');
     Route::post('/units', [TechnicianController::class, 'addSystemUnit'])->name('technician.units.create');
     Route::put('/units/{id}', [TechnicianController::class, 'editSystemUnit'])->name('technician.units.update');
@@ -414,7 +423,7 @@ Route::middleware(['auth', 'role:technician'])->group(function () {
     Route::delete('/equipments/{id}', [TechnicianController::class, 'deleteEquipment'])->name('technician.equipments.delete');
   */
 
-   
+
     // Dashboard APIs
     /*      Route::get('/dashboard-stats', [TechnicianController::class, "dashboardStats"])->name('technician.dashboard.stats');
     Route::get('/activity-logs', [TechnicianController::class, "activityLogs"])->name('technician.activity.logs');

@@ -185,13 +185,13 @@ class PeripheralController extends Controller
         ]);
     }
 
-    // ✅ Faculty view
+    // ✅ Users view
     public function showPeripherals(Room $room, $peripheralId)
     {
 
-        
+
         $room->load(['equipments', 'systemUnits', 'peripherals']);
-       $peripheral = Peripheral::with('unit')->findOrFail($peripheralId);
+        $peripheral = Peripheral::with('unit')->findOrFail($peripheralId);
 
         return Inertia::render('Faculty/FacultyPeripheralsView', [
             'room'        => $room,
