@@ -51,6 +51,10 @@ Route::get('/unit/{unit_path}', [SystemUnitController::class, 'showUnitsDetails'
 Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'showPeripheralsDetails'])
     ->name('peripherals.public.show');
 
+Route::get('/rooms/{room}/equipments/{equipmentId}', [RoomController::class, 'showRoomEquipments'])
+    ->name('rooms.public.equipments.show');
+
+
 //Route to see all users equipment details without logging in
 
 // Login page
@@ -315,7 +319,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'role:technician'])->group(function () {
 
     // Dashboard
-    
+
   Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
     // Technician scanned room dashboard
@@ -374,23 +378,23 @@ Route::middleware(['auth', 'role:technician'])->group(function () {
 
         // Update peripheral
         Route::put('/technician/equipments/{id}', [TechnicianController::class, 'TechnicianUpdateEquipments'])->name('technician.equipments.update');
-            
+
         Route::delete(
         '/technician/equipments/{id}',
         [TechnicianController::class, 'technicianDeleteEquipment']
     )->name('technician.equipments.delete');
 
 
-    /* 
-    
+    /*
+
     //Route::get('/rooms', [TechnicianController::class, 'showRooms'])->name('technician.rooms');
     Route::post('/rooms', [TechnicianController::class, 'createRoom'])->name('technician.rooms.create');
     Route::put('/rooms/{id}', [TechnicianController::class, 'editRoom'])->name('technician.rooms.update');
     Route::delete('/rooms/{id}', [TechnicianController::class, 'deleteRoom'])->name('technician.rooms.delete');
 */
     // Rooms
-    
-    /*  
+
+    /*
      Route::get('/units', [TechnicianController::class, 'showAllUnits'])->name('technician.units');
     Route::post('/units', [TechnicianController::class, 'addSystemUnit'])->name('technician.units.create');
     Route::put('/units/{id}', [TechnicianController::class, 'editSystemUnit'])->name('technician.units.update');
@@ -411,7 +415,7 @@ Route::middleware(['auth', 'role:technician'])->group(function () {
     Route::delete('/equipments/{id}', [TechnicianController::class, 'deleteEquipment'])->name('technician.equipments.delete');
   */
 
-   
+
     // Dashboard APIs
     /*      Route::get('/dashboard-stats', [TechnicianController::class, "dashboardStats"])->name('technician.dashboard.stats');
     Route::get('/activity-logs', [TechnicianController::class, "activityLogs"])->name('technician.activity.logs');
