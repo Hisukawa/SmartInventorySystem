@@ -61,7 +61,7 @@ class EquipmentHistorySeeder extends Seeder
         // --- Option 2: Generate N random records ---
         $components = ['Furniture', 'Appliances', 'Networking', 'Safety'];
         $actions = ['Created', 'Updated', 'Deleted'];
-        $rooms = [102, 103, 20, 202, 203, 204];
+        $rooms = [102, 201, 202, 203, 204];
         $users = [1, 2, 3, 4, 6, 7, 8, 9, 11];
 
         $numRecords = 50; // Change this to 15, 100, etc.

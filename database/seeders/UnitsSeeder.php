@@ -11,7 +11,7 @@ class UnitsSeeder extends Seeder
     {
         // Get all rooms (102–204)
         $rooms = DB::table('rooms')
-            ->whereIn('room_number', ['102', '103', '201', '202', '203', '204'])
+            ->whereIn('room_number', ['102', '201', '202', '203', '204'])
             ->get();
 
         if ($rooms->isEmpty()) {
