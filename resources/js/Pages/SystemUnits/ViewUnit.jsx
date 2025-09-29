@@ -29,7 +29,14 @@ export default function ViewUnit({ unit }) {
     const [copied, setCopied] = useState(false);
 
     // ✅ Always generate static Room 103 path
-    const qrValue = `http://localhost:8000/unit/isu-ilagan/ict-department/room-103/${unit.unit_code}`;
+    // Detect base URL dynamically
+    const baseUrl = window.location.origin;
+
+    // Conditional: Room 103 always static, others use DB value
+    const qrValue =
+        unit.room?.room_number === "103"
+            ? `${baseUrl}/unit/isu-ilagan/ict-department/room-103/${unit.unit_code}`
+            : `${baseUrl}/unit/isu-ilagan/ict-department/room-${unit.room?.room_number}/${unit.unit_code}`;
 
     const handleQRCodeClick = () => {
         setSelectedQR(qrValue);
