@@ -51,11 +51,6 @@ Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'show
     ->name('peripherals.public.show');
 
 //Route to see all users equipment details without logging in
-Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
-    ->name('equipment.public.show');
-Route::post('/face/register', [FaceController::class, 'register'])->name('face.register');
-Route::post('/login/face', [FaceController::class, 'login'])->name('login.face');
-
 
 // Login page
 Route::get('/login', function () {
@@ -68,9 +63,7 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::post('/webauthn/login/options', [WebAuthnController::class, 'loginOptions']);
-Route::post('/webauthn/login', [WebAuthnController::class, 'login']);
-Route::post('/webauthn/register/options', [WebAuthnController::class, 'registerOptions']);
-Route::post('/webauthn/register', [WebAuthnController::class, 'register']);
+
 
 
 // Auth routes (Laravel Breeze/Fortify/etc.)
@@ -119,6 +112,8 @@ Route::middleware(['auth'])->group(function () {
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
 
+// routes/api.php
+        Route::get('/admin/faculty-logs', [MonitoringController::class, 'facultyLogs'])->name('admin.logHistory.logs');
 
         Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
         Route::get('/admin/activity-logs', [AdminController::class, 'activityLogs']);
@@ -312,43 +307,113 @@ Route::prefix('faculty')->middleware(['auth', 'role:faculty'])->group(function (
 // =======================================================================
 //                           TECHNICIAN
 // =======================================================================
-Route::prefix('technician')->middleware(['auth', 'role:technician'])->group(function () {
+Route::middleware(['auth', 'role:technician'])->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
+    
+  Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
-    // Rooms
-    Route::get('/rooms', [TechnicianController::class, 'showRooms'])->name('technician.rooms');
+    // Technician scanned room dashboard
+    Route::get('/technician/{roomPath}/technician/dashboard', [TechnicianController::class, 'ShowTechnicianDashboard'])
+        ->where('roomPath', '.*')
+        ->name('technician.ScannedRoom.dashboard');
+
+    // Show scanned room
+    Route::get('/technician/{roomPath}/technician', [TechnicianController::class, 'ShowScannedRoom'])
+        ->where('roomPath', '.*')
+        ->name('technician.room.show');
+
+    Route::get('/technician/{room}/units/{unit}', [TechnicianController::class, 'TechnicianshowUnit'])
+            ->scopeBindings()
+            ->name('technician.units.show');
+
+        Route::get('/technician/{room}/peripherals/{peripheral}', [TechnicianController::class, 'showPeripherals'])
+            ->scopeBindings() // 🔹 Important
+            ->name('technician.peripherals.show');
+    Route::get('technician/{room}/equipments/{equipment}', [TechnicianController::class, 'TechnicianshowRoomEquipments'])
+        ->scopeBindings() // allows Equipment to be scoped under Room
+        ->name('technician.equipments.show');
+
+
+           Route::get('/technician/units/{unit}/edit', [TechnicianController::class, 'TechnicianEditUnit'])->name('technician.units.edit');
+
+
+        //Adding Assets
+        Route::put('/technician/units/{unit}', [TechnicianController::class, 'TechnicianUpdateUnits'])
+            ->name('technician.units.update');
+        Route::get('/technician/units/{unit}/edit', [TechnicianController::class, 'TechnicianEditUnits'])->name('technician.units.edit');
+        Route::get('/technician/units/create', [TechnicianController::class, 'TechnicianCreateComputer'])->name('technician.units.create');
+        Route::post('/technician/units', [TechnicianController::class, 'TechnicianStoreComputer'])->name('technician.units.store');
+        Route::delete('/technician/units/{id}', [TechnicianController::class, 'TechniciandeleteSystemUnit'])
+            ->name('technician.units.delete');
+        // Peripherals
+// Edit peripheral
+        Route::get('/technician/peripherals/{id}/edit', [TechnicianController::class, 'TechnicianEditPeripherals'])
+            ->name('technician.peripherals.edit');
+
+        // Update peripheral
+        Route::put('/technician/peripherals/{id}', [TechnicianController::class, 'TechnicianUpdatePeripherals'])
+            ->name('technician.peripherals.update');
+        Route::get('/technician/peripherals/create/', [TechnicianController::class, 'TechnicianCreatePeripherals'])->name('technician.peripherals.create');
+        Route::post('/technician/peripherals', [TechnicianController::class, 'TechnicianStorePeripherals'])->name('technician.peripherals.store');
+        Route::delete(
+    '/technician/peripherals/{id}',
+    [TechnicianController::class, 'DeletePeripheral']
+)->name('technician.peripherals.delete');
+
+        Route::get('/technician/equipments/{equipment}/edit', [TechnicianController::class, 'TechnicianEditEquipments'])->name('technician.equipments.edit');
+        Route::get('/technician/equipments/create', [TechnicianController::class, 'TechnicianCreateEquipments'])->name('technician.equipments.create');
+        Route::post('/technician/equipments', [TechnicianController::class, 'TechnicianStoreEquipments'])->name('technician.equipments.store');
+         Route::get('/technician/equipments/{id}/edit', [TechnicianController::class, 'TechnicianEditEquipments'])
+            ->name('technician.Equipments.edit');
+
+        // Update peripheral
+        Route::put('/technician/equipments/{id}', [TechnicianController::class, 'TechnicianUpdateEquipments'])->name('technician.equipments.update');
+            
+        Route::delete(
+        '/technician/equipments/{id}',
+        [TechnicianController::class, 'technicianDeleteEquipment']
+    )->name('technician.equipments.delete');
+
+
+    /* 
+    
+    //Route::get('/rooms', [TechnicianController::class, 'showRooms'])->name('technician.rooms');
     Route::post('/rooms', [TechnicianController::class, 'createRoom'])->name('technician.rooms.create');
     Route::put('/rooms/{id}', [TechnicianController::class, 'editRoom'])->name('technician.rooms.update');
     Route::delete('/rooms/{id}', [TechnicianController::class, 'deleteRoom'])->name('technician.rooms.delete');
-
-    // System Units
-    Route::get('/units', [TechnicianController::class, 'showAllUnits'])->name('technician.units');
+*/
+    // Rooms
+    
+    /*  
+     Route::get('/units', [TechnicianController::class, 'showAllUnits'])->name('technician.units');
     Route::post('/units', [TechnicianController::class, 'addSystemUnit'])->name('technician.units.create');
     Route::put('/units/{id}', [TechnicianController::class, 'editSystemUnit'])->name('technician.units.update');
-    Route::delete('/units/{id}', [TechnicianController::class, 'deleteSystemUnit'])->name('technician.units.delete');
-
-    // Peripherals
+    Route::delete('/units/{id}', [TechnicianController::class, 'deleteSystemUnit'])->name('technician.units.delete');*/
+    // System Units
+   /*  // Peripherals
     Route::get('/peripherals', [TechnicianController::class , 'showAllPeripherals'])->name('technician.peripherals');
     Route::get('/peripherals/create', [TechnicianController::class, 'createPeripherals'])->name('technician.peripherals.createForm');
     Route::post('/peripherals', [TechnicianController::class, 'addPeripheral'])->name('technician.peripherals.create');
     Route::put('/peripherals/{id}', [TechnicianController::class, 'updatePeripheral'])->name('technician.peripherals.update');
-    Route::delete('/peripherals/{id}', [TechnicianController::class, 'deletePeripheral'])->name('technician.peripherals.delete');
+    Route::delete('/peripherals/{id}', [TechnicianController::class, 'deletePeripheral'])->name('technician.peripherals.delete'); */
 
-    // Equipments
+   /* // Equipments
     Route::get('/equipments', [TechnicianController::class, 'showAllRoomEquipments'])->name('technician.equipments');
     Route::get('/equipments/create', [TechnicianController::class, 'createEquipments'])->name('technician.equipments.createForm');
     Route::post('/equipments', [TechnicianController::class, 'addEquipment'])->name('technician.equipments.create');
     Route::put('/equipments/{id}', [TechnicianController::class, 'updateEquipment'])->name('technician.equipments.update');
     Route::delete('/equipments/{id}', [TechnicianController::class, 'deleteEquipment'])->name('technician.equipments.delete');
+  */
 
+   
     // Dashboard APIs
-    Route::get('/dashboard-stats', [TechnicianController::class, "dashboardStats"])->name('technician.dashboard.stats');
+    /*      Route::get('/dashboard-stats', [TechnicianController::class, "dashboardStats"])->name('technician.dashboard.stats');
     Route::get('/activity-logs', [TechnicianController::class, "activityLogs"])->name('technician.activity.logs');
     Route::get('/rooms-status', [TechnicianController::class, "roomsStatus"])->name('technician.rooms.status');
     Route::get('/equipment-condition', [TechnicianController::class, "equipmentCondition"])->name('technician.equipment.condition');
-    Route::get('/equipment-condition-by-room', [TechnicianController::class, "equipmentConditionByRoom"])->name('technician.equipment.condition.by.room');
+    Route::get('/equipment-condition-by-room', [TechnicianController::class, "equipmentConditionByRoom"])->name('technician.equipment.condition.by.room');*/
+
 });
 
 
