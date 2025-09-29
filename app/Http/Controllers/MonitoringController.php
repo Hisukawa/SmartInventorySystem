@@ -40,7 +40,7 @@ public function facultyLogs(Request $request)
     $query = RoomStatus::with(['scannedBy:id,name', 'room:id,room_number'])
         ->orderBy('created_at', 'desc');
 
-    // 🔍 Search by faculty or room number
+    // 🔍 Search by faculty or room number (general search)
     if ($request->filled('search')) {
         $search = $request->search;
         $query->where(function ($q) use ($search) {
@@ -52,22 +52,30 @@ public function facultyLogs(Request $request)
         });
     }
 
-    // 🎯 Filter by faculty
-    if ($request->filled('faculty_id')) {
-        $query->where('scanned_by', $request->faculty_id);
+    // 🎓 Filter by Faculty Name
+    if ($request->filled('faculty_id')) { // change param name later if needed
+        $facultyName = $request->faculty_id;
+        $query->whereHas('scannedBy', function ($sub) use ($facultyName) {
+            $sub->where('name', 'like', "%{$facultyName}%");
+        });
     }
 
-    // 🎯 Filter by room
+    // 🏫 Filter by Room Number
     if ($request->filled('room_id')) {
-        $query->where('room_id', $request->room_id);
+        $roomNumber = $request->room_id;
+        $query->whereHas('room', function ($sub) use ($roomNumber) {
+            $sub->where('room_number', 'like', "%{$roomNumber}%");
+        });
     }
 
-    // 📅 Filter by date range
-    if ($request->filled('date_from') && $request->filled('date_to')) {
-        $query->whereBetween('created_at', [
-            $request->date_from . ' 00:00:00',
-            $request->date_to . ' 23:59:59',
-        ]);
+    // 📅 Date From
+    if ($request->filled('date_from')) {
+        $query->whereDate('created_at', '>=', $request->date_from);
+    }
+
+    // 📅 Date To
+    if ($request->filled('date_to')) {
+        $query->whereDate('created_at', '<=', $request->date_to);
     }
 
     $logs = $query->paginate(10);
