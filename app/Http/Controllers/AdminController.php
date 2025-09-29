@@ -92,7 +92,10 @@ class AdminController extends Controller
                 'is_active'       => $isActive,
                 'last_scanned_by' => $room->latestStatus?->scannedBy?->name,
                 'last_scanned_at' => $room->latestStatus?->created_at,
-                'faculty_photo'   => $room->latestStatus?->scannedBy?->photo,
+                'faculty_photo' => $room->latestStatus?->scannedBy?->photo
+                    ? asset('storage/' . $room->latestStatus->scannedBy->photo)
+                    : null,
+
             ];
         }
 
