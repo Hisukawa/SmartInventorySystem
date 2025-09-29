@@ -46,7 +46,7 @@ export default function GuestUnitView({ room, unit, user }) {
                     />
                     {/* Drawer */}
                     <div className="relative z-50 w-64 bg-white shadow-lg">
-                        <FacultyRoomSidebar
+                        <GuestRoomSidebar
                             room={room}
                             user={user}
                             onSelect={(section) => {
@@ -92,7 +92,7 @@ export default function GuestUnitView({ room, unit, user }) {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <DetailItem
                                     icon={Monitor}
-                                    label="Unit Code"
+                                    label="Pc Code"
                                     value={unit.unit_code}
                                 />
                                 <DetailItem

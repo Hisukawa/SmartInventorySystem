@@ -32,6 +32,8 @@ public function show($room_path)
 
 public function showUnit($roomId, $unitId)
 {
+
+    
     $room = Room::findOrFail($roomId);
     $unit = $room->systemUnits()->findOrFail($unitId);
 

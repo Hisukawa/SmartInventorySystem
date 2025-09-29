@@ -22,6 +22,7 @@ import {
     ChevronRight,
     Box,
     FileText,
+    Megaphone,
 } from "lucide-react";
 
 import { NavSecondary } from "@/components/nav-secondary";
@@ -101,6 +102,11 @@ const data = {
             title: "User Lists",
             url: "/admin/users",
             icon: User,
+        },
+          {
+            title: "Announcements",
+            url: "/admin/announcement",
+            icon: Megaphone, // 📢 Icon for announcements
         },
     ],
     navSecondary: [],

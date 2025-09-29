@@ -47,6 +47,7 @@ export default function FacultyDashboard({
     user,
     activeRooms = [],
     summary = {},
+      announcements = [],
 }) {
     const [showAll, setShowAll] = useState(false);
     const roomsToShow = showAll ? activeRooms : activeRooms.slice(0, 2);
@@ -135,6 +136,7 @@ export default function FacultyDashboard({
                                 <CheckCircle className="w-8 h-8 text-emerald-600" />
                             </CardContent>
                         </Card>
+                        
                     </div>
 
                     {/* === Content Area: Left & Right === */}
@@ -204,6 +206,40 @@ export default function FacultyDashboard({
                                     </CardFooter>
                                 )}
                             </Card>
+                                <Card className="rounded-2xl shadow-md bg-white">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                📢 Announcements
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {announcements.length === 0 ? (
+                                <p className="text-gray-500 text-sm text-center">
+                                    No announcements yet
+                                </p>
+                            ) : (
+                                announcements.map((a) => (
+                                    <div
+                                        key={a.id}
+                                        className="border-b pb-3 last:border-b-0"
+                                    >
+                                        <h3 className="font-semibold text-gray-800">
+                                            {a.title}
+                                        </h3>
+                                        <p className="text-sm text-gray-600">
+                                            {a.message}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            By {a.created_by_name} •{" "}
+                                            {new Date(
+                                                a.created_at
+                                            ).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                ))
+                            )}
+                        </CardContent>
+                    </Card>
                         </div>
 
                         {/* RIGHT SIDE: Charts */}

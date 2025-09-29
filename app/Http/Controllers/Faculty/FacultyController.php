@@ -16,72 +16,80 @@ class FacultyController extends \App\Http\Controllers\Controller
 
 
     //Function for Faculty Dashboard
-    public function dashboard()
-    {
-        $user = Auth::user();
+ public function dashboard()
+{
+    $user = Auth::user();
 
-        // === Active rooms with faculty info ===
-        $activeRooms = RoomStatus::where('is_active', 1)
-            ->with(['room', 'faculty'])
-            ->orderBy('updated_at', 'desc')
-            ->get()
-            ->map(function ($status) {
-                return [
-                    'room_number'   => $status->room->room_number,
-                    'room_id'       => $status->room->id,
-                    'faculty_name'  => $status->faculty->name ?? 'Unknown',
-                    'faculty_photo' => $status->faculty->photo ?? null,
-                    'scanned_at'    => $status->updated_at,
-                ];
-            });
-
-        // === Room Stats ===
-        $totalRooms     = Room::count();
-        $occupiedRooms  = RoomStatus::where('is_active', 1)->count();
-        $availableRooms = $totalRooms - $occupiedRooms;
-
-        // === Item Counts ===
-      $systemUnitsTotal = DB::table('system_units')->count();
-$peripheralsTotal = DB::table('peripherals')->count();
-$equipmentsTotal  = DB::table('equipments')->count();
-
-
-        $totalItems = $systemUnitsTotal + $peripheralsTotal + $equipmentsTotal;
-
-        // === Dynamic Equipment Conditions ===
-        $conditions = \DB::table('system_units')->select('condition')->distinct()
-            ->union(\DB::table('peripherals')->select('condition')->distinct())
-            ->union(\DB::table('equipments')->select('condition')->distinct())
-            ->pluck('condition')
-            ->filter()
-            ->unique()
-            ->values(); // reset array keys
-
-        $conditionCounts = $conditions->map(function ($condition) {
+    // === Active rooms with faculty info ===
+    $activeRooms = RoomStatus::where('is_active', 1)
+        ->with(['room', 'faculty'])
+        ->orderBy('updated_at', 'desc')
+        ->get()
+        ->map(function ($status) {
             return [
-                'name'  => $condition,
-                'value' =>
-                    \DB::table('system_units')->where('condition', $condition)->count()
-                + \DB::table('peripherals')->where('condition', $condition)->count()
-                + \DB::table('equipments')->where('condition', $condition)->count(),
+                'room_number'   => $status->room->room_number,
+                'room_id'       => $status->room->id,
+                'faculty_name'  => $status->faculty->name ?? 'Unknown',
+                'faculty_photo' => $status->faculty->photo ?? null,
+                'scanned_at'    => $status->updated_at,
             ];
         });
 
-        return Inertia::render('Faculty/FacultyDashboard', [
-            'user'        => $user,
-            'activeRooms' => $activeRooms,
-            'summary'     => [
-                'totalRooms'       => $totalRooms,
-                'availableRooms'   => $availableRooms,
-                'occupiedRooms'    => $occupiedRooms,
-                'totalItems'       => $totalItems,
-                'systemUnitsTotal' => $systemUnitsTotal,
-                'peripheralsTotal' => $peripheralsTotal,
-                'equipmentsTotal'  => $equipmentsTotal,
-                'conditions'       => $conditionCounts, // ✅ dynamic values
-            ],
-        ]);
-    }
+    // === Room Stats ===
+    $totalRooms     = Room::count();
+    $occupiedRooms  = RoomStatus::where('is_active', 1)->count();
+    $availableRooms = $totalRooms - $occupiedRooms;
+
+    // === Item Counts ===
+    $systemUnitsTotal = DB::table('system_units')->count();
+    $peripheralsTotal = DB::table('peripherals')->count();
+    $equipmentsTotal  = DB::table('equipments')->count();
+    $totalItems = $systemUnitsTotal + $peripheralsTotal + $equipmentsTotal;
+
+    // === Dynamic Equipment Conditions ===
+    $conditions = \DB::table('system_units')->select('condition')->distinct()
+        ->union(\DB::table('peripherals')->select('condition')->distinct())
+        ->union(\DB::table('equipments')->select('condition')->distinct())
+        ->pluck('condition')
+        ->filter()
+        ->unique()
+        ->values();
+
+    $conditionCounts = $conditions->map(function ($condition) {
+        return [
+            'name'  => $condition,
+            'value' =>
+                \DB::table('system_units')->where('condition', $condition)->count()
+                + \DB::table('peripherals')->where('condition', $condition)->count()
+                + \DB::table('equipments')->where('condition', $condition)->count(),
+        ];
+    });
+
+    // === Get Announcements (latest first) ===
+    $announcements = \DB::table('announcements')
+        ->join('users', 'announcements.created_by', '=', 'users.id')
+        ->select('announcements.*', 'users.name as created_by_name')
+        ->orderBy('announcements.created_at', 'desc')
+        ->limit(5) // show latest 5
+        ->get();
+
+    return Inertia::render('Faculty/FacultyDashboard', [
+        'user'          => $user,
+        'activeRooms'   => $activeRooms,
+        'summary'       => [
+            'totalRooms'       => $totalRooms,
+            'availableRooms'   => $availableRooms,
+            'occupiedRooms'    => $occupiedRooms,
+            'totalItems'       => $totalItems,
+            'systemUnitsTotal' => $systemUnitsTotal,
+            'peripheralsTotal' => $peripheralsTotal,
+            'equipmentsTotal'  => $equipmentsTotal,
+            'conditions'       => $conditionCounts,
+        ],
+        'announcements' => $announcements,
+    ]);
+}
+
 
 
     public function showRoom()
@@ -179,92 +187,111 @@ $equipmentsTotal  = DB::table('equipments')->count();
         ]);
     }
 
-    public function ShowScannedRoom(Request $request, $encodedRoomPath){
-  $roomPath = urldecode($encodedRoomPath);
-        $room     = Room::where('room_path', $roomPath)->firstOrFail();
-        $user     = Auth::user();
+ public function ShowScannedRoom(Request $request, $encodedRoomPath)
+{
+    $roomPath = urldecode($encodedRoomPath);
+    $room     = Room::where('room_path', $roomPath)->firstOrFail();
+    $user     = Auth::user();
 
-        RoomStatus::updateOrCreate(
-            ['room_id' => $room->id],
-            ['scanned_by' => $user?->id, 'is_active' => 1]
-        );
+    RoomStatus::updateOrCreate(
+        ['room_id' => $room->id],
+        ['scanned_by' => $user?->id, 'is_active' => 1]
+    );
 
-        $condition = $request->query('condition');
-        $unitCode  = $request->query('unit_code');
-        $search    = $request->query('search');
+    $condition = $request->query('condition');
+    $unitCode  = $request->query('unit_code');
+    $search    = $request->query('search');
+    $type      = $request->query('type');
 
-        $equipments = Equipment::with('room')
-            ->where('room_id', $room->id)
-            ->when($condition, fn($q) => $q->where('condition', $condition))
-            ->when($search, fn($q) => $q->where('equipment_code', 'like', "%$search%"))
-            ->get()
-            ->map(fn($e) => [
-                'id' => $e->id,
-                'name' => $e->equipment_code,
-                'condition' => $e->condition ?? 'Good',
-                'type' => $e->type,
-                'room_path' => $room->room_path,
-                'room_number' => $e->room?->room_number,
-            ]);
-
-        $systemUnits = SystemUnit::where('room_id', $room->id)
-            ->when($condition, fn($q) => $q->where('condition', $condition))
-            ->when($unitCode, fn($q) => $q->where('unit_code', $unitCode))
-            ->when($search, fn($q) => $q->where('unit_code', 'like', "%$search%"))
-            ->get()
-            ->map(fn($s) => [
-                'id' => $s->id,
-                'name' => $s->unit_code,
-                'condition' => $s->condition ?? 'Good',
-                'room_path' => $room->room_path,
-            ]);
-
-        $peripherals = Peripheral::with('unit')
-            ->where('room_id', $room->id)
-            ->when($condition, fn($q) => $q->where('condition', $condition))
-            ->when($unitCode, fn($q) => $q->whereHas('unit', fn($sub) => $sub->where('unit_code', $unitCode)))
-            ->when($search, fn($q) => $q->where('peripheral_code', 'like', "%$search%"))
-            ->get()
-            ->map(fn($p) => [
-                'id' => $p->id,
-                'name' => $p->peripheral_code,
-                'condition' => $p->condition ?? 'Good',
-                'type' => $p->type,
-                'room_path' => $room->room_path,
-                'unit_code' => $p->unit?->unit_code,
-            ]);
-
-        $conditionOptions = collect()
-            ->merge(Equipment::select('condition')->distinct()->pluck('condition'))
-            ->merge(SystemUnit::select('condition')->distinct()->pluck('condition'))
-            ->merge(Peripheral::select('condition')->distinct()->pluck('condition'))
-            ->unique()
-            ->filter()
-            ->values();
-
-        $unitCodeOptions = SystemUnit::where('room_id', $room->id)
-            ->select('unit_code')
-            ->distinct()
-            ->pluck('unit_code');
-
-        return Inertia::render('Faculty/FacultyRoomView', [
-            'room' => $room,
-            'equipments' => $equipments,
-            'systemUnits' => $systemUnits,
-            'peripherals' => $peripherals,
-            'filters' => [
-                'condition' => $condition,
-                'unit_code' => $unitCode,
-                'search' => $search,
-            ],
-            'filterOptions' => [
-                'conditions' => $conditionOptions,
-                'unit_codes' => $unitCodeOptions,
-            ],
-            'auth' => ['user' => $user],
-            'section' => $request->query('section', 'dashboard'),
+    // Equipments
+    $equipments = Equipment::with('room')
+        ->where('room_id', $room->id)
+        ->when($condition, fn($q) => $q->where('condition', $condition))
+        ->when($type, fn($q) => $q->where('type', $type))
+        ->when($search, fn($q) => $q->where('equipment_code', 'like', "%$search%"))
+        ->get()
+        ->map(fn($e) => [
+            'id' => $e->id,
+            'name' => $e->equipment_code,
+            'condition' => $e->condition ?? 'Good',
+            'type' => $e->type,
+            'room_path' => $room->room_path,
+            'room_number' => $e->room?->room_number,
         ]);
-    }
+
+    // System Units
+    $systemUnits = SystemUnit::where('room_id', $room->id)
+        ->when($condition, fn($q) => $q->where('condition', $condition))
+        ->when($unitCode, fn($q) => $q->where('unit_code', $unitCode))
+        ->when($search, fn($q) => $q->where('unit_code', 'like', "%$search%"))
+        ->get()
+        ->map(fn($s) => [
+            'id' => $s->id,
+            'name' => $s->unit_code,
+            'condition' => $s->condition ?? 'Good',
+            'room_path' => $room->room_path,
+        ]);
+
+    // Peripherals
+    $peripherals = Peripheral::with('unit')
+        ->where('room_id', $room->id)
+        ->when($condition, fn($q) => $q->where('condition', $condition))
+       ->when($type, fn($q) => $q->where('type', $type))
+->when($unitCode, fn($q) => $q->whereHas('unit', fn($sub) => $sub->where('unit_code', $unitCode)))
+        ->when($search, fn($q) => $q->where('peripheral_code', 'like', "%$search%"))
+        ->get()
+        ->map(fn($p) => [
+            'id' => $p->id,
+            'name' => $p->peripheral_code,
+            'condition' => $p->condition ?? 'Good',
+            'type' => $p->type,
+            'room_path' => $room->room_path,
+            'unit_code' => $p->unit?->unit_code,
+        ]);
+
+    // Filter options
+    $conditionOptions = collect()
+        ->merge(Equipment::select('condition')->distinct()->pluck('condition'))
+        ->merge(SystemUnit::select('condition')->distinct()->pluck('condition'))
+        ->merge(Peripheral::select('condition')->distinct()->pluck('condition'))
+        ->unique()
+        ->filter()
+        ->values();
+
+    $unitCodeOptions = SystemUnit::where('room_id', $room->id)
+        ->select('unit_code')
+        ->distinct()
+        ->pluck('unit_code');
+
+    // NEW: Type options
+    $typeOptions = collect()
+        ->merge(Equipment::select('type')->distinct()->pluck('type'))
+        ->merge(Peripheral::select('type')->distinct()->pluck('type'))
+        ->unique()
+        ->filter()
+        ->values();
+
+    return Inertia::render('Faculty/FacultyRoomView', [
+        'room' => $room,
+        'equipments' => $equipments,
+        'systemUnits' => $systemUnits,
+        'peripherals' => $peripherals,
+        'filters' => [
+            'condition' => $condition,
+            'unit_code' => $unitCode,
+            'type' => $type, // pass the type filter
+            'search' => $search,
+        ],
+        'filterOptions' => [
+            'conditions' => $conditionOptions,
+            'unit_codes' => $unitCodeOptions,
+            'types' => $typeOptions, // pass types to frontend
+        ],
+        'auth' => ['user' => $user],
+        'section' => $request->query('section', 'dashboard'),
+    ]);
+}
+
 public function ShowFacultyDashboard($encodedRoomPath)
 {
     $roomPath = urldecode($encodedRoomPath);

@@ -57,29 +57,11 @@ const data = {
     ],
 
     navSecondary: [
-        {
-            title: "Feedback",
-            url: "/technician/feedback",
-            icon: Send,
-        },
-        {
-            title: "Profile",
-            url: "/technician/profile",
-            icon: User,
-        },
+      
     ],
 
     projects: [
-        {
-            name: "Maintenance Tasks",
-            url: "#",
-            icon: Boxes,
-        },
-        {
-            name: "Repair Logs",
-            url: "#",
-            icon: Home,
-        },
+     
     ],
 };
 

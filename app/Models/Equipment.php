@@ -28,14 +28,15 @@ class Equipment extends Model
         return static::select('condition')->distinct()->pluck('condition');
     }
 
-    public function getRouteKeyName()
-    {
-        if (request()->routeIs('faculty.*')) {
-            return 'id'; // Faculty uses primary key
-        }
-
-        return 'equipment_code'; // Admin uses equipment_code
+public function getRouteKeyName()
+{
+    if (request()->routeIs('faculty.*') || request()->routeIs('guest.*')) {
+        return 'id';
     }
+
+
+    return 'equipment_code'; // Admin
+}
 
 
 

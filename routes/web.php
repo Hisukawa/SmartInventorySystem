@@ -26,7 +26,7 @@ use App\Http\Controllers\Reports;
 use App\Http\Controllers\RoomHistoryController;
 use App\Http\Controllers\SystemUnitHistoryController;
 use App\Http\Controllers\UserHistoryController;
-
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\FaceController;
 use App\Http\Controllers\PeripheralHistoryController;
 use App\Models\Equipment;
@@ -236,6 +236,17 @@ Route::middleware(['auth'])->group(function () {
         // Peripheral History
         Route::get('/admin/peripherals-history', [PeripheralHistoryController::class, 'index'])->name('peripherals.history');
         Route::delete('/peripherals-history/{id}', [PeripheralHistoryController::class, 'destroy'])->name('peripherals-history.destroy');
+
+
+
+        //Admin Announcement
+    Route::get('/admin/announcement', [AnnouncementController::class, 'index'])
+            ->name('admin.announcement');
+
+    Route::post('/admin/announcement', [AnnouncementController::class, 'store'])->name('admin.announcement.store');
+    Route::get('/admin/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('announcement.edit');
+    Route::put('/admin/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcement.update');
+    Route::delete('/admin/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcement.destroy');
     });
 
 
@@ -250,7 +261,7 @@ Route::middleware(['auth'])->group(function () {
 // =======================================================================
 
     // Faculty-only routes
-    Route::middleware(['auth', 'role:faculty'])->group(function () {
+Route::prefix('faculty')->middleware(['auth', 'role:faculty'])->group(function () {
 
         Route::get('/units', [SystemUnitController::class, 'index'])->name('units.index');
         Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
@@ -361,16 +372,16 @@ Route::middleware(['auth', 'role:guest'])->group(function () {
         ->where('roomPath', '.*')
         ->name('guest.ScannedRoom.dashboard'); // <-- fix
 
-    Route::get('/guest/{room}/units/{unit}', [GuestDashboardController::class, 'showUnit'])
+    Route::get('/{room}/units/{unit}', [GuestDashboardController::class, 'GuestshowUnit'])
+        ->scopeBindings()
         ->name('guest.units.show');
 
-Route::get('/guest/{room}/peripherals/{peripheral}', [GuestDashboardController::class, 'showPeripherals'])
-    ->scopeBindings() // 🔹 Important
-    ->name('guest.peripherals.show');
-
-    Route::get('/guest/{room}/equipments/{equipment}', [GuestDashboardController::class, 'showRoomEquipments'])
-        ->scopeBindings()
-        ->name('guest.equipments.show');
+    Route::get('/{room}/peripherals/{peripheral}', [GuestDashboardController::class, 'showPeripherals'])
+        ->scopeBindings() // 🔹 Important
+        ->name('guest.peripherals.show');
+Route::get('{room}/equipments/{equipment}', [GuestDashboardController::class, 'GuestshowRoomEquipments'])
+    ->scopeBindings() // allows Equipment to be scoped under Room
+    ->name('guest.equipments.show');
 });
 
 
