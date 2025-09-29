@@ -51,9 +51,9 @@ Route::get('/unit/{unit_path}', [SystemUnitController::class, 'showUnitsDetails'
 Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'showPeripheralsDetails'])
     ->name('peripherals.public.show');
 
-Route::get('/rooms/{room}/equipments/{equipmentId}', [RoomController::class, 'showRoomEquipments'])
-    ->name('rooms.public.equipments.show');
-
+// ✅ Public (no login) route – by QR code
+Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
+    ->name('equipments.public.show');
 
 //Route to see all users equipment details without logging in
 
