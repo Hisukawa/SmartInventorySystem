@@ -267,7 +267,7 @@ Route::prefix('faculty')->middleware(['auth', 'role:faculty'])->group(function (
         Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
 
         // Faculty dashboard
-        Route::get('/faculty/dashboard', [FacultyController::class, 'dashboard'])
+        Route::get('/dashboard', [FacultyController::class, 'dashboard'])
             ->name('faculty.dashboard');
 
         Route::get('/faculty-room-dashboard', [FacultyController::class, 'showRoom'])->name('faculty.rooms.dashboard');
