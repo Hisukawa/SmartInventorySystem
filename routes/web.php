@@ -27,6 +27,7 @@ use App\Http\Controllers\RoomHistoryController;
 use App\Http\Controllers\SystemUnitHistoryController;
 use App\Http\Controllers\UserHistoryController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\EquipmentHistoryController;
 use App\Http\Controllers\FaceController;
 use App\Http\Controllers\PeripheralHistoryController;
 use App\Models\Equipment;
@@ -237,17 +238,21 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/peripherals-history', [PeripheralHistoryController::class, 'index'])->name('peripherals.history');
         Route::delete('/peripherals-history/{id}', [PeripheralHistoryController::class, 'destroy'])->name('peripherals-history.destroy');
 
+        // Equipment History
+        Route::get('/admin/equipment-history', [EquipmentHistoryController::class, 'index'])->name('equipment.history.index');
+        Route::delete('/equipment-history/{id}', [EquipmentHistoryController::class, 'destroy'])->name('equipment.history.destroy');
+
 
 
         //Admin Announcement
-    Route::get('/admin/announcement', [AnnouncementController::class, 'index'])
-            ->name('admin.announcement');
+        Route::get('/admin/announcement', [AnnouncementController::class, 'index'])
+                ->name('admin.announcement');
 
-    Route::post('/admin/announcement', [AnnouncementController::class, 'store'])->name('admin.announcement.store');
-    Route::get('/admin/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('announcement.edit');
-    Route::put('/admin/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcement.update');
-    Route::delete('/admin/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcement.destroy');
-    });
+        Route::post('/admin/announcement', [AnnouncementController::class, 'store'])->name('admin.announcement.store');
+        Route::get('/admin/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('announcement.edit');
+        Route::put('/admin/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcement.update');
+        Route::delete('/admin/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcement.destroy');
+        });
 
 
     // Shared QR scan route (works for any logged-in role)
@@ -261,7 +266,7 @@ Route::middleware(['auth'])->group(function () {
 // =======================================================================
 
     // Faculty-only routes
-Route::prefix('faculty')->middleware(['auth', 'role:faculty'])->group(function () {
+    Route::prefix('faculty')->middleware(['auth', 'role:faculty'])->group(function () {
 
         Route::get('/units', [SystemUnitController::class, 'index'])->name('units.index');
         Route::post('/units', [SystemUnitController::class, 'store'])->name('units.store');
