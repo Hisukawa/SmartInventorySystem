@@ -12,20 +12,20 @@ import {
     ArrowLeft,
 } from "lucide-react";
 
-import FacultyRoomSidebar from "@/Components/Guest-Component/guest-room-view.sidebar";
+import GuestRoomSidebar from "@/Components/Guest-Component/guest-room-view.sidebar";
 
-export default function GuestRoomEquipmentView({ room, equipment, user }) {
+export default function GuestEquipmentView({ room, equipment, user }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
         <div className="flex min-h-screen bg-gray-50 overflow-hidden">
             {/* Sidebar - Desktop */}
             <div className="hidden md:flex">
-                <FacultyRoomSidebar
+                <GuestRoomSidebar
                     room={room}
                     user={user}
                     onSelect={(section) => {
-                        window.location.href = route("room.show", {
+                        window.location.href = route("guest.room.show", {
                             roomPath: room.room_path,
                             section: section,
                         });

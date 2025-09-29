@@ -330,7 +330,7 @@ export default function EquipmentIndex({
                                          
                                             <TableHead>Condition</TableHead>
                                             <TableHead>Room</TableHead>
-                                            <TableHead>Actions</TableHead>
+                                           <TableHead className="text-center whitespace-nowrap">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -351,40 +351,40 @@ export default function EquipmentIndex({
                                                         {e.room ? `ROOM ${e.room.room_number}` : "N/A"}
                                                     </TableCell>
                                                     <TableCell className="text-center">
-  <div className="hidden sm:flex gap-2 justify-center">
-    {/* View Button */}
-    <Link href={`/technician/equipments/${e.id}`}>
-      <Button
-        size="sm"
-        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-      >
-        <Eye className="h-4 w-4" />
-        View
-      </Button>
-    </Link>
+                                                <div className="hidden sm:flex gap-2 justify-center">
+                                                    {/* View Button */}
+                                                    <Link href={`/technician/equipments/${e.id}`}>
+                                                    <Button
+                                                        size="sm"
+                                                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                        View
+                                                    </Button>
+                                                    </Link>
 
-    {/* Edit Button */}
-    <Button
-      size="sm"
-      className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-      onClick={() => setEditEquipment(e)}
-    >
-      <Edit2 className="h-4 w-4" />
-      Edit
-    </Button>
+                                                    {/* Edit Button */}
+                                                    <Button
+                                                    size="sm"
+                                                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                    onClick={() => setEditEquipment(e)}
+                                                    >
+                                                    <Edit2 className="h-4 w-4" />
+                                                    Edit
+                                                    </Button>
 
-    {/* Delete Button */}
-    <Button
-      size="sm"
-      variant="destructive"
-      className="flex items-center gap-2"
-      onClick={() => handleDelete(e.id)}
-    >
-      <Trash2 className="h-4 w-4" />
-      Delete
-    </Button>
-  </div>
-</TableCell>
+                                                    {/* Delete Button */}
+                                                    <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    className="flex items-center gap-2"
+                                                    onClick={() => handleDelete(e.id)}
+                                                    >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    Delete
+                                                    </Button>
+                                                </div>
+                                                </TableCell>
 
                                                 </TableRow>
                                             ))

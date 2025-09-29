@@ -85,6 +85,13 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
             setSelectedField("unit_code");
             setSelectedValue(filters.unit_code);
         }
+        else if (
+    filters.type &&
+    (activeSection === "peripherals" || activeSection === "equipments")
+) {
+    setSelectedField("type");
+    setSelectedValue(filters.type);
+}
     }, [filters, activeSection]);
 
     // Trigger filter immediately on change
@@ -96,25 +103,41 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
             onApplyFilters(newValue, filters.unit_code, filters.search);
         } else if (selectedField === "unit_code") {
             onApplyFilters(filters.condition, newValue, filters.search);
-        }
+        }else if (selectedField === "type") {
+    onApplyFilters(filters.condition, filters.unit_code, newValue, filters.search);
+}
+
     };
 
-    const handleReset = () => {
-        setSelectedField("");
-        setSelectedValue("");
-        onApplyFilters("", "", filters.search); // reset all filters except search
-    };
+   const handleReset = () => {
+    setSelectedField("");
+    setSelectedValue("");
+    onApplyFilters(
+        "",                 // condition
+        "",                 // unit_code
+        filters.search || "", // search
+        ""                  // type
+    );
+};
 
-    const getAvailableFields = () => {
-        const fields = [{ value: "condition", label: "Condition" }];
-        if (
-            activeSection === "system-units" ||
-            activeSection === "peripherals"
-        ) {
-            fields.push({ value: "unit_code", label: "Unit Code" });
-        }
-        return fields;
-    };
+ const getAvailableFields = () => {
+    const fields = [{ value: "condition", label: "Condition" }];
+
+    if (activeSection === "system-units" || activeSection === "peripherals") {
+        fields.push({ value: "unit_code", label: "Unit Code" });
+    }
+
+    if (
+      
+        activeSection === "peripherals" ||
+        activeSection === "equipments"
+    ) {
+        fields.push({ value: "type", label: "Type" });
+    }
+
+    return fields;
+};
+
 
     return (
         <Popover>
@@ -206,29 +229,59 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                                 </SelectContent>
                             </Select>
                         )}
+        {selectedField === "type" &&
+    (activeSection === "equipments" || activeSection === "peripherals") && (
+    <Select
+        value={selectedValue || "all"}
+        onValueChange={(val) => {
+            const newValue = val === "all" ? "" : val;
+            setSelectedValue(newValue);
+            onApplyFilters(
+                filters.condition,
+                filters.unit_code,
+                filters.search,
+                newValue // type
+            );
+        }}
+    >
+        <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select Type" />
+        </SelectTrigger>
+        <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            {filterOptions.types?.map((t) => (
+                <SelectItem key={t} value={t}>
+                    {t}
+                </SelectItem>
+            ))}
+        </SelectContent>
+    </Select>
+)}
+
 
                     {/* ✅ Reset Button now works for system-units & peripherals */}
-                    {(filters.condition ||
-                        ((activeSection === "system-units" ||
-                            activeSection === "peripherals") &&
-                            filters.unit_code)) && (
-                        <div className="flex justify-end">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleReset}
-                                className="flex items-center gap-1 text-red-600 hover:bg-red-50 w-auto"
-                            >
-                                <X className="h-4 w-4" />
-                                Reset
-                            </Button>
-                        </div>
-                    )}
+                  {(filters.condition ||
+  ((activeSection === "system-units" || activeSection === "peripherals") && filters.unit_code) ||
+  ((activeSection === "equipments" || activeSection === "peripherals") && filters.type)) && (
+    <div className="flex justify-end">
+        <Button
+            size="sm"
+            variant="outline"
+            onClick={handleReset}
+            className="flex items-center gap-1 text-red-600 hover:bg-red-50 w-auto"
+        >
+            <X className="h-4 w-4" />
+            Reset
+        </Button>
+    </div>
+)}
+
                 </div>
             </PopoverContent>
         </Popover>
     );
 }
+
 
 export default function GuestRoomView({
     room,
@@ -237,7 +290,7 @@ export default function GuestRoomView({
     peripherals,
     section,
     filters = {}, // ✅ default to empty object
-    filterOptions = { conditions: [], unit_codes: [] }, // ✅ safe default
+   filterOptions = { conditions: [], unit_codes: [], types: [] }
 }) {
     const { auth } = usePage().props;
 
@@ -279,45 +332,24 @@ export default function GuestRoomView({
         setSearch(filters.search || "");
     }, [activeSection, filters]);
 
-    const applyFilters = (
-        newCondition = condition,
-        newUnitCode = unitCode,
-        newSearch = search
-    ) => {
-        const params = new URLSearchParams({
-            section: activeSection,
-        });
-
-        // Only add parameters if they have a non-empty value
-        if (newCondition) {
-            params.append("condition", newCondition);
-        }
-        if (
-            newUnitCode &&
-            (activeSection === "system-units" ||
-                activeSection === "peripherals")
-        ) {
-            params.append("unit_code", newUnitCode);
-        }
-        if (newSearch) {
-            params.append("search", newSearch);
-        }
-
-        // This is the crucial part for navigation with filters
-        // Use Inertia's router.get for full page reload with new query params
-        // or you could use window.location.href for simpler but less "Inertia-like" navigation
-        window.location.href = route("guest.room.show", {
-            roomPath: room.room_path,
-            section: activeSection,
-            condition: newCondition || undefined,
-            unit_code:
-                activeSection === "system-units" ||
-                activeSection === "peripherals"
-                    ? newUnitCode || undefined
-                    : undefined,
-            search: newSearch || undefined,
-        });
-    };
+       const applyFilters = (
+    newCondition = condition,
+    newUnitCode = unitCode,
+    newSearch = search,
+    newType = filters?.type || ""
+) => {
+    window.location.href = route("guest.room.show", {
+        roomPath: room.room_path,
+        section: activeSection,
+        condition: newCondition || undefined,
+        unit_code:
+            activeSection === "system-units" || activeSection === "peripherals"
+                ? newUnitCode || undefined
+                : undefined,
+        search: newSearch || undefined,
+        type: newType || undefined, // <-- pass type
+    });
+};
 
     return (
         <>
@@ -410,16 +442,12 @@ export default function GuestRoomView({
                                 {/* Header with Filter + Search */}
                                 <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center p-4 border-b">
                                     <div className="flex gap-2 items-center w-full sm:w-auto">
-                                        <Filter
-                                            filters={{
-                                                condition,
-                                                unit_code: unitCode,
-                                                search,
-                                            }}
-                                            filterOptions={filterOptions}
-                                            activeSection={activeSection}
-                                            onApplyFilters={applyFilters}
-                                        />
+                                       <Filter
+                                        filters={filters}
+                                        filterOptions={filterOptions}
+                                        activeSection={activeSection}
+                                        onApplyFilters={applyFilters}
+                                    />
                                         <Input
                                             placeholder="Search..."
                                             value={search}

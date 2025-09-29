@@ -98,7 +98,7 @@ export default function FacultyPeripheralsView({ room, peripheral, user }) {
                                 <DetailItem
                                     icon={Layers}
                                     label="Unit Code"
-                                    value={peripheral.unit_code}
+                                    value={peripheral.unit?.unit_code}
                                 />
                                 <DetailItem
                                     icon={Tag}

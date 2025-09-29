@@ -53,6 +53,13 @@ public function faculties()
         return $this->hasOne(RoomStatus::class)->latestOfMany();
     }
 
+public function units()
+{
+    return $this->systemUnits(); // alias for route model binding
+}
 
+public function equipment(){
+    return $this ->equipments();
+}
 
 }

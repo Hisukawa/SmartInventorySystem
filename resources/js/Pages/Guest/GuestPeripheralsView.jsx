@@ -96,10 +96,10 @@ export default function GuestPeripheralsView({ room, peripheral, user }) {
                                     value={peripheral.peripheral_code}
                                 />
                                 <DetailItem
-                                    icon={Layers}
-                                    label="Unit Code"
-                                    value={peripheral.unit_code}
-                                />
+    icon={Layers}
+    label="PC Code"
+    value={peripheral.unit?.unit_code ?? "N/A"} // now shows unit_code instead of unit_id
+/>
                                 <DetailItem
                                     icon={Tag}
                                     label="Type"
