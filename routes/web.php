@@ -114,7 +114,15 @@ Route::middleware(['auth'])->group(function () {
 
 // routes/api.php
         Route::get('/admin/faculty-logs', [MonitoringController::class, 'facultyLogs'])->name('admin.logHistory.logs');
+   // Faculties (dropdown)
+    Route::get('/admin/faculties/dropdown', function () {
+        return User::select('id', 'name')->get();
+    })->name('admin.api.faculties');
 
+        // Rooms (dropdown)
+        Route::get('/admin/rooms/dropdown', function () {
+            return Room::select('id', 'room_number')->get();
+        })->name('admin.api.rooms');
         Route::get('/admin/dashboard-stats', [AdminController::class, 'dashboardStats']);
         Route::get('/admin/activity-logs', [AdminController::class, 'activityLogs']);
         Route::get('/admin/maintenance-requests', [AdminController::class, 'maintenanceRequests']);

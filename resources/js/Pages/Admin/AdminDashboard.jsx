@@ -46,19 +46,21 @@ import {
 } from "lucide-react";
 import { useSpring, animated } from "@react-spring/web";
 import {
-    PieChart as RePieChart,
-    Pie,
     Cell,
     Tooltip,
     ResponsiveContainer,
-    Legend,
-    BarChart,
-    Bar,
     XAxis,
     YAxis,
     CartesianGrid,
+    Bar,
+    BarChart,
+    PieChart as RePieChart,
+    Pie,
+    Legend,
+    ComposedChart,
 } from "recharts";
-
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { HeatMapGrid } from "react-grid-heatmap";
 export default function AdminDashboard() {
     const { auth } = usePage().props;
     const user = auth.user;
@@ -85,12 +87,14 @@ export default function AdminDashboard() {
         peripherals_type: {},
         equipments: {},
     });
+
     const [allEquipmentData, setAllEquipmentData] = useState({
         system_units: {},
         peripherals: {},
         peripherals_type: {},
         equipments: {},
     });
+
     const [rooms, setRooms] = useState([]);
     const [peripheralTypes, setPeripheralTypes] = useState([]);
 
@@ -129,11 +133,22 @@ export default function AdminDashboard() {
             const res = await axios.get("/admin/equipment-condition-filtered", {
                 params: { room_id: selectedRoom, type: selectedType },
             });
+            console.log("Rooms:", rooms);
             setConditionData(res.data);
         } catch (err) {
             console.error(err);
         }
     };
+    const transformToChartData = (category) => {
+        if (!conditionData[category]) return [];
+        return Object.entries(conditionData[category]).map(([key, value]) => ({
+            name: key,
+            value,
+        }));
+    };
+    const systemUnitsData = transformToChartData("system_units");
+    const peripheralsData = transformToChartData("peripherals");
+    const equipmentsData = transformToChartData("equipments");
 
     // Fetch right chart data (total equipment)
     const fetchAllEquipmentData = async () => {
@@ -141,6 +156,9 @@ export default function AdminDashboard() {
             const res = await axios.get("/admin/equipment-condition", {
                 params: { room_id: selectedRoomRight || undefined }, // pass room filter
             });
+
+            // 👇 Add this line to debug the API response
+
             setAllEquipmentData(res.data);
         } catch (err) {
             console.error(err);
@@ -229,28 +247,10 @@ export default function AdminDashboard() {
             link: "/admin/equipments",
         },
         {
-            title: "Occupied Rooms",
-            value: animatedValue(dashboardStats.occupiedRooms),
-            icon: Users,
-            link: "/admin/monitoring",
-        },
-        {
             title: "Pending Requests",
             value: animatedValue(dashboardStats.pendingRequests),
             icon: ClipboardList,
             link: "/admin/maintenance-requests",
-        },
-        {
-            title: "For Repair",
-            value: animatedValue(dashboardStats.forRepair),
-            icon: Activity,
-            link: "/admin/repairs",
-        },
-        {
-            title: "Active Users",
-            value: animatedValue(dashboardStats.activeUsers),
-            icon: Monitor,
-            link: "/admin/users",
         },
         {
             title: "Total Users",
@@ -258,6 +258,38 @@ export default function AdminDashboard() {
             icon: Users,
             link: "/admin/users",
         },
+    ];
+    const stackedBarData = [
+        {
+            name: "All Rooms",
+            PCs: allEquipmentData.system_units
+                ? Object.values(allEquipmentData.system_units).reduce(
+                      (a, b) => a + b,
+                      0
+                  )
+                : 0,
+            Peripherals: allEquipmentData.peripherals
+                ? Object.values(allEquipmentData.peripherals).reduce(
+                      (a, b) => a + b,
+                      0
+                  )
+                : 0,
+            Equipments: allEquipmentData.equipments
+                ? Object.values(allEquipmentData.equipments).reduce(
+                      (a, b) => a + b,
+                      0
+                  )
+                : 0,
+        },
+    ];
+
+    const sumValues = (obj) =>
+        Object.values(obj || {}).reduce((sum, val) => sum + val, 0);
+
+    const totalsData = [
+        { name: "PCs", value: sumValues(allEquipmentData.system_units) },
+        { name: "Peripherals", value: sumValues(allEquipmentData.peripherals) },
+        { name: "Equipment", value: sumValues(allEquipmentData.equipments) },
     ];
 
     const COLORS = ["#16a34a", "#facc15", "#dc2626", "#3b82f6", "#9333ea"];
@@ -326,482 +358,332 @@ export default function AdminDashboard() {
                             </Link>
                         ))}
                     </div>
-
-                    {/* 🔹 Middle Row */}
-                    <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
-                        {/* Left (1/3): Active Room Occupancy */}
-                        <div className="lg:col-span-2">
-                            <Card className="rounded-2xl shadow-md bg-white h-full">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        {/* Heatmap: Condition Across Rooms */}
+                        <div className="lg:col-span-1">
+                            <Card className="col-span-2">
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-[#2F4F2F]">
-                                        <Users className="w-5 h-5 text-[#59AC77]" />
-                                        Active Room Occupancy
+                                    <CardTitle>
+                                        Condition of PCs, Peripherals, Equipment
+                                        Across Room
                                     </CardTitle>
                                 </CardHeader>
-                                <div className="space-y-6 p-4">
-                                    {activeRooms.length === 0 ? (
-                                        <p className="text-[#3B5C47] text-sm text-center">
-                                            No active rooms right now
-                                        </p>
-                                    ) : (
-                                        roomsToShow.map((activeRoom) => (
-                                            <div
-                                                key={activeRoom.id}
-                                                className="flex items-center gap-6 border-b pb-6 last:border-b-0"
-                                            >
-                                                <img
-                                                    src={
-                                                        activeRoom.faculty_photo ||
-                                                        "/default-avatar.png"
-                                                    }
-                                                    alt="Faculty"
-                                                    className="w-16 h-16 rounded-full object-cover border-4 border-[#59AC77]"
-                                                />
+                                <CardContent>
+                                    {/* Room Filter */}
+                                    <div className="flex justify-end mb-4">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    className="flex items-center gap-2 text-gray-700 font-medium"
+                                                >
+                                                    {selectedRoom
+                                                        ? rooms.find(
+                                                              (room) =>
+                                                                  room.id ===
+                                                                  selectedRoom
+                                                          )?.name
+                                                        : "All Rooms"}
+                                                    <SlidersHorizontal className="h-4 w-4 opacity-70" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
 
-                                                <div>
-                                                    <p className="text-base font-semibold text-[#2F4F2F]">
-                                                        Room{" "}
-                                                        {activeRoom.room_number}
-                                                    </p>
-                                                    <p className="text-sm text-[#3B5C47]">
-                                                        Scanned by{" "}
-                                                        <span className="font-medium text-[#2F4F2F]">
-                                                            {activeRoom.last_scanned_by ??
-                                                                "Unknown"}
-                                                        </span>
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {activeRoom.last_scanned_at
-                                                            ? new Date(
-                                                                  activeRoom.last_scanned_at
-                                                              ).toLocaleString()
-                                                            : "No scan time"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                                {activeRooms.length > 2 && (
-                                    <CardFooter className="flex justify-center">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowAll(!showAll)}
-                                        >
-                                            {showAll
-                                                ? "Show Less"
-                                                : "View All Active Rooms"}
-                                        </Button>
-                                    </CardFooter>
-                                )}
-                            </Card>
-                        </div>
-
-                        {/* Middle (2/3): Equipment Condition */}
-                        <div className="lg:col-span-3">
-                            {/* (Your existing Equipment Condition card here) */}
-                            {/** Keep the big Equipment Condition card as you already wrote it **/}
-                            {/** Just paste the full <Card> for Equipment Condition here **/}
-                            <Card className="rounded-2xl shadow-md bg-white">
-                                <CardHeader className="flex justify-between items-center">
-                                    <CardTitle className="flex items-center gap-2 text-[#2F4F2F]">
-                                        <BarChartIcon className="w-5 h-5 text-[#59AC77]" />
-                                        Equipment Condition
-                                    </CardTitle>
-
-                                    {/* All Rooms filter button */}
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                size="lg"
-                                                className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
+                                            <DropdownMenuContent
+                                                align="end"
+                                                className="max-h-60 overflow-y-auto bg-white shadow-lg border rounded-lg"
                                             >
-                                                <SlidersHorizontal className="w-5 h-5" />
-                                                {selectedRoom || "All Rooms"}
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    setSelectedRoom("")
-                                                }
-                                            >
-                                                {selectedRoom === "" && (
-                                                    <Check className="w-4 h-4 mr-1" />
-                                                )}
-                                                All Rooms
-                                            </DropdownMenuItem>
-                                            {rooms.map((room) => (
                                                 <DropdownMenuItem
-                                                    key={room.id}
+                                                    className={`cursor-pointer ${
+                                                        selectedRoom === ""
+                                                            ? "bg-green-100 text-green-700 font-semibold"
+                                                            : "hover:bg-gray-100"
+                                                    }`}
                                                     onClick={() =>
-                                                        setSelectedRoom(room.id)
+                                                        setSelectedRoom("")
                                                     }
                                                 >
-                                                    {selectedRoom ===
-                                                        room.id && (
-                                                        <Check className="w-4 h-4 mr-1" />
+                                                    All Rooms
+                                                    {selectedRoom === "" && (
+                                                        <Check className="ml-auto h-4 w-4 text-green-600" />
                                                     )}
-                                                    {room.room_number}
                                                 </DropdownMenuItem>
-                                            ))}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </CardHeader>
 
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-72">
-                                        {/* Computers (No extra filter) */}
-                                        <div>
-                                            <h3 className="text-center font-semibold mb-1">
-                                                Computers
-                                            </h3>
-                                            <ResponsiveContainer
-                                                width="100%"
-                                                height="90%"
-                                            >
-                                                <RePieChart>
-                                                    <Pie
-                                                        data={prepareData(
-                                                            conditionData.system_units
-                                                        )}
-                                                        dataKey="value"
-                                                        nameKey="name"
-                                                        outerRadius={60}
-                                                        label
-                                                    >
-                                                        {prepareData(
-                                                            conditionData.system_units
-                                                        ).map((_, idx) => (
-                                                            <Cell
-                                                                key={idx}
-                                                                fill={
-                                                                    COLORS[
-                                                                        idx %
-                                                                            COLORS.length
-                                                                    ]
-                                                                }
-                                                            />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip />
-                                                    <Legend
-                                                        verticalAlign="bottom"
-                                                        height={36}
-                                                    />
-                                                </RePieChart>
-                                            </ResponsiveContainer>
-                                        </div>
-
-                                        {/* Peripherals (Filter by type) */}
-                                        <div>
-                                            <div className="flex justify-center items-center gap-2 mb-1">
-                                                <h3 className="font-semibold">
-                                                    Peripherals
-                                                </h3>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger
-                                                        asChild
-                                                    >
-                                                        <Button
-                                                            size="lg"
-                                                            className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
-                                                        >
-                                                            <SlidersHorizontal className="w-5 h-5" />
-                                                            {selectedType ||
-                                                                "All Types"}
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent>
-                                                        <DropdownMenuItem
-                                                            onClick={() =>
-                                                                setSelectedType(
-                                                                    ""
-                                                                )
-                                                            }
-                                                        >
-                                                            {selectedType ===
-                                                                "" && (
-                                                                <Check className="w-4 h-4 mr-1" />
-                                                            )}
-                                                            All Types
-                                                        </DropdownMenuItem>
-                                                        {peripheralTypes.map(
-                                                            (type) => (
-                                                                <DropdownMenuItem
-                                                                    key={type}
-                                                                    onClick={() =>
-                                                                        setSelectedType(
-                                                                            type
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    {selectedType ===
-                                                                        type && (
-                                                                        <Check className="w-4 h-4 mr-1" />
-                                                                    )}
-                                                                    {type}
-                                                                </DropdownMenuItem>
+                                                {rooms.map((room) => (
+                                                    <DropdownMenuItem
+                                                        key={room.id}
+                                                        className={`cursor-pointer ${
+                                                            selectedRoom ===
+                                                            room.id
+                                                                ? "bg-green-100 text-green-700 font-semibold"
+                                                                : "hover:bg-gray-100"
+                                                        }`}
+                                                        onClick={() =>
+                                                            setSelectedRoom(
+                                                                room.id
                                                             )
-                                                        )}
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                            <ResponsiveContainer
-                                                width="100%"
-                                                height="80%"
-                                            >
-                                                <RePieChart>
-                                                    <Pie
-                                                        data={prepareData(
-                                                            conditionData.peripherals
-                                                        )}
-                                                        dataKey="value"
-                                                        nameKey="name"
-                                                        outerRadius={60}
-                                                        label
+                                                        }
                                                     >
-                                                        {prepareData(
-                                                            conditionData.peripherals
-                                                        ).map((_, idx) => (
-                                                            <Cell
-                                                                key={idx}
-                                                                fill={
-                                                                    COLORS[
-                                                                        idx %
-                                                                            COLORS.length
-                                                                    ]
-                                                                }
-                                                            />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip />
-                                                    <Legend
-                                                        verticalAlign="bottom"
-                                                        height={36}
-                                                    />
-                                                </RePieChart>
-                                            </ResponsiveContainer>
-                                        </div>
-
-                                        {/* Equipments (Filter by type) */}
-                                        {/* Equipments (Filter by type) */}
-                                        <div>
-                                            <div className="flex justify-center items-center gap-2 mb-1">
-                                                <h3 className="font-semibold">
-                                                    Equipments
-                                                </h3>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger
-                                                        asChild
-                                                    >
-                                                        <Button
-                                                            size="lg"
-                                                            className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
-                                                        >
-                                                            <SlidersHorizontal className="w-5 h-5" />
-                                                            {selectedEquipmentType ||
-                                                                "All Types"}
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent>
-                                                        <DropdownMenuItem
-                                                            onClick={() =>
-                                                                setSelectedEquipmentType(
-                                                                    ""
-                                                                )
-                                                            }
-                                                        >
-                                                            {selectedEquipmentType ===
-                                                                "" && (
-                                                                <Check className="w-4 h-4 mr-1" />
-                                                            )}
-                                                            All Types
-                                                        </DropdownMenuItem>
-                                                        {equipmentTypes.map(
-                                                            (type) => (
-                                                                <DropdownMenuItem
-                                                                    key={type}
-                                                                    onClick={() =>
-                                                                        setSelectedEquipmentType(
-                                                                            type
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    {selectedEquipmentType ===
-                                                                        type && (
-                                                                        <Check className="w-4 h-4 mr-1" />
-                                                                    )}
-                                                                    {type}
-                                                                </DropdownMenuItem>
-                                                            )
+                                                        {room.room_number}
+                                                        {selectedRoom ===
+                                                            room.id && (
+                                                            <Check className="ml-auto h-4 w-4 text-green-600" />
                                                         )}
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-
-                                            <ResponsiveContainer
-                                                width="100%"
-                                                height="80%"
-                                            >
-                                                <RePieChart>
-                                                    <Pie
-                                                        data={prepareData(
-                                                            conditionData.equipments
-                                                        )}
-                                                        dataKey="value"
-                                                        nameKey="name"
-                                                        outerRadius={60}
-                                                        label
-                                                    >
-                                                        {prepareData(
-                                                            conditionData.equipments
-                                                        ).map((_, idx) => (
-                                                            <Cell
-                                                                key={idx}
-                                                                fill={
-                                                                    COLORS[
-                                                                        idx %
-                                                                            COLORS.length
-                                                                    ]
-                                                                }
-                                                            />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip />
-                                                    <Legend
-                                                        verticalAlign="bottom"
-                                                        height={36}
-                                                    />
-                                                </RePieChart>
-                                            </ResponsiveContainer>
-                                        </div>
+                                                    </DropdownMenuItem>
+                                                ))}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
+
+                                    {/* Tabs for PCs / Peripherals / Equipment */}
+                                    <Tabs
+                                        defaultValue="system_units"
+                                        className="w-full"
+                                    >
+                                        <TabsList>
+                                            <TabsTrigger value="system_units">
+                                                PCs
+                                            </TabsTrigger>
+                                            <TabsTrigger value="peripherals">
+                                                Peripherals
+                                            </TabsTrigger>
+                                            <TabsTrigger value="equipments">
+                                                Equipment
+                                            </TabsTrigger>
+                                        </TabsList>
+
+                                        {/* System Units */}
+                                        <TabsContent value="system_units">
+                                            <ResponsiveContainer
+                                                width="100%"
+                                                height={300}
+                                            >
+                                                <BarChart
+                                                    data={systemUnitsData}
+                                                >
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="name" />
+                                                    <YAxis />
+                                                    <Tooltip />
+                                                    <Legend />
+                                                    <Bar
+                                                        dataKey="value"
+                                                        fill="#3b82f6"
+                                                    >
+                                                        {systemUnitsData.map(
+                                                            (entry, index) => (
+                                                                <Cell
+                                                                    key={`su-${index}`}
+                                                                    fill={
+                                                                        COLORS[
+                                                                            index %
+                                                                                COLORS.length
+                                                                        ]
+                                                                    }
+                                                                />
+                                                            )
+                                                        )}
+                                                    </Bar>
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </TabsContent>
+
+                                        {/* Peripherals */}
+                                        <TabsContent value="peripherals">
+                                            <ResponsiveContainer
+                                                width="100%"
+                                                height={300}
+                                            >
+                                                <BarChart
+                                                    data={peripheralsData}
+                                                >
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="name" />
+                                                    <YAxis />
+                                                    <Tooltip />
+                                                    <Legend />
+                                                    <Bar
+                                                        dataKey="value"
+                                                        fill="#16a34a"
+                                                    >
+                                                        {peripheralsData.map(
+                                                            (entry, index) => (
+                                                                <Cell
+                                                                    key={`per-${index}`}
+                                                                    fill={
+                                                                        COLORS[
+                                                                            index %
+                                                                                COLORS.length
+                                                                        ]
+                                                                    }
+                                                                />
+                                                            )
+                                                        )}
+                                                    </Bar>
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </TabsContent>
+
+                                        {/* Equipment */}
+                                        <TabsContent value="equipments">
+                                            <ResponsiveContainer
+                                                width="100%"
+                                                height={300}
+                                            >
+                                                <BarChart data={equipmentsData}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="name" />
+                                                    <YAxis />
+                                                    <Tooltip />
+                                                    <Legend />
+                                                    <Bar
+                                                        dataKey="value"
+                                                        fill="#f59e0b"
+                                                    >
+                                                        {equipmentsData.map(
+                                                            (entry, index) => (
+                                                                <Cell
+                                                                    key={`eq-${index}`}
+                                                                    fill={
+                                                                        COLORS[
+                                                                            index %
+                                                                                COLORS.length
+                                                                        ]
+                                                                    }
+                                                                />
+                                                            )
+                                                        )}
+                                                    </Bar>
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </TabsContent>
+                                    </Tabs>
                                 </CardContent>
                             </Card>
                         </div>
 
-                        {/* Right (1/3): Total Rooms Assets */}
+                        {/* Stacked Bar Chart: Totals Across All Rooms */}
                         <div className="lg:col-span-1">
-                            {/* (Your existing Total Rooms Assets card here) */}
-                            {/** Just paste the full <Card> for Total Rooms Assets here **/}
-                            {/* Right: Total Rooms Assets */}
-                            <Card className="rounded-2xl shadow-md bg-white">
-                                <CardHeader className="flex justify-between items-center">
-                                    <CardTitle className="flex items-center gap-2 text-[#2F4F2F]">
-                                        <BarChartIcon className="w-5 h-5 text-[#59AC77]" />
-                                        Total Rooms Assets
+                            <Card className="col-span-2">
+                                <CardHeader>
+                                    <CardTitle>
+                                        Total PCs, Peripherals, and Equipment
+                                        Across All Rooms
                                     </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {/* Room Filter (optional for totals) */}
+                                    <div className="flex justify-end mb-4">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    className="flex items-center gap-2 text-gray-700 font-medium"
+                                                >
+                                                    {selectedRoomRight
+                                                        ? rooms.find(
+                                                              (room) =>
+                                                                  room.id ===
+                                                                  selectedRoomRight
+                                                          )?.name
+                                                        : "All Rooms"}
+                                                    <SlidersHorizontal className="h-4 w-4 opacity-70" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
 
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                size="lg"
-                                                className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
+                                            <DropdownMenuContent
+                                                align="end"
+                                                className="max-h-60 overflow-y-auto bg-white shadow-lg border rounded-lg"
                                             >
-                                                <SlidersHorizontal className="w-5 h-5" />
-                                                {selectedRoomRight ||
-                                                    "All Rooms"}
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    setSelectedRoomRight("")
-                                                }
-                                            >
-                                                {selectedRoomRight === "" && (
-                                                    <Check className="w-4 h-4 mr-1" />
-                                                )}
-                                                All Rooms
-                                            </DropdownMenuItem>
-                                            {rooms.map((room) => (
+                                                {/* All Rooms Option */}
                                                 <DropdownMenuItem
-                                                    key={room.id}
+                                                    className={`cursor-pointer text-black dark:text-white ${
+                                                        selectedRoomRight === ""
+                                                            ? "bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 font-semibold"
+                                                            : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                    }`}
                                                     onClick={() =>
-                                                        setSelectedRoomRight(
-                                                            room.id
-                                                        )
+                                                        setSelectedRoomRight("")
                                                     }
                                                 >
+                                                    All Rooms
                                                     {selectedRoomRight ===
-                                                        room.id && (
-                                                        <Check className="w-4 h-4 mr-1" />
+                                                        "" && (
+                                                        <Check className="ml-auto h-4 w-4 text-green-600 dark:text-green-400" />
                                                     )}
-                                                    {room.room_number}
                                                 </DropdownMenuItem>
-                                            ))}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </CardHeader>
 
-                                <CardContent>
+                                                {/* Dynamic Room Options */}
+                                                {rooms.map((room) => (
+                                                    <DropdownMenuItem
+                                                        key={room.id}
+                                                        className={`cursor-pointer text-gray-800 ${
+                                                            selectedRoomRight ===
+                                                            room.id
+                                                                ? "bg-green-100 text-green-700 font-semibold"
+                                                                : "hover:bg-gray-100"
+                                                        }`}
+                                                        onClick={() =>
+                                                            setSelectedRoomRight(
+                                                                room.id
+                                                            )
+                                                        }
+                                                    >
+                                                        {room.room_number}
+                                                        {selectedRoomRight ===
+                                                            room.id && (
+                                                            <Check className="ml-auto h-4 w-4 text-green-600" />
+                                                        )}
+                                                    </DropdownMenuItem>
+                                                ))}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                     <ResponsiveContainer
                                         width="100%"
-                                        height={300}
+                                        height={340}
                                     >
                                         <BarChart
-                                            data={[
-                                                {
-                                                    name: "Total",
-                                                    Computers:
-                                                        allEquipmentData.system_units
-                                                            ? Object.values(
-                                                                  allEquipmentData.system_units
-                                                              ).reduce(
-                                                                  (a, b) =>
-                                                                      a + b,
-                                                                  0
-                                                              )
-                                                            : 0,
-                                                    Peripherals:
-                                                        allEquipmentData.peripherals_type
-                                                            ? Object.values(
-                                                                  allEquipmentData.peripherals_type
-                                                              ).reduce(
-                                                                  (a, b) =>
-                                                                      a + b,
-                                                                  0
-                                                              )
-                                                            : 0,
-                                                    Equipments:
-                                                        allEquipmentData.equipments
-                                                            ? Object.values(
-                                                                  allEquipmentData.equipments
-                                                              ).reduce(
-                                                                  (a, b) =>
-                                                                      a + b,
-                                                                  0
-                                                              )
-                                                            : 0,
-                                                },
-                                            ]}
+                                            data={totalsData}
+                                            layout="vertical"
+                                            barCategoryGap="30%"
                                             margin={{
                                                 top: 20,
-                                                right: 20,
-                                                left: 0,
-                                                bottom: 5,
+                                                right: 30,
+                                                left: 80,
+                                                bottom: 20,
                                             }}
                                         >
                                             <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="name" />
-                                            <YAxis />
-                                            <Tooltip />{" "}
-                                            {/* Hover to see values */}
-                                            <Legend />
-                                            <Bar
-                                                dataKey="Computers"
-                                                fill="#59AC77"
+                                            <XAxis type="number" />
+                                            <YAxis
+                                                dataKey="name"
+                                                type="category"
+                                                width={100}
                                             />
+                                            <Tooltip />
+
                                             <Bar
-                                                dataKey="Peripherals"
-                                                fill="#FFD700"
-                                            />
-                                            <Bar
-                                                dataKey="Equipments"
-                                                fill="#FF6B6B"
-                                            />
+                                                dataKey="value"
+                                                barSize={50}
+                                                radius={[0, 0, 0, 0]}
+                                            >
+                                                {totalsData.map(
+                                                    (entry, index) => (
+                                                        <Cell
+                                                            key={`cell-${index}`}
+                                                            fill={
+                                                                [
+                                                                    "#3b82f6",
+                                                                    "#16a34a",
+                                                                    "#f59e0b",
+                                                                    "#ef4444",
+                                                                    "#8b5cf6",
+                                                                ][index % 5]
+                                                            }
+                                                        />
+                                                    )
+                                                )}
+                                            </Bar>
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </CardContent>
@@ -849,8 +731,75 @@ export default function AdminDashboard() {
                             </Card>
                         </div>
 
-                        {/* Optional empty space (1/3) */}
-                        <div className="lg:col-span-1"></div>
+                        {/* Active Room Occupancy (1/3) */}
+                        <div className="lg:col-span-1">
+                            <Card className="rounded-2xl shadow-md bg-white h-full">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-[#2F4F2F]">
+                                        <Users className="w-5 h-5 text-[#59AC77]" />
+                                        Active Room Occupancy
+                                    </CardTitle>
+                                </CardHeader>
+
+                                <div className="space-y-6 p-4">
+                                    {activeRooms.length === 0 ? (
+                                        <p className="text-[#3B5C47] text-sm text-center">
+                                            No active rooms right now
+                                        </p>
+                                    ) : (
+                                        roomsToShow.map((activeRoom) => (
+                                            <div
+                                                key={activeRoom.id}
+                                                className="flex items-center gap-6 border-b pb-6 last:border-b-0"
+                                            >
+                                                <img
+                                                    src={
+                                                        activeRoom.faculty_photo ||
+                                                        "/default-avatar.png"
+                                                    }
+                                                    alt="Faculty"
+                                                    className="w-16 h-16 rounded-full object-cover border-4 border-[#59AC77]"
+                                                />
+                                                <div>
+                                                    <p className="text-base font-semibold text-[#2F4F2F]">
+                                                        Room{" "}
+                                                        {activeRoom.room_number}
+                                                    </p>
+                                                    <p className="text-sm text-[#3B5C47]">
+                                                        Scanned by{" "}
+                                                        <span className="font-medium text-[#2F4F2F]">
+                                                            {activeRoom.last_scanned_by ??
+                                                                "Unknown"}
+                                                        </span>
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {activeRoom.last_scanned_at
+                                                            ? new Date(
+                                                                  activeRoom.last_scanned_at
+                                                              ).toLocaleString()
+                                                            : "No scan time"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+
+                                {activeRooms.length > 2 && (
+                                    <CardFooter className="flex justify-center">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setShowAll(!showAll)}
+                                        >
+                                            {showAll
+                                                ? "Show Less"
+                                                : "View All Active Rooms"}
+                                        </Button>
+                                    </CardFooter>
+                                )}
+                            </Card>
+                        </div>
                     </div>
                 </main>
             </SidebarInset>

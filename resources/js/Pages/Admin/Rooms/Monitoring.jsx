@@ -90,7 +90,13 @@ export default function AdminDashboard({ children }) {
             fetchLogs();
         }, 5000);
         return () => clearInterval(interval);
-    }, [currentLogPage]);
+    }, [currentLogPage, search, facultyId, roomId, dateFrom, dateTo]);
+    const facultyOptions = [
+        ...new Set(logs.map((log) => log.scanned_by?.name).filter(Boolean)),
+    ];
+    const roomOptions = [
+        ...new Set(logs.map((log) => log.room?.room_number).filter(Boolean)),
+    ];
 
     return (
         <SidebarProvider>
@@ -260,147 +266,6 @@ export default function AdminDashboard({ children }) {
                                 />
                                 <Button onClick={fetchLogs}>Search</Button>
                             </div>
-
-                            {/* Active Filter Pills */}
-                            <div className="flex flex-wrap gap-2">
-                                {facultyId && (
-                                    <Badge
-                                        variant="secondary"
-                                        className="flex items-center gap-1"
-                                    >
-                                        Faculty: {facultyId}
-                                        <X
-                                            size={14}
-                                            className="cursor-pointer"
-                                            onClick={() => setFacultyId("")}
-                                        />
-                                    </Badge>
-                                )}
-                                {roomId && (
-                                    <Badge
-                                        variant="secondary"
-                                        className="flex items-center gap-1"
-                                    >
-                                        Room: {roomId}
-                                        <X
-                                            size={14}
-                                            className="cursor-pointer"
-                                            onClick={() => setRoomId("")}
-                                        />
-                                    </Badge>
-                                )}
-                                {dateFrom && (
-                                    <Badge
-                                        variant="secondary"
-                                        className="flex items-center gap-1"
-                                    >
-                                        From: {dateFrom}
-                                        <X
-                                            size={14}
-                                            className="cursor-pointer"
-                                            onClick={() => setDateFrom("")}
-                                        />
-                                    </Badge>
-                                )}
-                                {dateTo && (
-                                    <Badge
-                                        variant="secondary"
-                                        className="flex items-center gap-1"
-                                    >
-                                        To: {dateTo}
-                                        <X
-                                            size={14}
-                                            className="cursor-pointer"
-                                            onClick={() => setDateTo("")}
-                                        />
-                                    </Badge>
-                                )}
-                            </div>
-
-                            {/* Filter Dropdown */}
-                            <div className="relative">
-                                <Button
-                                    variant="outline"
-                                    className="flex items-center gap-2"
-                                    onClick={() => setShowFilters(!showFilters)}
-                                >
-                                    <Filter size={16} /> Filters
-                                </Button>
-
-                                {showFilters && (
-                                    <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow p-4 space-y-3 z-50">
-                                        {/* Faculty */}
-                                        <div>
-                                            <label className="text-sm font-medium">
-                                                Faculty ID
-                                            </label>
-                                            <Input
-                                                type="number"
-                                                placeholder="Enter Faculty ID"
-                                                value={facultyId}
-                                                onChange={(e) =>
-                                                    setFacultyId(e.target.value)
-                                                }
-                                            />
-                                        </div>
-
-                                        {/* Room */}
-                                        <div>
-                                            <label className="text-sm font-medium">
-                                                Room ID
-                                            </label>
-                                            <Input
-                                                type="number"
-                                                placeholder="Enter Room ID"
-                                                value={roomId}
-                                                onChange={(e) =>
-                                                    setRoomId(e.target.value)
-                                                }
-                                            />
-                                        </div>
-
-                                        {/* Dates */}
-                                        <div>
-                                            <label className="text-sm font-medium">
-                                                From
-                                            </label>
-                                            <Input
-                                                type="date"
-                                                value={dateFrom}
-                                                onChange={(e) =>
-                                                    setDateFrom(e.target.value)
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-sm font-medium">
-                                                To
-                                            </label>
-                                            <Input
-                                                type="date"
-                                                value={dateTo}
-                                                onChange={(e) =>
-                                                    setDateTo(e.target.value)
-                                                }
-                                            />
-                                        </div>
-
-                                        {/* Reset */}
-                                        <Button
-                                            variant="outline"
-                                            className="w-full mt-2"
-                                            onClick={() => {
-                                                setFacultyId("");
-                                                setRoomId("");
-                                                setDateFrom("");
-                                                setDateTo("");
-                                            }}
-                                        >
-                                            Reset Filters
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
                         </div>
 
                         <Card className="shadow-md rounded-2xl">
@@ -415,12 +280,135 @@ export default function AdminDashboard({ children }) {
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>#</TableHead>
-                                            <TableHead>Faculty</TableHead>
-                                            <TableHead>
-                                                LogIn Date & Time
+                                            <TableHead className="relative">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-medium text-gray-700">
+                                                        Faculty
+                                                    </span>
+
+                                                    <div className="flex items-center gap-1">
+                                                        <select
+                                                            value={facultyId}
+                                                            onChange={(e) => {
+                                                                setFacultyId(
+                                                                    e.target
+                                                                        .value
+                                                                );
+                                                                fetchLogs();
+                                                            }}
+                                                            className="
+          h-8
+          w-36
+          px-2
+          py-1
+          text-sm
+          text-gray-900
+          bg-white
+          border
+          border-gray-300
+          rounded-md
+          focus:outline-none
+          focus:ring-1
+          focus:ring-blue-500
+          focus:border-blue-500
+        "
+                                                        >
+                                                            <option value="">
+                                                                All
+                                                            </option>
+                                                            {facultyOptions.map(
+                                                                (name, idx) => (
+                                                                    <option
+                                                                        key={
+                                                                            idx
+                                                                        }
+                                                                        value={
+                                                                            name
+                                                                        }
+                                                                    >
+                                                                        {name}
+                                                                    </option>
+                                                                )
+                                                            )}
+                                                        </select>
+
+                                                        <Filter className="w-4 h-4 text-gray-500" />
+                                                    </div>
+                                                </div>
                                             </TableHead>
-                                            <TableHead>Logout Time</TableHead>
-                                            <TableHead>Room</TableHead>
+                                            {/* LogIn Date filter */}
+                                            <TableHead className="relative">
+                                                <div className="flex items-center gap-2">
+                                                    LogIn Date
+                                                </div>
+                                            </TableHead>
+
+                                            {/* Logout Date filter */}
+                                            <TableHead className="relative">
+                                                <div className="flex items-center gap-2">
+                                                    Logout Date
+                                                </div>
+                                            </TableHead>
+
+                                            {/* Room filter */}
+                                            <TableHead className="relative">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-medium text-gray-700">
+                                                        Room
+                                                    </span>
+
+                                                    <div className="flex items-center gap-1">
+                                                        <select
+                                                            value={roomId}
+                                                            onChange={(e) => {
+                                                                const value =
+                                                                    e.target
+                                                                        .value;
+                                                                setRoomId(
+                                                                    value
+                                                                ); // empty string for "All Rooms"
+                                                                fetchLogs();
+                                                            }}
+                                                            className="
+          h-8
+          w-36
+          px-2
+          py-1
+          text-sm
+          text-gray-900
+          bg-white
+          border
+          border-gray-300
+          rounded-md
+          focus:outline-none
+          focus:ring-1
+          focus:ring-blue-500
+          focus:border-blue-500
+        "
+                                                        >
+                                                            <option value="">
+                                                                All
+                                                            </option>
+                                                            {roomOptions.map(
+                                                                (room, idx) => (
+                                                                    <option
+                                                                        key={
+                                                                            idx
+                                                                        }
+                                                                        value={
+                                                                            room
+                                                                        }
+                                                                    >
+                                                                        {room}
+                                                                    </option>
+                                                                )
+                                                            )}
+                                                        </select>
+
+                                                        <Filter className="w-4 h-4 text-gray-500" />
+                                                    </div>
+                                                </div>
+                                            </TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -437,21 +425,16 @@ export default function AdminDashboard({ children }) {
 
                                         {logs.map((log, idx) => (
                                             <TableRow key={log.id}>
-                                                {/* Index */}
                                                 <TableCell>
                                                     {idx +
                                                         1 +
                                                         (currentLogPage - 1) *
                                                             perPage}
                                                 </TableCell>
-
-                                                {/* Faculty (scanned_by relation) */}
                                                 <TableCell>
                                                     {log.scanned_by?.name ??
                                                         "N/A"}
                                                 </TableCell>
-
-                                                {/* LogIn Date & Time */}
                                                 <TableCell>
                                                     {log.created_at
                                                         ? new Date(
@@ -471,7 +454,6 @@ export default function AdminDashboard({ children }) {
                                                           )
                                                         : "—"}
                                                 </TableCell>
-
                                                 <TableCell>
                                                     {log.logged_out_at
                                                         ? new Date(
@@ -491,8 +473,6 @@ export default function AdminDashboard({ children }) {
                                                           )
                                                         : "—"}
                                                 </TableCell>
-
-                                                {/* Room */}
                                                 <TableCell>
                                                     {log.room?.room_number ??
                                                         "N/A"}
