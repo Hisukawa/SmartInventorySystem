@@ -55,6 +55,8 @@ Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'show
 Route::get('/equipment/{equipment_code}', [EquipmentController::class, 'showEquipmentsDetails'])
     ->name('equipments.public.show');
 
+
+
 //Route to see all users equipment details without logging in
 
 // Login page
@@ -156,8 +158,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/system-units', [SystemUnitController::class, 'index']) ->name('system-units.index');
         Route::put('/system-units/{id}', [SystemUnitController::class, 'update']);
         Route::delete('/system-units/{id}', [SystemUnitController::class, 'destroy']);
-        Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
-
+        // Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
+        Route::get('/system-units/view/{unit_path}', [SystemUnitController::class, 'show'])
+    ->where('unit_path', '.*')   // ✅ allow slashes
+    ->name('units.show');
 
         // Peripherals
         Route::get('/admin/peripherals', [PeripheralController::class, 'index'])->name('peripherals.index');
