@@ -161,7 +161,7 @@ class SystemUnitController extends Controller
             ->firstOrFail();
 
         return Inertia::render('SystemUnits/ViewUnit', [
-            'unit' => $unit
+            'unit' => $unit,
         ]);
     }
 

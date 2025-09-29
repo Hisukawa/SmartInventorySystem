@@ -25,17 +25,16 @@ import {
 
 export default function ViewUnit({ unit }) {
     const [selectedQR, setSelectedQR] = useState(null);
-    const [selectedRoomNumber, setSelectedRoomNumber] = useState(null);
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const handleQRCodeClick = (qrValue, roomNumber) => {
-        if (qrValue) {
-            setSelectedQR(qrValue);
-            setSelectedRoomNumber(roomNumber);
-            setOpen(true);
-            setCopied(false); // reset copied state when reopening modal
-        }
+    // ✅ Always generate static Room 103 path
+    const qrValue = `http://localhost:8000/unit/isu-ilagan/ict-department/room-103/${unit.unit_code}`;
+
+    const handleQRCodeClick = () => {
+        setSelectedQR(qrValue);
+        setOpen(true);
+        setCopied(false); // reset copied state when reopening modal
     };
 
     const handleModalQRClick = async () => {
@@ -64,32 +63,32 @@ export default function ViewUnit({ unit }) {
         const url = URL.createObjectURL(blob);
 
         img.onload = () => {
-            const padding = 20; // padding around QR
-            const textHeight = 40; // space for labels
+            const padding = 20;
+            const textHeight = 40;
             canvas.width = img.width + padding * 2;
             canvas.height = img.height + padding * 2 + textHeight;
 
             const ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#fff"; // background
+            ctx.fillStyle = "#fff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Draw QR
             ctx.drawImage(img, padding, padding);
 
-            // Add labels below QR
+            // Add static label
             ctx.fillStyle = "#000";
             ctx.font = "bold 20px Arial";
             ctx.textAlign = "center";
             ctx.fillText(
-                `Room ${unit.room?.room_number || ""} - ${unit.unit_code}`,
+                `Room 103 - ${unit.unit_code}`,
                 canvas.width / 2,
                 img.height + padding + 30
             );
 
             URL.revokeObjectURL(url);
 
-            // Filename: ROOM-101_PC-01.png
-            const fileName = `ROOM-${unit.room?.room_number}_${unit.unit_code}.png`;
+            // Static filename: ROOM-103_PC-01.png
+            const fileName = `ROOM-103_${unit.unit_code}.png`;
 
             const link = document.createElement("a");
             link.download = fileName;
@@ -114,7 +113,7 @@ export default function ViewUnit({ unit }) {
                                     Assets
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
-                                <BreadcrumbLink href="/units">
+                                <BreadcrumbLink href="/admin/system-units">
                                     System Unit Lists
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
@@ -162,21 +161,9 @@ export default function ViewUnit({ unit }) {
                         <div className="col-span-2 flex flex-col items-center mt-4">
                             <div
                                 className="bg-white p-2 rounded cursor-pointer hover:shadow-md transition"
-                                onClick={() => {
-                                    handleQRCodeClick(
-                                        route("units.public.show", {
-                                            unit_path: unit.unit_path,
-                                        }),
-                                        unit.room?.room_number || "room"
-                                    );
-                                }}
+                                onClick={handleQRCodeClick}
                             >
-                                <QRCode
-                                    value={route("units.public.show", {
-                                        unit_path: unit.unit_path,
-                                    })}
-                                    size={128}
-                                />
+                                <QRCode value={qrValue} size={128} />
                             </div>
 
                             <span className="mt-2 text-sm text-muted-foreground">
@@ -200,8 +187,7 @@ export default function ViewUnit({ unit }) {
                     <DialogContent className="flex flex-col items-center">
                         <DialogHeader>
                             <DialogTitle>
-                                QR Code for {selectedRoomNumber} -{" "}
-                                {unit.unit_code}
+                                QR Code for Room 103 - {unit.unit_code}
                             </DialogTitle>
                         </DialogHeader>
                         {selectedQR && (
@@ -216,7 +202,6 @@ export default function ViewUnit({ unit }) {
                         <span className="text-xs text-muted-foreground">
                             Click QR to copy link
                         </span>
-                        {/* Copy message */}
                         {copied && (
                             <span className="text-green-600 text-sm">
                                 QR code path copied!
