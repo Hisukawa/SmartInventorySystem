@@ -115,11 +115,15 @@ class RoomController extends Controller
         case 'guest':
             return app(\App\Http\Controllers\Guest\GuestDashboardController::class)
                        ->ShowScannedRoom($request, $roomPath);
-
+       
         case 'faculty':
             return app(\App\Http\Controllers\Faculty\FacultyController::class)
                        ->ShowScannedRoom($request, $roomPath);
-
+        
+     
+    case 'technician':
+        return app(\App\Http\Controllers\Technician\TechnicianController::class)
+                   ->ShowScannedRoom($request, $roomPath);
         default:
             // Default view for admin/technician/others
             $room = Room::where('room_path', $roomPath)->firstOrFail();
