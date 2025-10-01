@@ -35,7 +35,7 @@ use App\Models\Room;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
-
+use App\Http\Controllers\AuditReportsController;
 
 // ✅ Public routes (only login/register/etc.)
 Route::get('/', function () {
@@ -210,6 +210,12 @@ Route::middleware(['auth'])->group(function () {
         // Viewing Faculty Reports
         Route::get('admin/faculty/reports', [Reports:: class, 'index'])->name('admin.reports.index');
 
+        //Resolving the Faculty Reports
+        Route::post('/admin/faculty-reports/{report}/resolve', [AuditReportsController::class, 'store'])
+    ->name('admin.faculty-reports.store');
+        // Viewing Audit Reports
+Route::get('/admin/audit_reports', [AuditReportsController::class, 'show'])
+    ->name('admin.audit_reports.show');
         // status for force logout
         Route::put('/api/admin/rooms/{room}/status', [RoomController::class, 'updateStatus']);
 

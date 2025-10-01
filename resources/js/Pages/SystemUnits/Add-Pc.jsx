@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import { cn } from "@/lib/utils";
+import Swal from "sweetalert2";
 
 import {
     SidebarProvider,
@@ -21,7 +22,13 @@ import {
     BreadcrumbList,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 // ✅ Overall PC condition options (finalized)
 const CONDITION_OPTIONS = [
     { label: "Functional", color: "bg-green-500" },
@@ -45,18 +52,24 @@ const COMPONENT_CONDITION_OPTIONS = [
 const COMPONENTS = ["Processor", "RAM", "Storage", "GPU", "Motherboard"];
 
 export default function AddUnitPage() {
-    const { rooms } = usePage().props;
+    const { rooms, faculties } = usePage().props;
 
     const { data, setData, post, processing, errors, reset } = useForm({
         unit_code: "",
-        condition: "",
+        serial_number: "",
         room_id: "",
-        condition_locked: false, // tracks admin manual override
-        ...COMPONENTS.reduce((acc, comp) => {
-            acc[`${comp.toLowerCase()}_condition`] = "";
-            acc[`${comp.toLowerCase()}_remark`] = "";
-            return acc;
-        }, {}),
+        mr_id: "",
+        condition: "",
+        condition_details: "",
+        condition_locked: false, // admin override
+
+        // Component details
+        processor: "",
+        ram: "",
+        storage: "",
+        gpu: "",
+        motherboard: "",
+        os: "",
     });
 
     const getConditionColor = (value) => {
@@ -70,7 +83,23 @@ export default function AddUnitPage() {
     const handleSubmit = (e) => {
         e.preventDefault();
         post("/admin/system-units", {
-            onSuccess: () => reset(),
+            onSuccess: () => {
+                reset();
+                Swal.fire({
+                    icon: "success",
+                    title: "PC Added",
+                    text: "The system unit has been added successfully!",
+                    showConfirmButton: false,
+                    timer: 2000,
+                });
+            },
+            onError: () => {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Something went wrong. Please check your inputs.",
+                });
+            },
         });
     };
 
@@ -86,49 +115,10 @@ export default function AddUnitPage() {
         else setData("room_id", "");
     }, [typedRoom]);
 
-    // helper to compute suggested overall condition from components
-    const computeSuggestedCondition = () => {
-        const componentConditions = COMPONENTS.map(
-            (comp) => data[`${comp.toLowerCase()}_condition`]
-        );
-
-        // if none of the components have been set yet -> needs boot / pending check
-        const allEmpty = componentConditions.every(
-            (c) => c === "" || c === null || c === undefined
-        );
-        if (allEmpty) return "Needs Boot / Pending Check";
-
-        if (componentConditions.includes("Defective")) return "Defective";
-        if (componentConditions.includes("Needs Upgrade"))
-            return "Needs Upgrade";
-        if (componentConditions.includes("Under Maintenance"))
-            return "Under Maintenance";
-        if (componentConditions.includes("Not Present")) return "Needs Upgrade"; // missing part implies upgrade or replacement
-        // default: all present and none defective/upgrade/maintenance -> Functional
-        return "Functional";
-    };
-
     // prepare dependency array for useEffect
     const compDeps = COMPONENTS.map(
         (comp) => data[`${comp.toLowerCase()}_condition`]
     );
-
-    // Auto-suggest overall condition from component conditions unless admin locked/overrode it
-    useEffect(() => {
-        if (data.condition_locked) return; // admin manually set overall condition
-        const suggested = computeSuggestedCondition();
-        if (data.condition !== suggested) {
-            setData("condition", suggested);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data.condition_locked, ...compDeps]);
-
-    // Allow resetting to suggested (unlocks condition)
-    const handleResetToSuggested = () => {
-        const suggested = computeSuggestedCondition();
-        setData("condition", suggested);
-        setData("condition_locked", false);
-    };
 
     return (
         <SidebarProvider>
@@ -163,220 +153,233 @@ export default function AddUnitPage() {
                         Add System Unit
                     </h1>
 
-                    <Card className="max-w-3xl mx-auto">
+                    <Card className="max-w-4xl mx-auto">
                         <CardContent>
                             <form
                                 onSubmit={handleSubmit}
                                 className="space-y-6 mt-4"
                             >
-                                {/* Room */}
-                                <div>
-                                    <Label htmlFor="room_number">Room</Label>
-                                    <Input
-                                        id="room_number"
-                                        list="room-options"
-                                        value={typedRoom}
-                                        onChange={(e) =>
-                                            setTypedRoom(e.target.value)
-                                        }
-                                        placeholder="Search or select room"
-                                    />
-                                    <datalist id="room-options">
-                                        {rooms.map((room) => (
-                                            <option
-                                                key={room.id}
-                                                value={`ROOM ${room.room_number}`}
-                                            />
-                                        ))}
-                                    </datalist>
-                                    {errors.room_id && (
-                                        <p className="text-sm text-red-500">
-                                            {errors.room_id}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Unit Code */}
-                                <div>
-                                    <Label htmlFor="unit_code">Unit Code</Label>
-                                    <Input
-                                        id="unit_code"
-                                        value={data.unit_code}
-                                        onChange={(e) =>
-                                            setData("unit_code", e.target.value)
-                                        }
-                                        placeholder="e.g. PC-01"
-                                        required
-                                    />
-                                    {errors.unit_code && (
-                                        <p className="text-sm text-red-500">
-                                            {errors.unit_code}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Components */}
-                                <div>
-                                    <Label className="mb-2 block text-sm font-medium">
-                                        Components & Conditions
-                                    </Label>
-
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {COMPONENTS.map((comp) => {
-                                            const field = comp.toLowerCase();
-                                            return (
-                                                <div
-                                                    key={comp}
-                                                    className="border rounded-lg p-3 bg-white shadow-sm"
-                                                >
-                                                    <div className="flex items-center justify-between gap-3">
-                                                        <Label className="font-medium">
-                                                            {comp}
-                                                        </Label>
-                                                    </div>
-
-                                                    <div className="mt-2 grid grid-cols-1 gap-2">
-                                                        <select
-                                                            id={`${field}_condition`}
-                                                            className="w-full border rounded p-2"
-                                                            value={
-                                                                data[
-                                                                    `${field}_condition`
-                                                                ] || ""
-                                                            }
-                                                            onChange={(e) =>
-                                                                setData(
-                                                                    `${field}_condition`,
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                        >
-                                                            <option value="">
-                                                                -- Select
-                                                                Condition --
-                                                            </option>
-                                                            {COMPONENT_CONDITION_OPTIONS.map(
-                                                                (opt) => (
-                                                                    <option
-                                                                        key={
-                                                                            opt
-                                                                        }
-                                                                        value={
-                                                                            opt
-                                                                        }
-                                                                    >
-                                                                        {opt}
-                                                                    </option>
-                                                                )
-                                                            )}
-                                                        </select>
-
-                                                        <Input
-                                                            id={`${field}_remark`}
-                                                            value={
-                                                                data[
-                                                                    `${field}_remark`
-                                                                ] || ""
-                                                            }
-                                                            onChange={(e) =>
-                                                                setData(
-                                                                    `${field}_remark`,
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                            placeholder={`Remarks (optional) — e.g. ${comp} overheating / slot not detected`}
-                                                        />
-                                                        {errors[
-                                                            `${field}_condition`
-                                                        ] && (
-                                                            <p className="text-sm text-red-500">
-                                                                {
-                                                                    errors[
-                                                                        `${field}_condition`
-                                                                    ]
-                                                                }
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                {/* Overall Condition */}
-                                <div>
-                                    <Label htmlFor="condition" className="mb-1">
-                                        Overall PC Condition
-                                    </Label>
-
-                                    <div className="flex items-center gap-3">
-                                        <select
-                                            id="condition"
-                                            className="flex-1 border rounded p-2"
-                                            value={data.condition || ""}
-                                            onChange={(e) => {
-                                                setData(
-                                                    "condition",
-                                                    e.target.value
-                                                );
-                                                setData(
-                                                    "condition_locked",
-                                                    true
-                                                );
-                                            }}
-                                        >
-                                            <option value="">
-                                                -- Select Overall Condition --
-                                            </option>
-                                            {CONDITION_OPTIONS.map((opt) => (
+                                {/* Room + PC Code (2 columns) */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="room_number">
+                                            Room
+                                        </Label>
+                                        <Input
+                                            id="room_number"
+                                            list="room-options"
+                                            value={typedRoom}
+                                            onChange={(e) =>
+                                                setTypedRoom(e.target.value)
+                                            }
+                                            placeholder="Search or select room"
+                                        />
+                                        <datalist id="room-options">
+                                            {rooms.map((room) => (
                                                 <option
-                                                    key={opt.label}
-                                                    value={opt.label}
-                                                >
-                                                    {opt.label}
-                                                </option>
+                                                    key={room.id}
+                                                    value={`ROOM ${room.room_number}`}
+                                                />
                                             ))}
-                                        </select>
-
-                                        {data.condition_locked ? (
-                                            <button
-                                                type="button"
-                                                onClick={handleResetToSuggested}
-                                                className="text-sm px-3 py-1 border rounded bg-white hover:bg-gray-50"
-                                                title="Reset to suggested based on components"
-                                            >
-                                                Reset to Suggested
-                                            </button>
-                                        ) : (
-                                            <span className="text-sm italic text-muted-foreground">
-                                                Auto-suggested
-                                            </span>
+                                        </datalist>
+                                        {errors.room_id && (
+                                            <p className="text-sm text-red-500">
+                                                {errors.room_id}
+                                            </p>
                                         )}
                                     </div>
 
-                                    {data.condition && (
-                                        <div className="mt-2 text-sm flex items-center gap-2">
-                                            <span
-                                                className={cn(
-                                                    "inline-block w-3 h-3 rounded-full",
-                                                    getConditionColor(
-                                                        data.condition
+                                    <div>
+                                        <Label htmlFor="unit_code">
+                                            PC Code
+                                        </Label>
+                                        <Input
+                                            id="unit_code"
+                                            value={data.unit_code}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "unit_code",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="e.g. PC-01"
+                                            required
+                                        />
+                                        {errors.unit_code && (
+                                            <p className="text-sm text-red-500">
+                                                {errors.unit_code}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Specifications (3-column grid) */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <Label htmlFor="processor">
+                                            Processor
+                                        </Label>
+                                        <Input
+                                            id="processor"
+                                            value={data.processor}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "processor",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="ram">RAM</Label>
+                                        <Input
+                                            id="ram"
+                                            value={data.ram}
+                                            onChange={(e) =>
+                                                setData("ram", e.target.value)
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="storage">Storage</Label>
+                                        <Input
+                                            id="storage"
+                                            value={data.storage}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "storage",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="gpu">GPU</Label>
+                                        <Input
+                                            id="gpu"
+                                            value={data.gpu}
+                                            onChange={(e) =>
+                                                setData("gpu", e.target.value)
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="motherboard">
+                                            Motherboard
+                                        </Label>
+                                        <Input
+                                            id="motherboard"
+                                            value={data.motherboard}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "motherboard",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="os">OS</Label>
+                                        <Input
+                                            id="os"
+                                            value={data.os}
+                                            onChange={(e) =>
+                                                setData("os", e.target.value)
+                                            }
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Serial Number + Condition + Condition Details (3 columns) */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <Label htmlFor="serial_number">
+                                            Serial Number
+                                        </Label>
+                                        <Input
+                                            id="serial_number"
+                                            value={data.serial_number}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "serial_number",
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="condition">
+                                            Overall Condition
+                                        </Label>
+                                        <Select
+                                            value={data.condition}
+                                            onValueChange={(val) =>
+                                                setData("condition", val)
+                                            }
+                                        >
+                                            <SelectTrigger className="w-full mt-1">
+                                                <SelectValue placeholder="-- Select Condition --" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {CONDITION_OPTIONS.map(
+                                                    (opt) => (
+                                                        <SelectItem
+                                                            key={opt.label}
+                                                            value={opt.label}
+                                                        >
+                                                            {opt.label}
+                                                        </SelectItem>
                                                     )
                                                 )}
-                                            />
-                                            <span className="capitalize">
-                                                {data.condition}
-                                            </span>
-                                        </div>
-                                    )}
-                                    {errors.condition && (
-                                        <p className="text-sm text-red-500">
-                                            {errors.condition}
-                                        </p>
-                                    )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div>
+                                        <Label htmlFor="condition_details">
+                                            Condition Details
+                                        </Label>
+                                        <Input
+                                            id="condition_details"
+                                            value={data.condition_details}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "condition_details",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="e.g. defective RAM, GPU overheating"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* M.R (Assigned Faculty) */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <Label htmlFor="mr_id">
+                                            Material Responsible
+                                        </Label>
+                                        <Select
+                                            value={data.mr_id}
+                                            onValueChange={(val) =>
+                                                setData("mr_id", val)
+                                            }
+                                        >
+                                            <SelectTrigger className="w-full mt-1">
+                                                <SelectValue placeholder="-- Select Faculty --" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {faculties.map((faculty) => (
+                                                    <SelectItem
+                                                        key={faculty.id}
+                                                        value={faculty.id.toString()}
+                                                    >
+                                                        {faculty.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
 
                                 {/* Submit */}

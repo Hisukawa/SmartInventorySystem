@@ -7,6 +7,7 @@ use App\Models\SystemUnit;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Models\User;
 
 class SystemUnitController extends Controller
 {
@@ -59,14 +60,17 @@ class SystemUnitController extends Controller
 
     public function create()
     {
+        $faculties = User::where('role', 'faculty')->get();
         return Inertia::render('SystemUnits/Add-Pc', [
-            'rooms' => Room::all(), // pass rooms for the room selector
+            'rooms' => Room::all(), 
+            'faculties' => $faculties,
+            
         ]);
     }
     // Store System Unit
     public function store(Request $request)
     {
-        $validated = $request->validate([
+                $validated = $request->validate([
             'unit_code' => [
                 'required',
                 'string',
@@ -74,14 +78,26 @@ class SystemUnitController extends Controller
                     return $query->where('room_id', $request->room_id);
                 }),
             ],
+            'serial_number' => 'required|string',
             'processor' => 'required|string',
             'ram' => 'required|string',
             'storage' => 'required|string',
             'gpu' => 'required|string',
             'motherboard' => 'required|string',
+            'os' => 'nullable|string',
             'condition' => 'required|string',
+            'condition_details' => 'nullable|string',
             'room_id' => 'required|exists:rooms,id',
+
+            // ✅ M.R must be a user with faculty role
+            'mr_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where(function ($query) {
+                    $query->where('role', 'faculty');
+                }),
+            ],
         ]);
+
 
         $room = Room::findOrFail($validated['room_id']);
 
@@ -161,7 +177,7 @@ class SystemUnitController extends Controller
 
     public function show($unit_code)
     {
-        $unit = SystemUnit::with('room')
+          $unit = SystemUnit::with(['room', 'mr_to'])
             ->where('unit_code', $unit_code)
             ->firstOrFail();
 

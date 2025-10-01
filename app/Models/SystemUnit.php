@@ -18,8 +18,11 @@ class SystemUnit extends Model
         'storage',
         'gpu',
         'motherboard',
+        'serial_number',       // ✅ new
         'condition',
+        'condition_details',   // ✅ new
         'room_id',
+        'mr_id',               // ✅ new (faculty assigned as MR)
         'unit_path',
     ];
 
@@ -34,5 +37,8 @@ class SystemUnit extends Model
         return static::select('condition')->distinct()->pluck('condition');
     }
 
-    
+    public function mr_to(){
+         return $this->belongsTo(User::class, 'mr_id');
+
+    }
 }
