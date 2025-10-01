@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import AddUnitModal from "@/Pages/SystemUnits/Modal/AddUnitModal";
+//import AddUnitModal from "@/Pages/SystemUnits/Modal/AddUnitModal";
 import EditUnitModal from "@/Pages/SystemUnits/Modal/EditUnitModal";
 import { useForm as useInertiaForm } from "@inertiajs/react";
 import Swal from "sweetalert2";
@@ -116,24 +116,21 @@ function UnitsFilter({ filters = {}, filterOptions, onApplyFilters, onReset }) {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button
-  className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
->
-  <FilterIcon className="h-4 w-4" />
-  Filter
-  {hasAnyFilter && (
-    <X
-      className="h-4 w-4 ml-1 cursor-pointer"
-      onClick={(e) => {
-        e.stopPropagation();
-        setSelectedField("");
-        setSelectedValue("");
-        onReset();
-      }}
-    />
-  )}
-</Button>
-
+                <Button className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]">
+                    <FilterIcon className="h-4 w-4" />
+                    Filter
+                    {hasAnyFilter && (
+                        <X
+                            className="h-4 w-4 ml-1 cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedField("");
+                                setSelectedValue("");
+                                onReset();
+                            }}
+                        />
+                    )}
+                </Button>
             </PopoverTrigger>
 
             <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[380px] p-4">
@@ -369,23 +366,27 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
     }, [units, rooms]);
 
     // Backend filtering (same style as Faculty-reporting.jsx)
- function onApplyFilters(newFilters) {
-    const cleaned = Object.fromEntries(
-        Object.entries({
-            ...newFilters,
-            search: search || undefined,
-        }).filter(([, v]) => v !== "" && v !== undefined)
-    );
+    function onApplyFilters(newFilters) {
+        const cleaned = Object.fromEntries(
+            Object.entries({
+                ...newFilters,
+                search: search || undefined,
+            }).filter(([, v]) => v !== "" && v !== undefined)
+        );
 
-    router.get(route("system-units.index"), cleaned, {
-        preserveState: true,
-        replace: true,
-    });
-}
-function resetFilters() {
-    setSearch("");
-    router.get(route("system-units.index"), {}, { preserveState: true, replace: true });
-}
+        router.get(route("system-units.index"), cleaned, {
+            preserveState: true,
+            replace: true,
+        });
+    }
+    function resetFilters() {
+        setSearch("");
+        router.get(
+            route("system-units.index"),
+            {},
+            { preserveState: true, replace: true }
+        );
+    }
 
     function handleSearchKey(e) {
         if (e.key === "Enter") {
@@ -470,141 +471,207 @@ function resetFilters() {
                             />
 
                             <Input
-                        placeholder="Search Unit Code or Room"
-                        value={search}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setSearch(value);
-                            setCurrentPage(1);
-                        }}
-                        onKeyDown={handleSearchKey}
-                        className="flex-1 min-w-0 sm:max-w-xs w-full 
+                                placeholder="Search Unit Code or Room"
+                                value={search}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setSearch(value);
+                                    setCurrentPage(1);
+                                }}
+                                onKeyDown={handleSearchKey}
+                                className="flex-1 min-w-0 sm:max-w-xs w-full 
                                 border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)] 
                                 focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)] 
                                 placeholder:text-[hsl(142,34%,40%)]"
-                    />
-
+                            />
                         </div>
-
-                        <AddUnitModal rooms={rooms} />
+                        <Button
+                            className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                            onClick={() =>
+                                router.visit(route("admin.system-units.create"))
+                            }
+                        >
+                            + Add New Unit
+                        </Button>
                     </div>
 
                     {/* Table */}
                     <div className="overflow-x-auto rounded-lg shadow-lg">
-                    <Table className="min-w-full bg-white">
-                        <TableHeader>
-                        <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
-                            <TableHead className="px-2 py-1">#</TableHead>
-                            <TableHead className="px-2 py-1">Pc Code</TableHead>
-                            <TableHead className="px-2 py-1">Room</TableHead>
-                            <TableHead className="px-2 py-1">Processor</TableHead>
-                            <TableHead className="px-2 py-1">RAM</TableHead>
-                            <TableHead className="px-2 py-1">Storage</TableHead>
-                            <TableHead className="px-2 py-1">GPU</TableHead>
-                            <TableHead className="px-2 py-1">Motherboard</TableHead>
-                            <TableHead className="px-2 py-1">Condition</TableHead>
-                            <TableHead className="px-2 py-1">Actions</TableHead>
-                        </TableRow>
-                        </TableHeader>
+                        <Table className="min-w-full bg-white">
+                            <TableHeader>
+                                <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
+                                    <TableHead className="px-2 py-1">
+                                        #
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        Pc Code
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        Room
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        Processor
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        RAM
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        Storage
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        GPU
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        Motherboard
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        Condition
+                                    </TableHead>
+                                    <TableHead className="px-2 py-1">
+                                        Actions
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
 
-                        <TableBody>
-                        {paginatedUnits.length > 0 ? (
-                            paginatedUnits.map((unit, index) => (
-                            <TableRow key={unit.id} className="hover:shadow-sm">
-                                <TableCell>
-                                {(currentPage - 1) * itemsPerPage + index + 1}
-                                </TableCell>
-                                <TableCell>{unit.unit_code}</TableCell>
-                                <TableCell>ROOM {unit.room?.room_number || "N/A"}</TableCell>
-                                <TableCell>{unit.processor}</TableCell>
-                                <TableCell>{unit.ram}</TableCell>
-                                <TableCell>{unit.storage}</TableCell>
-                                <TableCell>{unit.gpu}</TableCell>
-                                <TableCell>{unit.motherboard}</TableCell>
-                                <TableCell>
-                                {unit.condition ? (
-                                    <span
-                                    className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
-                                        getCondition(unit.condition).color
-                                    }`}
-                                    >
-                                    {getCondition(unit.condition).label}
-                                    </span>
+                            <TableBody>
+                                {paginatedUnits.length > 0 ? (
+                                    paginatedUnits.map((unit, index) => (
+                                        <TableRow
+                                            key={unit.id}
+                                            className="hover:shadow-sm"
+                                        >
+                                            <TableCell>
+                                                {(currentPage - 1) *
+                                                    itemsPerPage +
+                                                    index +
+                                                    1}
+                                            </TableCell>
+                                            <TableCell>
+                                                {unit.unit_code}
+                                            </TableCell>
+                                            <TableCell>
+                                                ROOM{" "}
+                                                {unit.room?.room_number ||
+                                                    "N/A"}
+                                            </TableCell>
+                                            <TableCell>
+                                                {unit.processor}
+                                            </TableCell>
+                                            <TableCell>{unit.ram}</TableCell>
+                                            <TableCell>
+                                                {unit.storage}
+                                            </TableCell>
+                                            <TableCell>{unit.gpu}</TableCell>
+                                            <TableCell>
+                                                {unit.motherboard}
+                                            </TableCell>
+                                            <TableCell>
+                                                {unit.condition ? (
+                                                    <span
+                                                        className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                                                            getCondition(
+                                                                unit.condition
+                                                            ).color
+                                                        }`}
+                                                    >
+                                                        {
+                                                            getCondition(
+                                                                unit.condition
+                                                            ).label
+                                                        }
+                                                    </span>
+                                                ) : (
+                                                    "N/A"
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                        onClick={() =>
+                                                            router.visit(
+                                                                `/system-units/view/${unit.unit_code}`
+                                                            )
+                                                        }
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                        View
+                                                    </Button>
+
+                                                    <Button
+                                                        size="sm"
+                                                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                        onClick={() => {
+                                                            setSelectedUnit(
+                                                                unit
+                                                            );
+                                                            setShowModal(true);
+                                                        }}
+                                                    >
+                                                        <Edit2 className="h-4 w-4" />
+                                                        Edit
+                                                    </Button>
+
+                                                    <Button
+                                                        size="sm"
+                                                        variant="destructive"
+                                                        className="flex items-center gap-2"
+                                                        onClick={() => {
+                                                            Swal.fire({
+                                                                title: `Delete ${unit.unit_code}?`,
+                                                                text: "This action cannot be undone!",
+                                                                icon: "warning",
+                                                                showCancelButton: true,
+                                                                confirmButtonColor:
+                                                                    "#d33",
+                                                                cancelButtonColor:
+                                                                    "#3085d6",
+                                                                confirmButtonText:
+                                                                    "Yes, delete it!",
+                                                            }).then(
+                                                                (result) => {
+                                                                    if (
+                                                                        result.isConfirmed
+                                                                    ) {
+                                                                        destroy(
+                                                                            `/system-units/${unit.id}`,
+                                                                            {
+                                                                                onSuccess:
+                                                                                    () => {
+                                                                                        Swal.fire(
+                                                                                            "Deleted!",
+                                                                                            `Unit ${unit.unit_code} has been deleted.`,
+                                                                                            "success"
+                                                                                        );
+                                                                                    },
+                                                                            }
+                                                                        );
+                                                                    }
+                                                                }
+                                                            );
+                                                        }}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
                                 ) : (
-                                    "N/A"
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={10}
+                                            className="text-center py-4"
+                                        >
+                                            No matching units found.
+                                        </TableCell>
+                                    </TableRow>
                                 )}
-                                </TableCell>
-                                <TableCell>
-                                <div className="flex gap-2">
-                                    <Button
-                                    size="sm"
-                                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                                    onClick={() =>
-                                        router.visit(`/system-units/view/${unit.unit_code}`)
-                                    }
-                                    >
-                                    <Eye className="h-4 w-4" />
-                                    View
-                                    </Button>
-
-                                    <Button
-                                    size="sm"
-                                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                                    onClick={() => {
-                                        setSelectedUnit(unit);
-                                        setShowModal(true);
-                                    }}
-                                    >
-                                    <Edit2 className="h-4 w-4" />
-                                    Edit
-                                    </Button>
-
-                                    <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    className="flex items-center gap-2"
-                                    onClick={() => {
-                                        Swal.fire({
-                                        title: `Delete ${unit.unit_code}?`,
-                                        text: "This action cannot be undone!",
-                                        icon: "warning",
-                                        showCancelButton: true,
-                                        confirmButtonColor: "#d33",
-                                        cancelButtonColor: "#3085d6",
-                                        confirmButtonText: "Yes, delete it!",
-                                        }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            destroy(`/system-units/${unit.id}`, {
-                                            onSuccess: () => {
-                                                Swal.fire(
-                                                "Deleted!",
-                                                `Unit ${unit.unit_code} has been deleted.`,
-                                                "success"
-                                                );
-                                            },
-                                            });
-                                        }
-                                        });
-                                    }}
-                                    >
-                                    <Trash2 className="h-4 w-4" />
-                                    Delete
-                                    </Button>
-                                </div>
-                                </TableCell>
-                            </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                            <TableCell colSpan={10} className="text-center py-4">
-                                No matching units found.
-                            </TableCell>
-                            </TableRow>
-                        )}
-                        </TableBody>
-                    </Table>
-</div>
-
+                            </TableBody>
+                        </Table>
+                    </div>
 
                     {/* Pagination Controls */}
                     <div className="flex justify-between items-center mt-4">

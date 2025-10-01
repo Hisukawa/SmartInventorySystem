@@ -57,7 +57,12 @@ class SystemUnitController extends Controller
 }
 
 
-
+    public function create()
+    {
+        return Inertia::render('SystemUnits/Add-Pc', [
+            'rooms' => Room::all(), // pass rooms for the room selector
+        ]);
+    }
     // Store System Unit
     public function store(Request $request)
     {
@@ -173,5 +178,7 @@ class SystemUnitController extends Controller
             'unit' => $unit,
         ]);
     }
+
+
 
 }
