@@ -12,13 +12,26 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useForm, usePage } from "@inertiajs/react";
 
+// ✅ Finalized overall PC condition options
 const CONDITION_OPTIONS = [
     { label: "Functional", color: "bg-green-500" },
+    { label: "Needs Boot / Pending Check", color: "bg-orange-500" },
     { label: "Defective", color: "bg-red-500" },
     { label: "Under Maintenance", color: "bg-yellow-500" },
     { label: "Needs Upgrade", color: "bg-blue-500" },
     { label: "For Disposal", color: "bg-gray-500" },
 ];
+
+// ✅ Finalized component condition options
+const COMPONENT_CONDITION_OPTIONS = [
+    "Working",
+    "Defective",
+    "Needs Upgrade",
+    "Under Maintenance",
+    "Not Present",
+];
+
+const COMPONENTS = ["Processor", "RAM", "Storage", "GPU", "Motherboard"];
 
 export default function AddUnitModal() {
     const { rooms } = usePage().props;
@@ -26,13 +39,13 @@ export default function AddUnitModal() {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         unit_code: "",
-        processor: "",
-        ram: "",
-        storage: "",
-        gpu: "",
-        motherboard: "",
         condition: "",
         room_id: "",
+        ...COMPONENTS.reduce((acc, comp) => {
+            acc[`${comp.toLowerCase()}_condition`] = "";
+            acc[`${comp.toLowerCase()}_remark`] = "";
+            return acc;
+        }, {}),
     });
 
     const getConditionColor = (value) => {
@@ -44,7 +57,6 @@ export default function AddUnitModal() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
         post("/admin/system-units", {
             onSuccess: () => {
                 reset();
@@ -53,27 +65,46 @@ export default function AddUnitModal() {
         });
     };
 
-    const [typedRoom, setTypedRoom] = useState(""); // what user types
+    const [typedRoom, setTypedRoom] = useState("");
 
     useEffect(() => {
-        // Match user input to room number and save its ID
         const selectedRoom = rooms.find(
             (room) =>
                 `ROOM ${room.room_number}`.toLowerCase() ===
                 typedRoom.toLowerCase()
         );
-
-        if (selectedRoom) {
-            setData("room_id", selectedRoom.id); // save id to DB
-        } else {
-            setData("room_id", ""); // clear if unmatched
-        }
+        if (selectedRoom) setData("room_id", selectedRoom.id);
+        else setData("room_id", "");
     }, [typedRoom]);
+
+    // ✅ Auto-calculate overall PC condition from components
+    useEffect(
+        () => {
+            const componentConditions = COMPONENTS.map(
+                (comp) => data[`${comp.toLowerCase()}_condition`]
+            );
+
+            if (componentConditions.includes("Defective")) {
+                setData("condition", "Defective");
+            } else if (componentConditions.includes("Needs Upgrade")) {
+                setData("condition", "Needs Upgrade");
+            } else if (componentConditions.includes("Under Maintenance")) {
+                setData("condition", "Under Maintenance");
+            } else if (componentConditions.includes("Not Present")) {
+                setData("condition", "Needs Upgrade"); // Missing part may mean upgrade needed
+            } else {
+                setData("condition", "Functional");
+            }
+        },
+        COMPONENTS.map((comp) => data[`${comp.toLowerCase()}_condition`])
+    );
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button   className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">Add Unit</Button>
+                <Button className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
+                    Add Unit
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
@@ -81,6 +112,7 @@ export default function AddUnitModal() {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Room */}
                     <div>
                         <Label htmlFor="room_number">Room</Label>
                         <Input
@@ -105,6 +137,7 @@ export default function AddUnitModal() {
                         )}
                     </div>
 
+                    {/* Unit Code */}
                     <div>
                         <Label htmlFor="unit_code">Unit Code</Label>
                         <Input
@@ -124,88 +157,76 @@ export default function AddUnitModal() {
                         )}
                     </div>
 
+                    {/* Component Conditions & Remarks */}
                     <div>
-                        <Label htmlFor="processor">Processor</Label>
-                        <Input
-                            id="processor"
-                            name="processor"
-                            value={data.processor}
-                            onChange={(e) =>
-                                setData("processor", e.target.value)
-                            }
-                            placeholder="Intel Core i5-10400"
-                        />
-                        {errors.processor && (
-                            <p className="text-sm text-red-500">
-                                {errors.processor}
-                            </p>
-                        )}
+                        <Label>Components & Conditions</Label>
+                        <div className="grid grid-cols-1 gap-4">
+                            {COMPONENTS.map((comp) => {
+                                const field = comp.toLowerCase();
+                                return (
+                                    <div key={comp}>
+                                        <Label htmlFor={`${field}_condition`}>
+                                            {comp}
+                                        </Label>
+                                        <Input
+                                            id={`${field}_condition`}
+                                            list={`${field}-condition-options`}
+                                            value={
+                                                data[`${field}_condition`] || ""
+                                            }
+                                            onChange={(e) =>
+                                                setData(
+                                                    `${field}_condition`,
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder={`Select ${comp} condition`}
+                                        />
+                                        <datalist
+                                            id={`${field}-condition-options`}
+                                        >
+                                            {COMPONENT_CONDITION_OPTIONS.map(
+                                                (opt) => (
+                                                    <option
+                                                        key={opt}
+                                                        value={opt}
+                                                    />
+                                                )
+                                            )}
+                                        </datalist>
+
+                                        {data[`${field}_condition`] ===
+                                            "Defective" && (
+                                            <div className="mt-1">
+                                                <Label
+                                                    htmlFor={`${field}_remark`}
+                                                >
+                                                    Describe the problem
+                                                </Label>
+                                                <Input
+                                                    id={`${field}_remark`}
+                                                    value={
+                                                        data[`${field}_remark`]
+                                                    }
+                                                    onChange={(e) =>
+                                                        setData(
+                                                            `${field}_remark`,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder={`e.g. ${comp} overheating`}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
 
+                    {/* Overall Condition */}
                     <div>
-                        <Label htmlFor="ram">RAM</Label>
-                        <Input
-                            id="ram"
-                            name="ram"
-                            value={data.ram}
-                            onChange={(e) => setData("ram", e.target.value)}
-                            placeholder="16GB DDR5"
-                        />
-                        {errors.ram && (
-                            <p className="text-sm text-red-500">{errors.ram}</p>
-                        )}
-                    </div>
-
-                    <div>
-                        <Label htmlFor="storage">Storage</Label>
-                        <Input
-                            id="storage"
-                            name="storage"
-                            value={data.storage}
-                            onChange={(e) => setData("storage", e.target.value)}
-                            placeholder="512GB NVME SATA SSD"
-                        />
-                        {errors.storage && (
-                            <p className="text-sm text-red-500">
-                                {errors.storage}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <Label htmlFor="gpu">GPU</Label>
-                        <Input
-                            id="gpu"
-                            name="gpu"
-                            value={data.gpu}
-                            onChange={(e) => setData("gpu", e.target.value)}
-                            placeholder="NVIDIA GeForce RTX 5090"
-                        />
-                        {errors.gpu && (
-                            <p className="text-sm text-red-500">{errors.gpu}</p>
-                        )}
-                    </div>
-
-                    <div>
-                        <Label htmlFor="motherboard">Motherboard</Label>
-                        <Input
-                            id="motherboard"
-                            name="motherboard"
-                            value={data.motherboard}
-                            onChange={(e) =>
-                                setData("motherboard", e.target.value)
-                            }
-                            placeholder="ASUS ROG Maximus Z790 Dark Hero (Intel)"
-                        />
-                        {errors.motherboard && (
-                            <p className="text-sm text-red-500">
-                                {errors.motherboard}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <Label htmlFor="condition">Condition</Label>
+                        <Label htmlFor="condition">Overall Condition</Label>
                         <Input
                             id="condition"
                             list="condition-options"
@@ -213,7 +234,7 @@ export default function AddUnitModal() {
                             onChange={(e) =>
                                 setData("condition", e.target.value)
                             }
-                            placeholder="Type or select Condition"
+                            placeholder="Overall PC condition"
                         />
                         <datalist id="condition-options">
                             {CONDITION_OPTIONS.map((opt) => (
@@ -241,7 +262,11 @@ export default function AddUnitModal() {
                     </div>
 
                     <div className="flex justify-end">
-                        <Button type="submit" disabled={processing} className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                            className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                        >
                             Submit
                         </Button>
                     </div>

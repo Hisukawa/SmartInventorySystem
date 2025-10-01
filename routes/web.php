@@ -166,6 +166,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/system-units', [SystemUnitController::class, 'index']) ->name('system-units.index');
         Route::put('/system-units/{id}', [SystemUnitController::class, 'update']);
         Route::delete('/system-units/{id}', [SystemUnitController::class, 'destroy']);
+        Route::get('/admin/system-units/create', [SystemUnitController::class, 'create'])->name('admin.system-units.create');
         // Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
         Route::get('/system-units/view/{unit_path}', [SystemUnitController::class, 'show'])
     ->where('unit_path', '.*')   // ✅ allow slashes
