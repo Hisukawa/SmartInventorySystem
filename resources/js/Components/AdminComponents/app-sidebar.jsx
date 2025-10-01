@@ -84,10 +84,14 @@ const data = {
                 {
                     title: "View Reports",
                     url: "/admin/faculty/reports",
-                    icon: FileText,
+                },
+                {
+                    title: "Audit Reports",
+                    url: "/admin/audit_reports",
                 },
             ],
         },
+
         {
             title: "Monitoring",
             url: "/admin/monitoring",
@@ -103,7 +107,7 @@ const data = {
             url: "/admin/users",
             icon: User,
         },
-          {
+        {
             title: "Announcements",
             url: "/admin/announcement",
             icon: Megaphone, // 📢 Icon for announcements

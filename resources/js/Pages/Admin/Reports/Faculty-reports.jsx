@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, setOpen } from "react";
 import { Link, router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Swal from "sweetalert2";
 import Notification from "@/Components/AdminComponents/Notification";
-import { Eye, Edit2, Trash2 } from "lucide-react";
+import { Eye, Edit2, Trash2, CheckCircle2, Check } from "lucide-react";
+
+import { Label } from "@/components/ui/label";
+
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import {
     Table,
     TableBody,
@@ -240,6 +249,75 @@ export default function FacultyReportsIndex({
     filterOptions,
 }) {
     const [search, setSearch] = useState(filters.search || "");
+    const [selectedPhoto, setSelectedPhoto] = useState(null);
+    const [open, setOpen] = useState(false);
+
+    const handlePhotoClick = (photoPath) => {
+        setSelectedPhoto(photoPath);
+        setOpen(true);
+    };
+
+    //for reporting
+
+    const [resolveOpen, setResolveOpen] = useState(false);
+    const [selectedReport, setSelectedReport] = useState(null);
+    const [updatedCondition, setUpdatedCondition] = useState("");
+    const [resolveRemarks, setResolveRemarks] = useState("");
+    const handleResolve = (report) => {
+        setSelectedReport(report); // store the clicked report
+        setUpdatedCondition(report.condition); // prefill condition
+        setResolveRemarks(""); // clear previous remarks
+        setResolveOpen(true); // open the resolve dialog
+    };
+    const handleResolveSubmit = (report) => {
+        if (!updatedCondition) {
+            Swal.fire({
+                icon: "warning",
+                title: "Select Condition",
+                text: "Please select a new condition before resolving.",
+            });
+            return;
+        }
+
+        if (!report) return; // safety check
+
+        router.post(
+            `/admin/faculty-reports/${report.id}/resolve`,
+            {
+                report_id: report.id,
+                old_condition: report.condition,
+                new_condition: updatedCondition,
+                details: resolveRemarks,
+            },
+            {
+                onSuccess: () => {
+                    setResolveOpen(false); // close modal
+                    setSelectedReport(null);
+                    setUpdatedCondition("");
+                    setResolveRemarks("");
+
+                    // ✅ SweetAlert success notification
+                    Swal.fire({
+                        icon: "success",
+                        title: "Resolved!",
+                        text: `Report #${report.id} has been successfully resolved.`,
+                        timer: 2000,
+                        showConfirmButton: false,
+                    });
+
+                    // optionally refresh the table if needed
+                },
+                onError: (errors) => {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to resolve report. Please try again.",
+                    });
+                    console.log(errors);
+                },
+            }
+        );
+    };
 
     // ✅ Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -273,20 +351,6 @@ export default function FacultyReportsIndex({
         if (e.key === "Enter") {
             onApplyFilters(filters);
         }
-    }
-
-    function handleDelete(id) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This action cannot be undone!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(`/admin/faculty-reports/${id}`);
-            }
-        });
     }
 
     return (
@@ -325,7 +389,6 @@ export default function FacultyReportsIndex({
                         <Notification />
                     </div>
                 </header>
-
                 <main>
                     <div className="p-6">
                         <h1 className="text-2xl font-bold mb-5">
@@ -360,14 +423,17 @@ export default function FacultyReportsIndex({
                                         <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
                                             <TableHead>#</TableHead>
                                             <TableHead>Faculty</TableHead>
+                                            <TableHead>Room</TableHead>
+
                                             <TableHead>Reports Type</TableHead>
                                             <TableHead>Reports ID</TableHead>
                                             <TableHead>Type</TableHead>
                                             <TableHead>Code</TableHead>
                                             <TableHead>Condition</TableHead>
                                             <TableHead>Remarks</TableHead>
-                                            <TableHead>Room</TableHead>
-                                            <TableHead>Date</TableHead>
+                                            <TableHead>Photo</TableHead>
+
+                                            <TableHead>Date Reported</TableHead>
                                             <TableHead>Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -383,6 +449,12 @@ export default function FacultyReportsIndex({
                                                     </TableCell>
                                                     <TableCell>
                                                         {r.user?.name || "N/A"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        ROOM{" "}
+                                                        {r.room
+                                                            ? r.room.room_number
+                                                            : "N/A"}
                                                     </TableCell>
                                                     <TableCell>
                                                         {r.reportable_type}
@@ -425,16 +497,28 @@ export default function FacultyReportsIndex({
                                                         {r.remarks}
                                                     </TableCell>
                                                     <TableCell>
-                                                        ROOM{" "}
-                                                        {r.room
-                                                            ? r.room.room_number
-                                                            : "N/A"}
+                                                        {r.photo_path ? (
+                                                            <img
+                                                                src={`/storage/${r.photo_path}`} // path to storage
+                                                                alt="Report"
+                                                                className="w-16 h-16 object-cover rounded cursor-pointer hover:shadow-lg"
+                                                                onClick={() =>
+                                                                    handlePhotoClick(
+                                                                        r.photo_path
+                                                                    )
+                                                                }
+                                                            />
+                                                        ) : (
+                                                            "No photo"
+                                                        )}
                                                     </TableCell>
+
                                                     <TableCell>
                                                         {new Date(
                                                             r.created_at
                                                         ).toLocaleDateString()}
                                                     </TableCell>
+
                                                     <TableCell>
                                                         <div className="flex gap-2">
                                                             {/* <Link
@@ -448,7 +532,26 @@ export default function FacultyReportsIndex({
                                                                     Edit
                                                                 </Button>
                                                             </Link> */}
-
+                                                            {r.status !==
+                                                            "resolved" ? (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="secondary"
+                                                                    className="flex items-center gap-2"
+                                                                    onClick={() =>
+                                                                        handleResolve(
+                                                                            r
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <CheckCircle2 className="w-4 h-4" />
+                                                                    Resolve
+                                                                </Button>
+                                                            ) : (
+                                                                <span className="text-green-600 font-medium">
+                                                                    Resolved
+                                                                </span>
+                                                            )}
                                                             <Button
                                                                 size="sm"
                                                                 variant="destructive"
@@ -503,6 +606,7 @@ export default function FacultyReportsIndex({
                                             </TableRow>
                                         )}
                                     </TableBody>
+                                    {/* Modal for selected photo */}
                                 </Table>
 
                                 {/* Pagination */}
@@ -548,6 +652,93 @@ export default function FacultyReportsIndex({
                         </Card>
                     </div>
                 </main>
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogContent className="flex flex-col items-center">
+                        <DialogHeader>
+                            <DialogTitle>Report Photo</DialogTitle>
+                        </DialogHeader>
+                        {selectedPhoto && (
+                            <img
+                                src={`/storage/${selectedPhoto}`}
+                                alt="Report"
+                                className="max-w-full max-h-[80vh] object-contain rounded"
+                            />
+                        )}
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={resolveOpen} onOpenChange={setResolveOpen}>
+                    <DialogContent className="max-w-md w-full">
+                        <DialogHeader>
+                            <DialogTitle>
+                                Resolve Report #{selectedReport?.id}
+                            </DialogTitle>
+                        </DialogHeader>
+
+                        <div className="flex flex-col gap-4 mt-2">
+                            {/* Condition Select */}
+                            <div>
+                                <Label>Condition</Label>
+                                <Select
+                                    value={
+                                        updatedCondition ||
+                                        selectedReport?.condition
+                                    } // prefill with current condition
+                                    onValueChange={setUpdatedCondition}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Condition" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Functional">
+                                            Functional
+                                        </SelectItem>
+                                        <SelectItem value="Needs Repair">
+                                            Needs Repair
+                                        </SelectItem>
+                                        <SelectItem value="Replaced">
+                                            Replaced
+                                        </SelectItem>
+                                        <SelectItem value="Not Repairable">
+                                            Not Repairable
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Resolution Details */}
+                            <div>
+                                <Label>Resolution Details</Label>
+                                <Input
+                                    type="text"
+                                    placeholder="Describe how you fixed it..."
+                                    value={resolveRemarks}
+                                    onChange={(e) =>
+                                        setResolveRemarks(e.target.value)
+                                    }
+                                />
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex justify-end gap-2 mt-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setResolveOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={() =>
+                                        handleResolveSubmit(selectedReport)
+                                    }
+                                    variant="secondary"
+                                >
+                                    Save
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </SidebarInset>
         </SidebarProvider>
     );

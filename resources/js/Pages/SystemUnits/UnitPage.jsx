@@ -497,38 +497,23 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
 
                     {/* Table */}
                     <div className="overflow-x-auto rounded-lg shadow-lg">
-                        <Table className="min-w-full bg-white">
+                        <Table className="w-full bg-white table-fixed">
                             <TableHeader>
                                 <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
-                                    <TableHead className="px-2 py-1">
+                                    <TableHead className="px-5 py-1">
                                         #
                                     </TableHead>
-                                    <TableHead className="px-2 py-1">
-                                        Pc Code
+                                    <TableHead className="px-5 py-1">
+                                        PC Code
                                     </TableHead>
-                                    <TableHead className="px-2 py-1">
+                                    <TableHead className="px-5 py-1">
                                         Room
                                     </TableHead>
-                                    <TableHead className="px-2 py-1">
-                                        Processor
-                                    </TableHead>
-                                    <TableHead className="px-2 py-1">
-                                        RAM
-                                    </TableHead>
-                                    <TableHead className="px-2 py-1">
-                                        Storage
-                                    </TableHead>
-                                    <TableHead className="px-2 py-1">
-                                        GPU
-                                    </TableHead>
-                                    <TableHead className="px-2 py-1">
-                                        Motherboard
-                                    </TableHead>
-                                    <TableHead className="px-2 py-1">
+                                    <TableHead className="px-5 py-1">
                                         Condition
                                     </TableHead>
-                                    <TableHead className="px-2 py-1">
-                                        Actions
+                                    <TableHead className="px-5 py-1">
+                                        Action
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -540,32 +525,28 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                             key={unit.id}
                                             className="hover:shadow-sm"
                                         >
-                                            <TableCell>
+                                            {/* # */}
+                                            <TableCell className="px-5 py-1">
                                                 {(currentPage - 1) *
                                                     itemsPerPage +
                                                     index +
                                                     1}
                                             </TableCell>
-                                            <TableCell>
+
+                                            {/* PC Code */}
+                                            <TableCell className="px-5 py-1">
                                                 {unit.unit_code}
                                             </TableCell>
-                                            <TableCell>
+
+                                            {/* Room */}
+                                            <TableCell className="px-5 py-1">
                                                 ROOM{" "}
                                                 {unit.room?.room_number ||
                                                     "N/A"}
                                             </TableCell>
-                                            <TableCell>
-                                                {unit.processor}
-                                            </TableCell>
-                                            <TableCell>{unit.ram}</TableCell>
-                                            <TableCell>
-                                                {unit.storage}
-                                            </TableCell>
-                                            <TableCell>{unit.gpu}</TableCell>
-                                            <TableCell>
-                                                {unit.motherboard}
-                                            </TableCell>
-                                            <TableCell>
+
+                                            {/* Condition */}
+                                            <TableCell className="px-5 py-1">
                                                 {unit.condition ? (
                                                     <span
                                                         className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
@@ -584,6 +565,8 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                     "N/A"
                                                 )}
                                             </TableCell>
+
+                                            {/* Actions */}
                                             <TableCell>
                                                 <div className="flex gap-2">
                                                     <Button
@@ -612,49 +595,6 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                         <Edit2 className="h-4 w-4" />
                                                         Edit
                                                     </Button>
-
-                                                    <Button
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        className="flex items-center gap-2"
-                                                        onClick={() => {
-                                                            Swal.fire({
-                                                                title: `Delete ${unit.unit_code}?`,
-                                                                text: "This action cannot be undone!",
-                                                                icon: "warning",
-                                                                showCancelButton: true,
-                                                                confirmButtonColor:
-                                                                    "#d33",
-                                                                cancelButtonColor:
-                                                                    "#3085d6",
-                                                                confirmButtonText:
-                                                                    "Yes, delete it!",
-                                                            }).then(
-                                                                (result) => {
-                                                                    if (
-                                                                        result.isConfirmed
-                                                                    ) {
-                                                                        destroy(
-                                                                            `/system-units/${unit.id}`,
-                                                                            {
-                                                                                onSuccess:
-                                                                                    () => {
-                                                                                        Swal.fire(
-                                                                                            "Deleted!",
-                                                                                            `Unit ${unit.unit_code} has been deleted.`,
-                                                                                            "success"
-                                                                                        );
-                                                                                    },
-                                                                            }
-                                                                        );
-                                                                    }
-                                                                }
-                                                            );
-                                                        }}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                        Delete
-                                                    </Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -662,7 +602,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 ) : (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={10}
+                                            colSpan={5}
                                             className="text-center py-4"
                                         >
                                             No matching units found.
