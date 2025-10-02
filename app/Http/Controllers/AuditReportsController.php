@@ -27,7 +27,7 @@ class AuditReportsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
- public function store(Request $request)
+public function store(Request $request)
 {
     $request->validate([
         'report_id'     => 'required|exists:reports,id',
@@ -74,7 +74,11 @@ class AuditReportsController extends Controller
             break;
     }
 
-    return back()->with('success', 'Report resolved and item condition updated.');
+    // ✅ Mark the report as resolved
+    $report->resolved = true;
+    $report->save();
+
+    return back()->with('success', 'Report resolved, item condition updated, and resolution logged.');
 }
 
     /**

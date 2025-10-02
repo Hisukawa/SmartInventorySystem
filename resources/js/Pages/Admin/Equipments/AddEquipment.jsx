@@ -16,8 +16,17 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
-// ✅ Equipment Types (excluding Hardware & Peripherals)
+// ✅ Equipment Types
 const TYPE_OPTIONS = ["Furniture", "Appliances", "Networking", "Safety"];
 
 // ✅ Unified Equipment Condition Options
@@ -65,6 +74,7 @@ export default function AddEquipment({ rooms }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
+                {/* Header */}
                 <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
                     <SidebarTrigger />
                     <Separator orientation="vertical" className="h-6 mx-3" />
@@ -92,118 +102,151 @@ export default function AddEquipment({ rooms }) {
                 <Head title="Add Equipment" />
 
                 <main className="p-6 flex justify-center">
-                    <div className="w-full max-w-xl bg-white shadow-md rounded-lg p-6 sm:p-8 md:p-10">
-                        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
-                            Add New Equipment
-                        </h1>
+                    <Card className="max-w-4xl w-full">
+                        <CardContent>
+                            <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
+                                Add New Equipment
+                            </h1>
 
-                        <form onSubmit={handleSubmit} className="grid gap-4">
-                            {/* Type */}
-                            <div className="flex flex-col">
-                                <label className="mb-1 font-medium">
-                                    Equipment Type
-                                </label>
-                                <select
-                                    value={type}
-                                    onChange={(e) => {
-                                        setType(e.target.value);
-                                        setCondition(""); // reset condition
-                                    }}
-                                    className="border rounded px-3 py-2 w-full"
-                                    required
-                                >
-                                    <option value="">Select type</option>
-                                    {TYPE_OPTIONS.map((t) => (
-                                        <option key={t} value={t}>
-                                            {t}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Equipment Name */}
-                            <div className="flex flex-col">
-                                <label className="mb-1 font-medium">
-                                    Equipment Name
-                                </label>
-                                <Input
-                                    placeholder="Enter equipment name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full"
-                                    required
-                                />
-                            </div>
-
-                            {/* Brand */}
-                            <div className="flex flex-col">
-                                <label className="mb-1 font-medium">
-                                    Brand
-                                </label>
-                                <Input
-                                    placeholder="Brand"
-                                    value={brand}
-                                    onChange={(e) => setBrand(e.target.value)}
-                                    className="w-full"
-                                    required
-                                />
-                            </div>
-
-                            {/* Condition */}
-                            <div className="flex flex-col">
-                                <label className="mb-1 font-medium">
-                                    Condition
-                                </label>
-                                <select
-                                    value={condition}
-                                    onChange={(e) =>
-                                        setCondition(e.target.value)
-                                    }
-                                    className={`border rounded px-3 py-2 w-full ${
-                                        CONDITION_COLORS[condition] || ""
-                                    }`}
-                                    disabled={!type}
-                                    required
-                                >
-                                    <option value="">
-                                        {type
-                                            ? "Select condition"
-                                            : "Select a type first"}
-                                    </option>
-                                    {EQUIPMENT_CONDITION_OPTIONS.map((c) => (
-                                        <option key={c} value={c}>
-                                            {c}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Room */}
-                            <div className="flex flex-col">
-                                <label className="mb-1 font-medium">Room</label>
-                                <select
-                                    value={room}
-                                    onChange={(e) => setRoom(e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                    required
-                                >
-                                    <option value="">Select room</option>
-                                    {rooms.map((r) => (
-                                        <option key={r.id} value={r.id}>
-                                            {r.room_number}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                            <form
+                                onSubmit={handleSubmit}
+                                className="space-y-6 mt-4"
                             >
-                                Add Equipment
-                            </Button>
-                        </form>
-                    </div>
+                                {/* Row 1: Type + Name */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label>Room</Label>
+                                        <Select
+                                            value={room}
+                                            onValueChange={(val) =>
+                                                setRoom(val)
+                                            }
+                                            required
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="-- Select Room --" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {rooms.map((r) => (
+                                                    <SelectItem
+                                                        key={r.id}
+                                                        value={r.id}
+                                                    >
+                                                        ROOM {r.room_number}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label>Equipment Type</Label>
+                                        <Select
+                                            value={type}
+                                            onValueChange={(val) => {
+                                                setType(val);
+                                                setCondition(""); // reset condition when type changes
+                                            }}
+                                            required
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="-- Select Type --" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {TYPE_OPTIONS.map((t) => (
+                                                    <SelectItem
+                                                        key={t}
+                                                        value={t}
+                                                    >
+                                                        {t}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                {/* Row 2: Brand + Room */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label>Equipment Name</Label>
+                                        <Input
+                                            placeholder="Enter equipment name"
+                                            value={name}
+                                            onChange={(e) =>
+                                                setName(e.target.value)
+                                            }
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Brand</Label>
+                                        <Input
+                                            placeholder="Brand"
+                                            value={brand}
+                                            onChange={(e) =>
+                                                setBrand(e.target.value)
+                                            }
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Row 3: Condition (full width) */}
+                                {/* Row 3: Condition (left aligned like others) */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label>Condition</Label>
+                                        <Select
+                                            value={condition}
+                                            onValueChange={(val) =>
+                                                setCondition(val)
+                                            }
+                                            disabled={!type}
+                                            required
+                                        >
+                                            <SelectTrigger
+                                                className={
+                                                    CONDITION_COLORS[
+                                                        condition
+                                                    ] || ""
+                                                }
+                                            >
+                                                <SelectValue
+                                                    placeholder={
+                                                        type
+                                                            ? "-- Select Condition --"
+                                                            : "Select a type first"
+                                                    }
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {EQUIPMENT_CONDITION_OPTIONS.map(
+                                                    (c) => (
+                                                        <SelectItem
+                                                            key={c}
+                                                            value={c}
+                                                        >
+                                                            {c}
+                                                        </SelectItem>
+                                                    )
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                {/* Submit */}
+                                <div className="flex justify-center">
+                                    <Button
+                                        type="submit"
+                                        className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                                    >
+                                        Add Equipment
+                                    </Button>
+                                </div>
+                            </form>
+                        </CardContent>
+                    </Card>
                 </main>
             </SidebarInset>
         </SidebarProvider>

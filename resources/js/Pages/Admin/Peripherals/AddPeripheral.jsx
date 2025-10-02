@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import { cn } from "@/lib/utils";
+import Swal from "sweetalert2";
 
 import {
     SidebarProvider,
@@ -22,6 +23,14 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
 const CONDITION_OPTIONS = [
     { label: "Functional", color: "bg-green-500" },
     { label: "Defective", color: "bg-red-500" },
@@ -36,34 +45,24 @@ export default function AddPeripheral({
     existingBrands = [],
     existingModels = [],
 }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         type: "",
         brand: "",
         model: "",
         serial_number: "",
         condition: "",
-        room_id: "", // <-- send room_id to backend
-        unit_id: "", // <-- send unit_id to backend
+        room_id: "",
+        unit_id: "",
     });
-    const getConditionColor = (value) => {
-        const match = CONDITION_OPTIONS.find(
-            (opt) => opt.label.toLowerCase() === value.toLowerCase()
-        );
-        return match ? match.color : "bg-muted";
-    };
 
     const [filteredUnits, setFilteredUnits] = useState([]);
 
-    // Update filtered units whenever room_id changes
     useEffect(() => {
         if (data.room_id) {
-            // filter units that belong to the selected room
             const unitsForRoom = existingUnits.filter(
                 (unit) => String(unit.room_id) === String(data.room_id)
             );
             setFilteredUnits(unitsForRoom);
-
-            // if currently selected unit is not in the new filtered list, reset it
             if (!unitsForRoom.find((u) => u.id === data.unit_id)) {
                 setData("unit_id", "");
             }
@@ -73,16 +72,35 @@ export default function AddPeripheral({
         }
     }, [data.room_id, existingUnits]);
 
-    function handleSubmit(e) {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        post("/admin/peripherals");
-    }
+        post("/admin/peripherals", {
+            onSuccess: () => {
+                reset();
+                Swal.fire({
+                    icon: "success",
+                    title: "Peripheral Added",
+                    text: "The peripheral has been added successfully!",
+                    showConfirmButton: false,
+                    timer: 2000,
+                });
+            },
+            onError: () => {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Something went wrong. Please check your inputs.",
+                });
+            },
+        });
+    };
 
     return (
         <SidebarProvider>
             <Head title="Add Peripheral" />
             <AppSidebar />
             <SidebarInset>
+                {/* Header */}
                 <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
                     <SidebarTrigger />
                     <Separator orientation="vertical" className="h-6 mx-3" />
@@ -106,298 +124,188 @@ export default function AddPeripheral({
                     </Breadcrumb>
                 </header>
 
+                {/* Main */}
                 <main className="p-6">
                     <h1 className="text-2xl font-bold mb-5 text-center">
                         Add Peripheral
                     </h1>
 
-                    <Card className="max-w-xl mx-auto">
+                    <Card className="max-w-4xl mx-auto">
                         <CardContent>
                             <form
                                 onSubmit={handleSubmit}
-                                className="space-y-4 mt-4"
+                                className="space-y-6 mt-4"
                             >
-                                {/* Type */}
-                                <div>
-                                    <Label>Type</Label>
-                                    <input
-                                        list="typeOptions"
-                                        value={data.type}
-                                        onChange={(e) =>
-                                            setData("type", e.target.value)
-                                        }
-                                        placeholder="Select or type peripheral type"
-                                        className="w-full border rounded px-2 py-1"
-                                    />
-                                    <datalist id="typeOptions">
-                                        <option value="Mouse" />
-                                        <option value="Keyboard" />
-                                    </datalist>
-                                    {errors.type && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.type}
-                                        </div>
-                                    )}
+                                {/* Room + Unit (2 columns) */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <Label htmlFor="room">Room</Label>
+                                        <Select
+                                            value={data.room_id}
+                                            onValueChange={(val) =>
+                                                setData("room_id", val)
+                                            }
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="-- Select Room --" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {existingRooms.map((room) => (
+                                                    <SelectItem
+                                                        key={room.id}
+                                                        value={room.id.toString()}
+                                                    >
+                                                        ROOM {room.room_number}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.room_id && (
+                                            <p className="text-sm text-red-500">
+                                                {errors.room_id}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <Label htmlFor="unit">Unit Code</Label>
+                                        <Select
+                                            value={data.unit_id}
+                                            onValueChange={(val) =>
+                                                setData("unit_id", val)
+                                            }
+                                            disabled={!data.room_id}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="-- Select Unit --" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {filteredUnits.map((unit) => (
+                                                    <SelectItem
+                                                        key={unit.id}
+                                                        value={unit.id.toString()}
+                                                    >
+                                                        {unit.unit_code}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.unit_id && (
+                                            <p className="text-sm text-red-500">
+                                                {errors.unit_id}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <Label>Type</Label>
+                                        <Input
+                                            list="typeOptions"
+                                            value={data.type}
+                                            onChange={(e) =>
+                                                setData("type", e.target.value)
+                                            }
+                                            placeholder="e.g. Mouse, Keyboard"
+                                        />
+                                        <datalist id="typeOptions">
+                                            <option value="Mouse" />
+                                            <option value="Keyboard" />
+                                            <option value="Monitor" />
+                                            <option value="Printer" />
+                                        </datalist>
+                                    </div>
                                 </div>
 
-                                {/* Room */}
-                                <div>
-                                    <Label htmlFor="room_number">Room</Label>
-                                    <input
-                                        id="room_number"
-                                        list="roomOptions"
-                                        value={
-                                            data.room_id
-                                                ? `ROOM ${
-                                                      existingRooms.find(
-                                                          (r) =>
-                                                              r.id ===
-                                                              data.room_id
-                                                      )?.room_number
-                                                  }`
-                                                : ""
-                                        }
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            // extract number if it starts with "ROOM "
-                                            const roomNum = val.startsWith(
-                                                "ROOM "
-                                            )
-                                                ? val.slice(5)
-                                                : val;
-                                            // find room_id by room_number
-                                            const room = existingRooms.find(
-                                                (r) =>
-                                                    String(r.room_number) ===
-                                                    roomNum
-                                            );
-                                            setData(
-                                                "room_id",
-                                                room ? room.id : ""
-                                            );
-                                        }}
-                                        placeholder="Select or type room"
-                                        className="w-full border rounded px-2 py-1"
-                                    />
-                                    <datalist id="roomOptions">
-                                        {existingRooms.map((room) => (
-                                            <option
-                                                key={room.id}
-                                                value={`ROOM ${room.room_number}`}
-                                            />
-                                        ))}
-                                    </datalist>
-                                    {errors.room_id && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.room_id}
-                                        </div>
-                                    )}
+                                {/* Type + Brand + Model (3 columns) */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <Label>Brand</Label>
+                                        <Input
+                                            list="brandOptions"
+                                            value={data.brand}
+                                            onChange={(e) =>
+                                                setData("brand", e.target.value)
+                                            }
+                                            placeholder="Select or type brand"
+                                        />
+                                        <datalist id="brandOptions">
+                                            {existingBrands.map((brand) => (
+                                                <option
+                                                    key={brand}
+                                                    value={brand}
+                                                />
+                                            ))}
+                                        </datalist>
+                                    </div>
+                                    <div>
+                                        <Label>Model</Label>
+                                        <Input
+                                            list="modelOptions"
+                                            value={data.model}
+                                            onChange={(e) =>
+                                                setData("model", e.target.value)
+                                            }
+                                            placeholder="Select or type model"
+                                        />
+                                        <datalist id="modelOptions">
+                                            {existingModels.map((model) => (
+                                                <option
+                                                    key={model}
+                                                    value={model}
+                                                />
+                                            ))}
+                                        </datalist>
+                                    </div>
+                                    <div>
+                                        <Label>Serial Number</Label>
+                                        <Input
+                                            value={data.serial_number}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "serial_number",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="Enter serial number"
+                                        />
+                                    </div>
                                 </div>
 
-                                {/* Unit Code */}
-                                <div>
-                                    <Label>Unit Code</Label>
-                                    <input
-                                        list="unitOptions"
-                                        value={
-                                            data.unit_id
-                                                ? filteredUnits.find(
-                                                      (u) =>
-                                                          u.id === data.unit_id
-                                                  )?.unit_code || ""
-                                                : ""
-                                        }
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            const unit = filteredUnits.find(
-                                                (u) => u.unit_code === val
-                                            );
-                                            setData(
-                                                "unit_id",
-                                                unit ? unit.id : ""
-                                            ); // store the id, not the code
-                                        }}
-                                        placeholder="Select or type unit code"
-                                        className="w-full border rounded px-2 py-1"
-                                        disabled={!data.room_id}
-                                    />
-                                    <datalist id="unitOptions">
-                                        {filteredUnits.map((unit) => (
-                                            <option
-                                                key={unit.id}
-                                                value={unit.unit_code}
-                                            />
-                                        ))}
-                                    </datalist>
-                                    {errors.unit_id && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.unit_id}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Brand */}
-                                <div>
-                                    <Label>Brand</Label>
-                                    <input
-                                        list="brandOptions"
-                                        value={data.brand}
-                                        onChange={(e) =>
-                                            setData("brand", e.target.value)
-                                        }
-                                        placeholder="Select or type brand"
-                                        className="w-full border rounded px-2 py-1"
-                                    />
-                                    <datalist id="brandOptions">
-                                        {existingBrands.map((brand) => (
-                                            <option key={brand} value={brand} />
-                                        ))}
-                                    </datalist>
-                                    {errors.brand && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.brand}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Model */}
-                                <div>
-                                    <Label>Model</Label>
-                                    <input
-                                        list="modelOptions"
-                                        value={data.model}
-                                        onChange={(e) =>
-                                            setData("model", e.target.value)
-                                        }
-                                        placeholder="Select or type model"
-                                        className="w-full border rounded px-2 py-1"
-                                    />
-                                    <datalist id="modelOptions">
-                                        {existingModels.map((model) => (
-                                            <option key={model} value={model} />
-                                        ))}
-                                    </datalist>
-                                    {errors.model && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.model}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Serial Number */}
-                                <div>
-                                    <Label>Serial Number</Label>
-                                    <Input
-                                        value={data.serial_number}
-                                        onChange={(e) =>
-                                            setData(
-                                                "serial_number",
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="Enter serial number"
-                                        className="w-full border rounded px-2 py-1"
-                                    />
-                                </div>
-
-                                {/* Condition */}
-                                {/* Do not Erased */}
-                                {/* <div>
-                                    <Label htmlFor="condition">Condition</Label>
-                                    <Input
-                                        id="condition"
-                                        list="condition-options"
-                                        value={data.condition}
-                                        onChange={(e) =>
-                                            setData("condition", e.target.value)
-                                        }
-                                        placeholder="Type or select Condition"
-                                    />
-                                    <datalist id="condition-options">
-                                        {CONDITION_OPTIONS.map((opt) => (
-                                            <option
-                                                key={opt.label}
-                                                value={opt.label}
-                                            />
-                                        ))}
-                                    </datalist>
-
-                                    Preview selected condition with color */}
-                                {/*
-                                    {data.condition && (
-                                        <div className="mt-1 text-sm flex items-center gap-2">
-                                            <span
-                                                className={cn(
-                                                    "inline-block w-3 h-3 rounded-full",
-                                                    getConditionColor(
-                                                        data.condition
+                                {/* Serial Number + Condition (2 columns) */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <Label>Condition</Label>
+                                        <Select
+                                            value={data.condition}
+                                            onValueChange={(val) =>
+                                                setData("condition", val)
+                                            }
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="-- Select Condition --" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {CONDITION_OPTIONS.map(
+                                                    (opt) => (
+                                                        <SelectItem
+                                                            key={opt.label}
+                                                            value={opt.label}
+                                                        >
+                                                            {opt.label}
+                                                        </SelectItem>
                                                     )
                                                 )}
-                                            />
-                                            <span className="capitalize">
-                                                {data.condition}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {errors.condition && (
-                                        <p className="text-sm text-red-500">
-                                            {errors.condition}
-                                        </p>
-                                    )}
-                                </div> */}
-
-                                {/* Condition */}
-                                <div>
-                                    <Label htmlFor="condition">Condition</Label>
-                                    <select
-                                        id="condition"
-                                        className="w-full border rounded-md p-2"
-                                        value={data.condition}
-                                        onChange={(e) =>
-                                            setData("condition", e.target.value)
-                                        }
-                                    >
-                                        <option value="">
-                                            Select Condition
-                                        </option>
-                                        {CONDITION_OPTIONS.map((opt) => (
-                                            <option
-                                                key={opt.label}
-                                                value={opt.label}
-                                            >
-                                                {opt.label}
-                                            </option>
-                                        ))}
-                                    </select>
-
-                                    {/* Preview selected condition with color */}
-                                    {data.condition && (
-                                        <div className="mt-1 text-sm flex items-center gap-2">
-                                            <span
-                                                className={cn(
-                                                    "inline-block w-3 h-3 rounded-full",
-                                                    getConditionColor(
-                                                        data.condition
-                                                    )
-                                                )}
-                                            />
-                                            <span className="capitalize">
-                                                {data.condition}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {errors.condition && (
-                                        <p className="text-sm text-red-500">
-                                            {errors.condition}
-                                        </p>
-                                    )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
 
                                 {/* Submit */}
                                 <div className="flex justify-center">
-                                    <Button type="submit" disabled={processing} className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                                    >
                                         Submit
                                     </Button>
                                 </div>
