@@ -17,58 +17,69 @@ class Reports extends Controller
      * Display a listing of the resource.
      */
 
-    public function index(Request $request)
-    {
-        $query = Report::with(['room', 'user', 'reportable'])->latest();
+public function index(Request $request)
+{
+    $query = Report::with(['room', 'user', 'reportable'])->latest();
 
-        // ✅ Apply filters if provided
-        if ($request->filled('room')) {
+    // ✅ Apply filters if provided
+    if ($request->filled('room')) {
         $query->where('room_id', $request->room);
-        }
-
-        if ($request->filled('faculty')) {
-            $query->where('user_id', $request->faculty);
-        }
-
-        if ($request->filled('reportable_type')) {
-            $query->where('reportable_type', $request->reportable_type);
-        }
-
-        if ($request->filled('condition')) {
-            $query->where('condition', $request->condition);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('remarks', 'like', "%{$search}%")
-                ->orWhere('condition', 'like', "%{$search}%")
-                ->orWhereHas('room', fn($room) =>
-                    $room->where('room_number', 'like', "%{$search}%")
-                )
-                ->orWhereHas('user', fn($user) =>
-                    $user->where('name', 'like', "%{$search}%")
-                );
-            });
-        }
-
-        $reports = $query->get();
-
-        // ✅ build filter options (for dropdowns)
-        $filterOptions = [
-            'faculties' => \App\Models\User::pluck('name', 'id'),
-            'reportable_types' => ['peripheral', 'system_unit', 'equipment'],
-            'conditions' => Report::select('condition')->distinct()->pluck('condition'),
-            'rooms' => \App\Models\Room::pluck('room_number', 'id'),
-        ];
-
-        return Inertia::render('Admin/Reports/Faculty-reports', [
-            'reports' => $reports,
-            'filters' => $request->only(['room', 'faculty', 'reportable_type', 'condition', 'search']),
-            'filterOptions' => $filterOptions,
-        ]);
-
     }
+
+    if ($request->filled('faculty')) {
+        $query->where('user_id', $request->faculty);
+    }
+
+    if ($request->filled('reportable_type')) {
+        $query->where('reportable_type', $request->reportable_type);
+    }
+
+    if ($request->filled('condition')) {
+        $query->where('condition', $request->condition);
+    }
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('remarks', 'like', "%{$search}%")
+              ->orWhere('condition', 'like', "%{$search}%")
+              ->orWhereHas('room', fn($room) =>
+                  $room->where('room_number', 'like', "%{$search}%")
+              )
+              ->orWhereHas('user', fn($user) =>
+                  $user->where('name', 'like', "%{$search}%")
+              );
+        });
+    }
+
+    // ✅ Get reports with resolved field
+$reports = $query->get([
+    'id',
+    'room_id',
+    'user_id',
+    'reportable_id',   // ✅ add this
+    'reportable_type',
+    'condition',
+    'remarks',
+    'resolved',
+    'created_at'
+]);
+
+    // ✅ build filter options (for dropdowns)
+    $filterOptions = [
+        'faculties' => \App\Models\User::pluck('name', 'id'),
+        'reportable_types' => ['peripheral', 'system_unit', 'equipment'],
+        'conditions' => Report::select('condition')->distinct()->pluck('condition'),
+        'rooms' => \App\Models\Room::pluck('room_number', 'id'),
+    ];
+
+    return Inertia::render('Admin/Reports/Faculty-reports', [
+        'reports' => $reports,
+        'filters' => $request->only(['room', 'faculty', 'reportable_type', 'condition', 'search']),
+        'filterOptions' => $filterOptions,
+    ]);
+}
+
     /**
      * Show the form for creating a new resource.
      */

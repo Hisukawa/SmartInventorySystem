@@ -491,7 +491,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 router.visit(route("admin.system-units.create"))
                             }
                         >
-                            + Add New Unit
+                            Add New Unit
                         </Button>
                     </div>
 

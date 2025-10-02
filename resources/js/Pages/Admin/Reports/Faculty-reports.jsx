@@ -248,6 +248,7 @@ export default function FacultyReportsIndex({
     filters = {},
     filterOptions,
 }) {
+    const [reportsData, setReportsData] = useState(reports); // ✅ local state
     const [search, setSearch] = useState(filters.search || "");
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const [open, setOpen] = useState(false);
@@ -260,9 +261,11 @@ export default function FacultyReportsIndex({
     //for reporting
 
     const [resolveOpen, setResolveOpen] = useState(false);
-    const [selectedReport, setSelectedReport] = useState(null);
+    const [selectedReport, setSelectedReport] = useState(reports);
     const [updatedCondition, setUpdatedCondition] = useState("");
     const [resolveRemarks, setResolveRemarks] = useState("");
+
+    const [isResolving, setIsResolving] = useState(false); // ✅ track submit state
     const handleResolve = (report) => {
         setSelectedReport(report); // store the clicked report
         setUpdatedCondition(report.condition); // prefill condition
@@ -278,9 +281,7 @@ export default function FacultyReportsIndex({
             });
             return;
         }
-
-        if (!report) return; // safety check
-
+        setIsResolving(true); // ✅ disable save while processing
         router.post(
             `/admin/faculty-reports/${report.id}/resolve`,
             {
@@ -291,12 +292,11 @@ export default function FacultyReportsIndex({
             },
             {
                 onSuccess: () => {
-                    setResolveOpen(false); // close modal
+                    setResolveOpen(false);
                     setSelectedReport(null);
                     setUpdatedCondition("");
                     setResolveRemarks("");
 
-                    // ✅ SweetAlert success notification
                     Swal.fire({
                         icon: "success",
                         title: "Resolved!",
@@ -305,27 +305,34 @@ export default function FacultyReportsIndex({
                         showConfirmButton: false,
                     });
 
-                    // optionally refresh the table if needed
+                    // ✅ update local state
+                    setReportsData((prev) =>
+                        prev.map((r) =>
+                            r.id === report.id
+                                ? {
+                                      ...r,
+                                      resolved: true,
+                                      condition: updatedCondition,
+                                  }
+                                : r
+                        )
+                    );
                 },
-                onError: (errors) => {
+                onError: () => {
                     Swal.fire({
                         icon: "error",
                         title: "Error",
                         text: "Failed to resolve report. Please try again.",
                     });
-                    console.log(errors);
                 },
             }
         );
     };
 
-    // ✅ Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
-
-    // ✅ Slice data for pagination
-    const totalPages = Math.ceil(reports.length / itemsPerPage);
-    const paginatedData = reports.slice(
+    const totalPages = Math.ceil(reportsData.length / itemsPerPage);
+    const paginatedData = reportsData.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -518,26 +525,13 @@ export default function FacultyReportsIndex({
                                                             r.created_at
                                                         ).toLocaleDateString()}
                                                     </TableCell>
-
                                                     <TableCell>
                                                         <div className="flex gap-2">
-                                                            {/* <Link
-                                                                href={`/admin/faculty-reports/${r.id}/edit`}
-                                                            >
-                                                                <Button
-                                                                    size="sm"
-                                                                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                                                                >
-                                                                    <Edit2 className="h-4 w-4" />
-                                                                    Edit
-                                                                </Button>
-                                                            </Link> */}
-                                                            {r.status !==
-                                                            "resolved" ? (
+                                                            {!r.resolved ? (
                                                                 <Button
                                                                     size="sm"
                                                                     variant="secondary"
-                                                                    className="flex items-center gap-2"
+                                                                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
                                                                     onClick={() =>
                                                                         handleResolve(
                                                                             r
@@ -548,49 +542,11 @@ export default function FacultyReportsIndex({
                                                                     Resolve
                                                                 </Button>
                                                             ) : (
-                                                                <span className="text-green-600 font-medium">
+                                                                <span className="text-sm font-medium text-green-600 flex items-center gap-1">
+                                                                    <CheckCircle2 className="w-4 h-4" />
                                                                     Resolved
                                                                 </span>
                                                             )}
-                                                            <Button
-                                                                size="sm"
-                                                                variant="destructive"
-                                                                className="flex items-center gap-2"
-                                                                onClick={() => {
-                                                                    Swal.fire({
-                                                                        title: `Delete report #${r.id}?`,
-                                                                        text: "This action cannot be undone!",
-                                                                        icon: "warning",
-                                                                        showCancelButton: true,
-                                                                        confirmButtonColor:
-                                                                            "#d33",
-                                                                        cancelButtonColor:
-                                                                            "#3085d6",
-                                                                        confirmButtonText:
-                                                                            "Yes, delete it!",
-                                                                    }).then(
-                                                                        (
-                                                                            result
-                                                                        ) => {
-                                                                            if (
-                                                                                result.isConfirmed
-                                                                            ) {
-                                                                                handleDelete(
-                                                                                    r.id
-                                                                                );
-                                                                                Swal.fire(
-                                                                                    "Deleted!",
-                                                                                    `Report #${r.id} has been deleted.`,
-                                                                                    "success"
-                                                                                );
-                                                                            }
-                                                                        }
-                                                                    );
-                                                                }}
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                                Delete
-                                                            </Button>
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>
@@ -667,6 +623,7 @@ export default function FacultyReportsIndex({
                     </DialogContent>
                 </Dialog>
 
+                {/* Resolve Modal */}
                 <Dialog open={resolveOpen} onOpenChange={setResolveOpen}>
                     <DialogContent className="max-w-md w-full">
                         <DialogHeader>
@@ -683,7 +640,7 @@ export default function FacultyReportsIndex({
                                     value={
                                         updatedCondition ||
                                         selectedReport?.condition
-                                    } // prefill with current condition
+                                    }
                                     onValueChange={setUpdatedCondition}
                                 >
                                     <SelectTrigger>
@@ -724,6 +681,7 @@ export default function FacultyReportsIndex({
                                 <Button
                                     variant="outline"
                                     onClick={() => setResolveOpen(false)}
+                                    disabled={isResolving}
                                 >
                                     Cancel
                                 </Button>
@@ -732,8 +690,9 @@ export default function FacultyReportsIndex({
                                         handleResolveSubmit(selectedReport)
                                     }
                                     variant="secondary"
+                                    disabled={isResolving}
                                 >
-                                    Save
+                                    {isResolving ? "Saving..." : "Save"}
                                 </Button>
                             </div>
                         </div>
