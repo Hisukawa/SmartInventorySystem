@@ -42,6 +42,9 @@ export default function ViewUnit({ unit }) {
     const [copied, setCopied] = useState(false);
 
     // ✅ Always generate static Room 103 path
+    // =================================================
+    //                  FIX THIS ERROR
+    // =================================================
     const qrValue = `http://localhost:8000/unit/isu-ilagan/ict-department/room-103/${unit.unit_code}`;
     //const qrValue = `https://smartsystem.eskey22.com/unit/isu-ilagan/ict-department/room-103/${unit.unit_code}`;
 
