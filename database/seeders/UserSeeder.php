@@ -25,12 +25,22 @@ class UserSeeder extends Seeder
         ]);
 
         // Faculty user
-        User::create([
-            'name' => 'Faculty User',
-            'email' => 'faculty@gmail.com',
-            'password' => Hash::make('faculty123'),
-            'role' => 'faculty',
-        ]);
+        $facultyNames = [
+            ['name' => 'Maria Santos', 'email' => 'maria.santos@gmail.com'],
+            ['name' => 'Jose Delgado', 'email' => 'jose.delgado@gmail.com'],
+            ['name' => 'Ana Cruz', 'email' => 'ana.cruz@gmail.com'],
+            ['name' => 'Carlos Reyes', 'email' => 'carlos.reyes@gmail.com'],
+            ['name' => 'Elena Navarro', 'email' => 'elena.navarro@gmail.com'],
+        ];
+
+        foreach ($facultyNames as $faculty) {
+            User::create([
+                'name' => $faculty['name'],
+                'email' => $faculty['email'],
+                'password' => Hash::make('faculty123'),
+                'role' => 'faculty',
+            ]);
+        }
 
         // Technician user
         User::create([
