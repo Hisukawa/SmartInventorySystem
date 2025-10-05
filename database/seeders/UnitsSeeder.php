@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class UnitsSeeder extends Seeder
 {
@@ -26,20 +27,29 @@ class UnitsSeeder extends Seeder
         foreach ($rooms as $room) {
             for ($i = 1; $i <= 100; $i++) {
                 $unitCode = 'PC-' . str_pad($i, 2, '0', STR_PAD_LEFT);
+                $condition = $conditions[array_rand($conditions)];
+
+                // Optional details for non-functional units
+                $conditionDetails = in_array($condition, ['Defective', 'Needs Upgrade', 'For Disposal'])
+                    ? 'Details about ' . strtolower($condition)
+                    : null;
 
                 $units[] = [
-                    'unit_code'    => $unitCode, // ✅ use unit_code, not unit_id
-                    'unit_path'    => 'isu-ilagan/ict-department/room-'
-                                        . $room->room_number . '/' . strtolower($unitCode),
-                    'processor'    => 'Intel Core i5-10400',
-                    'ram'          => '8GB DDR4',
-                    'storage'      => '512GB SSD',
-                    'gpu'          => 'NVIDIA GT 1030',
-                    'motherboard'  => 'ASUS Prime B460M-A',
-                    'condition'    => $conditions[array_rand($conditions)],
-                    'room_id'      => $room->id, // ✅ FK to rooms
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
+                    'unit_code'         => $unitCode,
+                    'unit_path'         => 'isu-ilagan/ict-department/room-'
+                                            . $room->room_number . '/' . strtolower($unitCode),
+                    'room_id'           => $room->id,
+                    'serial_number'     => strtoupper(Str::random(10)), // Random 10-character serial
+                    'processor'         => 'Intel Core i5-10400',
+                    'ram'               => '8GB DDR4',
+                    'storage'           => '512GB SSD',
+                    'gpu'               => 'NVIDIA GT 1030',
+                    'motherboard'       => 'ASUS Prime B460M-A',
+                    'condition'         => $condition,
+                    'mr_id'             => null, // Can be assigned later
+                    'condition_details' => $conditionDetails,
+                    'created_at'        => now(),
+                    'updated_at'        => now(),
                 ];
             }
         }
