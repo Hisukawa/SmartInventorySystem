@@ -43,7 +43,7 @@ class UserSeeder extends Seeder
         // Guest user
         User::create([
             'name' => 'Guest User',
-            'email' => '',
+            'email' => 'guest@gmail.com',
             'password' => Hash::make('guest123'),
             'role' => 'guest',
         ]);

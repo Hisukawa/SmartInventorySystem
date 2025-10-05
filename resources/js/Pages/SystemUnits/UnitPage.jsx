@@ -48,7 +48,13 @@ import {
 } from "@/components/ui/select";
 
 //filter icon
-import { Filter as FilterIcon, X, Printer } from "lucide-react";
+import {
+    Filter as FilterIcon,
+    X,
+    Printer,
+    Upload,
+    Download,
+} from "lucide-react";
 
 const CONDITION_OPTIONS = [
     { label: "Functional", color: "bg-green-500" },
@@ -528,6 +534,55 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
         printWindow.print();
     };
 
+    // 🔽 Handle Import
+    const handleImport = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch(route("system-units.import"), {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector(
+                        'meta[name="csrf-token"]'
+                    ).content,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Import Successful!",
+                    text: data.message,
+                }).then(() => {
+                    router.reload({ only: ["units"] });
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Import Failed",
+                    text:
+                        data.error ||
+                        "There was a problem with the import file.",
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Import Error",
+                text: error.message,
+            });
+        } finally {
+            e.target.value = "";
+        }
+    };
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -586,6 +641,30 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 <Printer className="h-4 w-4" />
                                 Print
                             </Button>
+                            {/* Import Button */}
+                            <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
+                                <input
+                                    type="file"
+                                    accept=".csv"
+                                    onChange={handleImport}
+                                    className="hidden"
+                                />
+                                <Upload className="h-4 w-4" />
+                                Import
+                            </label>
+
+                            {/* Export Data */}
+                            <Button
+                                className="flex items-center gap-2 bg-[hsl(142,34%,45%)] text-white border-none hover:bg-[hsl(142,34%,38%)]"
+                                onClick={() =>
+                                    (window.location.href = route(
+                                        "system-units.export"
+                                    ))
+                                }
+                            >
+                                <Download className="h-4 w-4" />
+                                Export
+                            </Button>
 
                             <Input
                                 placeholder="Search Unit Code or Room"
@@ -596,9 +675,9 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                     setCurrentPage(1);
                                 }}
                                 onKeyDown={handleSearchKey}
-                                className="flex-1 min-w-0 sm:max-w-xs w-full 
-                                border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)] 
-                                focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)] 
+                                className="flex-1 min-w-0 sm:max-w-xs w-full
+                                border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
+                                focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
                                 placeholder:text-[hsl(142,34%,40%)]"
                             />
                         </div>

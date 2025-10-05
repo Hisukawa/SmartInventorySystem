@@ -19,6 +19,7 @@
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.2",
         "laravel/tinker": "^2.10.1",
+        "maatwebsite/excel": "^3.1",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "tightenco/ziggy": "^2.0",
         "web-auth/webauthn-lib": "^5.2"

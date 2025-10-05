@@ -21,7 +21,7 @@ import { Edit2, Trash2 } from "lucide-react";
         <Trash2 className="h-4 w-4" />
         Delete
     </Button>
-</TableCell>
+</TableCell>;
 
 import QRCode from "react-qr-code";
 import Swal from "sweetalert2";
@@ -329,119 +329,128 @@ export default function RoomPage({ rooms, search }) {
                                 />
 
                                 {/* Add Room Button */}
-                               <Button
-                            onClick={() => setAddRoomModalOpen(true)}
-                            className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
-                            >
-                            Add Room
-                            </Button>
-
+                                <Button
+                                    onClick={() => setAddRoomModalOpen(true)}
+                                    className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                                >
+                                    Add Room
+                                </Button>
                             </div>
 
                             {/* Table */}
                             <div>
                                 <div className="rounded-md border transition-all duration-700 ease-in-out">
                                     {/* Scrollable Table Container */}
-                                    <div className="max-h-[500px] overflow-y-auto">
-                                        <Table>
-                                  <TableHeader>
-                                    <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
-                                        <TableHead className="font-semibold">#</TableHead>
-                                        <TableHead className="font-semibold">Room Name</TableHead>
-                                        <TableHead className="font-semibold">Room Code</TableHead>
-                                        <TableHead className="font-semibold">QR Code</TableHead>
-                                        <TableHead className="font-semibold">Actions</TableHead>
-                                    </TableRow>
-                                    </TableHeader>
-
-
-
-                                            <TableBody>
-                                                {rooms.data.map(
-                                                    (room, index) => {
-                                                        const qrValue =
-                                                            typeof room.room_path ===
-                                                            "string"
-                                                                ? `${window.location.origin}/room/${room.room_path}`
-                                                                : null;
-
-                                                        return (
-                                                            <TableRow
-                                                                key={room.id}
-                                                            >
-                                                                <TableCell>
-                                                                    {(rooms.current_page -
-                                                                        1) *
-                                                                        rooms.per_page +
-                                                                        index +
-                                                                        1}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    ROOM{" "}
-                                                                    {
-                                                                        room.room_number
-                                                                    }
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {
-                                                                        room.room_path
-                                                                    }
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {qrValue ? (
-                                                                        <div
-                                                                            className="w-16 h-16 bg-white p-1 rounded cursor-pointer m-1"
-                                                                            onClick={(
-                                                                                e
-                                                                            ) => {
-                                                                                e.stopPropagation();
-                                                                                handleQRCodeClick(
-                                                                                    qrValue,
-                                                                                    room.room_number
-                                                                                );
-                                                                            }}
-                                                                        >
-                                                                            <QRCode
-                                                                                value={
-                                                                                    qrValue
-                                                                                }
-                                                                                size={
-                                                                                    64
-                                                                                }
-                                                                            />
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span className="text-sm text-gray-500">
-                                                                            No
-                                                                            QR
-                                                                        </span>
-                                                                    )}
-                                                                </TableCell>
-                                                               <TableCell className="flex gap-2">
-                                                                    <Button
-                                                                        size="sm"
-                                                                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                                                                        onClick={() => openEditModal(room)}
-                                                                    >
-                                                                        <Edit2 className="h-4 w-4" />
-                                                                        Edit
-                                                                    </Button>
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="destructive"
-                                                                        className="flex items-center gap-2"
-                                                                        onClick={() => handleDelete(room.id)}
-                                                                    >
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                        Delete
-                                                                    </Button>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        );
-                                                    }
-                                                )}
-                                            </TableBody>
+                                    <div className="relative">
+                                        <Table className="min-w-full border-collapse">
+                                            <TableHeader>
+                                                <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] h-10">
+                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
+                                                        #
+                                                    </TableHead>
+                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
+                                                        Room Name
+                                                    </TableHead>
+                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
+                                                        Room Code
+                                                    </TableHead>
+                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
+                                                        QR Code
+                                                    </TableHead>
+                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
+                                                        Actions
+                                                    </TableHead>
+                                                </TableRow>
+                                            </TableHeader>
                                         </Table>
+
+                                        {/* Scrollable tbody container */}
+                                        <div className="max-h-[500px] overflow-y-auto">
+                                            <Table className="min-w-full border-collapse">
+                                                <TableBody>
+                                                    {rooms.data.map(
+                                                        (room, index) => {
+                                                            const qrValue =
+                                                                typeof room.room_path ===
+                                                                "string"
+                                                                    ? `${window.location.origin}/room/${room.room_path}`
+                                                                    : null;
+
+                                                            return (
+                                                                <TableRow
+                                                                    key={
+                                                                        room.id
+                                                                    }
+                                                                >
+                                                                    <TableCell>
+                                                                        {(rooms.current_page -
+                                                                            1) *
+                                                                            rooms.per_page +
+                                                                            index +
+                                                                            1}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        ROOM{" "}
+                                                                        {
+                                                                            room.room_number
+                                                                        }
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        {
+                                                                            room.room_path
+                                                                        }
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        {qrValue ? (
+                                                                            <div
+                                                                                className="w-16 h-16 bg-white p-1 rounded cursor-pointer m-1"
+                                                                                onClick={(
+                                                                                    e
+                                                                                ) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleQRCodeClick(
+                                                                                        qrValue,
+                                                                                        room.room_number
+                                                                                    );
+                                                                                }}
+                                                                            >
+                                                                                <QRCode
+                                                                                    value={
+                                                                                        qrValue
+                                                                                    }
+                                                                                    size={
+                                                                                        64
+                                                                                    }
+                                                                                />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-sm text-gray-500">
+                                                                                No
+                                                                                QR
+                                                                            </span>
+                                                                        )}
+                                                                    </TableCell>
+                                                                    <TableCell className="flex gap-2">
+                                                                        <Button
+                                                                            size="sm"
+                                                                            className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                                            onClick={() =>
+                                                                                openEditModal(
+                                                                                    room
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Edit2 className="h-4 w-4" />
+                                                                            Edit
+                                                                        </Button>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            );
+                                                        }
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
                                     </div>
 
                                     {/* Pagination with page info */}
@@ -536,7 +545,11 @@ export default function RoomPage({ rooms, search }) {
                                     >
                                         Cancel
                                     </Button>
-                                    <Button type="submit" disabled={processing} className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                                    >
                                         Save
                                     </Button>
                                 </div>

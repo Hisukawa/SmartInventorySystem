@@ -8,68 +8,73 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\User;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\SystemUnitImport;
+use Illuminate\Database\QueryException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Exports\SystemUnitsExport;
 
 class SystemUnitController extends Controller
 {
-       public function index(Request $request)
-{
-    $query = SystemUnit::with(['room', 'mr_to']);
+    public function index(Request $request)
+    {
+        $query = SystemUnit::with(['room', 'mr_to']);
 
-    // ✅ List of filterable fields
-    $filterable = [
-        'room_id',
-        'unit_code',
-        'processor',
-        'ram',
-        'storage',
-        'gpu',
-        'motherboard',
-        'condition',
-    ];
+        // ✅ List of filterable fields
+        $filterable = [
+            'room_id',
+            'unit_code',
+            'processor',
+            'ram',
+            'storage',
+            'gpu',
+            'motherboard',
+            'condition',
+        ];
 
-    // ✅ Apply filters dynamically
- 
-    foreach ($filterable as $field) {
-        $value = $request->get($field);
-        if (!empty($value) && $value !== 'all') {
-            $query->where($field, $value);
+        // ✅ Apply filters dynamically
+
+        foreach ($filterable as $field) {
+            $value = $request->get($field);
+            if (!empty($value) && $value !== 'all') {
+                $query->where($field, $value);
+            }
         }
+
+
+    // ✅ Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('unit_code', 'LIKE', "%{$search}%")
+                ->orWhereHas('room', function ($q2) use ($search) {
+                    $q2->where('room_number', 'LIKE', "%{$search}%");
+                })
+                ->orWhereHas('mr_to', function ($q3) use ($search) {
+                    $q3->where('name', 'LIKE', "%{$search}%");
+                });
+            });
+        }
+
+        // ✅ Fetch results
+        $units = $query->get();
+        $rooms = Room::select('id', 'room_number')->get();
+
+        return Inertia::render('SystemUnits/UnitPage', [
+            'units'   => $units,
+            'rooms'   => $rooms,
+            'filters' => $request->all(), // ✅ pass back filters to keep state in frontend
+        ]);
     }
-
-
-   // ✅ Apply search filter
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->where('unit_code', 'LIKE', "%{$search}%")
-              ->orWhereHas('room', function ($q2) use ($search) {
-                  $q2->where('room_number', 'LIKE', "%{$search}%");
-              })
-              ->orWhereHas('mr_to', function ($q3) use ($search) {
-                  $q3->where('name', 'LIKE', "%{$search}%");
-              });
-        });
-    }
-
-    // ✅ Fetch results
-    $units = $query->get();
-    $rooms = Room::select('id', 'room_number')->get();
-
-    return Inertia::render('SystemUnits/UnitPage', [
-        'units'   => $units,
-        'rooms'   => $rooms,
-        'filters' => $request->all(), // ✅ pass back filters to keep state in frontend
-    ]);
-}
 
 
     public function create()
     {
         $faculties = User::where('role', 'faculty')->get();
         return Inertia::render('SystemUnits/Add-Pc', [
-            'rooms' => Room::all(), 
+            'rooms' => Room::all(),
             'faculties' => $faculties,
-            
+
         ]);
     }
     // Store System Unit
@@ -182,7 +187,7 @@ class SystemUnitController extends Controller
 
     public function show($unit_code)
     {
-          $unit = SystemUnit::with(['room', 'mr_to'])
+        $unit = SystemUnit::with('room', 'mr_to')
             ->where('unit_code', $unit_code)
             ->firstOrFail();
 
@@ -201,5 +206,57 @@ class SystemUnitController extends Controller
     }
 
 
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:2048',
+        ]);
 
+        try {
+            Excel::import(new SystemUnitImport, $request->file('file'));
+            return response()->json(['message' => 'System units imported successfully!']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
+
+    public function template()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="system_units_template.csv"',
+        ];
+
+        $columns = [
+            'unit_code',
+            'room_id',
+            'serial_number',
+            'processor',
+            'ram',
+            'storage',
+            'gpu',
+            'motherboard',
+            'condition',
+            'mr_id',
+            'condition_details'
+        ];
+
+        $callback = function() use ($columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+
+    public function export()
+    {
+        return Excel::download(new SystemUnitsExport, 'system_units_export.xlsx');
+    }
 }

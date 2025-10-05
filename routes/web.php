@@ -83,6 +83,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
 
 
+
+    Route::post('/system-units/import', [SystemUnitController::class, 'import'])->name('system-units.import');
+    Route::get('/system-units/export', [SystemUnitController::class, 'export'])->name('system-units.export');
+
+
     // Shared Dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');

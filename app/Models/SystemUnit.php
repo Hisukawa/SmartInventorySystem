@@ -18,13 +18,18 @@ class SystemUnit extends Model
         'storage',
         'gpu',
         'motherboard',
-        'serial_number',       // ✅ new
+        'serial_number',
         'condition',
-        'condition_details',   // ✅ new
+        'condition_details',
         'room_id',
-        'mr_id',               // ✅ new (faculty assigned as MR)
+        'mr_id',
         'unit_path',
     ];
+
+    protected $casts = [
+        'mr_id' => 'integer',
+    ];
+
 
     public function room()
     {
@@ -38,7 +43,7 @@ class SystemUnit extends Model
     }
 
     public function mr_to(){
-         return $this->belongsTo(User::class, 'mr_id');
+        return $this->belongsTo(User::class, 'mr_id');
 
     }
 }
