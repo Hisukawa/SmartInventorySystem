@@ -40,7 +40,10 @@ public function getRouteKeyName()
 
     return 'equipment_code'; // Admin
 }
+      public function mr_to(){
+         return $this->belongsTo(User::class, 'mr_id');
 
+    }
 
 
 }

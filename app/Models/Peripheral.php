@@ -33,5 +33,10 @@ class Peripheral extends Model
 
         return static::select('condition')->distinct()->pluck('condition');
     }
+
+      public function mr_to(){
+         return $this->belongsTo(User::class, 'mr_id');
+
+    }
 }
 

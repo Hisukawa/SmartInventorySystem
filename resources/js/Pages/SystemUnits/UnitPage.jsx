@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -46,7 +46,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Filter as FilterIcon, X } from "lucide-react";
+
+//filter icon
+import { Filter as FilterIcon, X, Printer } from "lucide-react";
 
 const CONDITION_OPTIONS = [
     { label: "Functional", color: "bg-green-500" },
@@ -418,6 +420,114 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
         return match || { label: value || "Unknown", color: "bg-slate-400" };
     };
 
+    const tableRef = useRef(null);
+
+    //handle for printing
+    const handlePrint = () => {
+        if (!units || units.length === 0) {
+            alert("No data available to print.");
+            return;
+        }
+
+        const printWindow = window.open("", "", "width=900,height=700");
+
+        // Generate table rows from existing data
+        const tableRows = units
+            .map(
+                (unit) => `
+        <tr>
+            <td>${unit.id}</td>
+            <td>${unit.unit_code}</td>
+            <td>${unit.room?.room_number ?? "N/A"}</td>
+            <td>${unit.serial_number}</td>
+            <td>${unit.processor}</td>
+            <td>${unit.ram}</td>
+            <td>${unit.storage}</td>
+            <td>${unit.gpu ?? "N/A"}</td>
+            <td>${unit.motherboard}</td>
+            <td>${unit.condition}</td>
+            <td>${unit.condition_details ?? "N/A"}</td>
+          <td>${unit.mr_to?.name ?? "N/A"}</td>
+        </tr>
+    `
+            )
+            .join("");
+
+        // Write the print layout
+        printWindow.document.write(`
+        <html>
+            <head>
+                <title>Complete System Units Report</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                    }
+                    h2 {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        color: #2e7d32;
+                    }
+                    p {
+                        text-align: right;
+                        font-size: 12px;
+                        color: #666;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 10px;
+                    }
+                    th, td {
+                        border: 1px solid #ccc;
+                        padding: 8px;
+                        text-align: left;
+                        font-size: 13px;
+                    }
+                    th {
+                        background-color: #2e7d32;
+                        color: white;
+                    }
+                    tr:nth-child(even) {
+                        background-color: #f9f9f9;
+                    }
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h2>Complete System Units Report</h2>
+                <p>Generated on: ${new Date().toLocaleString()}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Unit Code</th>
+                            <th>Room</th>
+                            <th>Serial Number</th>
+                            <th>Processor</th>
+                            <th>RAM</th>
+                            <th>Storage</th>
+                            <th>GPU</th>
+                            <th>Motherboard</th>
+                            <th>Condition</th>
+                            <th>Condition Details</th>
+                            <th>Material Responsible</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </body>
+        </html>
+    `);
+
+        printWindow.document.close();
+        printWindow.print();
+    };
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -469,6 +579,13 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 onApplyFilters={onApplyFilters}
                                 onReset={resetFilters}
                             />
+                            <Button
+                                className="flex items-center gap-2 bg-[hsl(183,40%,45%)] text-white border-none hover:bg-[hsl(183,40%,38%)]"
+                                onClick={handlePrint}
+                            >
+                                <Printer className="h-4 w-4" />
+                                Print
+                            </Button>
 
                             <Input
                                 placeholder="Search Unit Code or Room"
@@ -497,7 +614,10 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
 
                     {/* Table */}
                     <div className="overflow-x-auto rounded-lg shadow-lg">
-                        <Table className="w-full bg-white table-fixed">
+                        <Table
+                            ref={tableRef}
+                            className="w-full bg-white table-fixed"
+                        >
                             <TableHeader>
                                 <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
                                     <TableHead className="px-5 py-1">
