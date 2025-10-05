@@ -13,7 +13,7 @@ class SystemUnitController extends Controller
 {
        public function index(Request $request)
 {
-    $query = SystemUnit::with('room');
+    $query = SystemUnit::with(['room', 'mr_to']);
 
     // ✅ List of filterable fields
     $filterable = [
@@ -28,6 +28,7 @@ class SystemUnitController extends Controller
     ];
 
     // ✅ Apply filters dynamically
+ 
     foreach ($filterable as $field) {
         $value = $request->get($field);
         if (!empty($value) && $value !== 'all') {
@@ -35,13 +36,17 @@ class SystemUnitController extends Controller
         }
     }
 
-    // ✅ Apply search filter
+
+   // ✅ Apply search filter
     if ($request->filled('search')) {
         $search = $request->search;
         $query->where(function ($q) use ($search) {
             $q->where('unit_code', 'LIKE', "%{$search}%")
               ->orWhereHas('room', function ($q2) use ($search) {
                   $q2->where('room_number', 'LIKE', "%{$search}%");
+              })
+              ->orWhereHas('mr_to', function ($q3) use ($search) {
+                  $q3->where('name', 'LIKE', "%{$search}%");
               });
         });
     }

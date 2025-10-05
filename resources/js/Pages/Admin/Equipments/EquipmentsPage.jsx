@@ -42,7 +42,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-
+import { Filter as FilterIcon, Printer } from "lucide-react";
 const CONDITION_OPTIONS = [
     { label: "Functional", color: "bg-green-500" },
     { label: "Defective", color: "bg-red-500" },
@@ -250,28 +250,101 @@ export default function EquipmentsPage({
         return match ? match.color : "bg-muted";
     };
 
-    function handleDelete(eq) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: `Delete equipment ${eq.equipment_code}?`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                destroy(route("equipments.destroy", eq.equipment_code), {
-                    onSuccess: () => {
-                        Swal.fire(
-                            "Deleted!",
-                            "Equipment has been deleted.",
-                            "success"
-                        );
-                    },
-                });
-            }
-        });
-    }
+    const handlePrint = () => {
+        if (!equipments || equipments.length === 0) {
+            alert("No equipment data available to print.");
+            return;
+        }
 
+        const printWindow = window.open("", "", "width=900,height=700");
+
+        const tableRows = equipments
+            .map(
+                (eq, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${eq.equipment_code}</td>
+                    <td>${eq.equipment_name ?? "N/A"}</td>
+                    <td>${eq.type ?? "N/A"}</td>
+                    <td>${eq.brand ?? "N/A"}</td>
+                    <td>${eq.condition ?? "N/A"}</td>
+                    <td>${
+                        eq.room?.room_number
+                            ? "Room " + eq.room.room_number
+                            : "N/A"
+                    }</td>
+                </tr>`
+            )
+            .join("");
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Equipment Report</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                        }
+                        h2 {
+                            text-align: center;
+                            color: #2e7d32;
+                            margin-bottom: 15px;
+                        }
+                        p {
+                            text-align: right;
+                            font-size: 12px;
+                            color: #555;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 10px;
+                        }
+                        th, td {
+                            border: 1px solid #ccc;
+                            padding: 8px;
+                            text-align: left;
+                            font-size: 13px;
+                        }
+                        th {
+                            background-color: #2e7d32;
+                            color: white;
+                        }
+                        tr:nth-child(even) {
+                            background-color: #f9f9f9;
+                        }
+                        @media print {
+                            body { -webkit-print-color-adjust: exact; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>Equipment Report</h2>
+                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Equipment Code</th>
+                                <th>Equipment Name</th>
+                                <th>Type</th>
+                                <th>Brand</th>
+                                <th>Condition</th>
+                                <th>Room</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.print();
+    };
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -319,6 +392,14 @@ export default function EquipmentsPage({
                                 filterOptions={filterOptions}
                                 onApplyFilters={onApplyFilters}
                             />
+
+                            <Button
+                                className="flex items-center gap-2 bg-[hsl(183,40%,45%)] text-white border-none hover:bg-[hsl(183,40%,38%)]"
+                                onClick={handlePrint}
+                            >
+                                <Printer className="h-4 w-4" />
+                                Print
+                            </Button>
                             <Input
                                 placeholder="Search Equipment Code..."
                                 value={search}
@@ -426,18 +507,6 @@ export default function EquipmentsPage({
                                                     >
                                                         <Edit2 className="h-4 w-4" />
                                                         Edit
-                                                    </Button>
-
-                                                    <Button
-                                                        size="sm"
-                                                        variant="destructive"
-                                                        className="flex items-center gap-2"
-                                                        onClick={() =>
-                                                            handleDelete(eq)
-                                                        }
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                        Delete
                                                     </Button>
                                                 </div>
                                             </TableCell>

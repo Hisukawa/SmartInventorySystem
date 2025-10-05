@@ -46,7 +46,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Filter as FilterIcon, X } from "lucide-react";
+import { Filter as FilterIcon, X, Printer } from "lucide-react";
 
 /* ✅ Reusable Filter Component */
 function PeripheralsFilter({ filters, filterOptions, onApplyFilters }) {
@@ -304,32 +304,6 @@ export default function PeripheralsIndex({
         currentPage * itemsPerPage
     );
 
-    function handleDelete(id) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This action cannot be undone!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(`/admin/peripherals/${id}`, {
-                    onSuccess: () => {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Deleted!",
-                            text: "Peripheral deleted successfully.",
-                            timer: 2000,
-                            showConfirmButton: false,
-                        });
-                    },
-                });
-            }
-        });
-    }
-
     /* Helper to get condition object */
     function getCondition(condition) {
         return (
@@ -338,6 +312,106 @@ export default function PeripheralsIndex({
             ) || { label: condition, color: "bg-slate-400" }
         );
     }
+
+    //handle for printing
+    const handlePrint = () => {
+        if (!peripherals || peripherals.length === 0) {
+            alert("No data available to print.");
+            return;
+        }
+
+        const printWindow = window.open("", "", "width=900,height=700");
+
+        const tableRows = peripherals
+            .map(
+                (p) => `
+        <tr>
+            <td>${p.id}</td>
+            <td>${p.peripheral_code}</td>
+            <td>${p.type}</td>
+            <td>${p.brand ?? "N/A"}</td>
+            <td>${p.model ?? "N/A"}</td>
+            <td>${p.serial_number ?? "N/A"}</td>
+            <td>${p.condition ?? "N/A"}</td>
+            <td>${p.room?.room_number ?? "N/A"}</td>
+            <td>${p.unit?.unit_code ?? "N/A"}</td>
+            <td>${p.unit?.mr_to?.name ?? "N/A"}</td>
+        </tr>
+    `
+            )
+            .join("");
+
+        printWindow.document.write(`
+        <html>
+            <head>
+                <title>Complete Peripherals Report</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                    }
+                    h2 {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        color: #2e7d32;
+                    }
+                    p {
+                        text-align: right;
+                        font-size: 12px;
+                        color: #666;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 10px;
+                    }
+                    th, td {
+                        border: 1px solid #ccc;
+                        padding: 8px;
+                        text-align: left;
+                        font-size: 13px;
+                    }
+                    th {
+                        background-color: #2e7d32;
+                        color: white;
+                    }
+                    tr:nth-child(even) {
+                        background-color: #f9f9f9;
+                    }
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h2>Complete Peripherals Report</h2>
+                <p>Generated on: ${new Date().toLocaleString()}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Peripheral Code</th>
+                            <th>Type</th>
+                            <th>Brand</th>
+                            <th>Model</th>
+                            <th>Serial Number</th>
+                            <th>Condition</th>
+                            <th>Room</th>
+                            <th>Unit Code</th>
+                            <th>Material Responsible</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </body>
+        </html>
+    `);
+
+        printWindow.document.close();
+        printWindow.print();
+    };
 
     return (
         <SidebarProvider>
@@ -389,7 +463,13 @@ export default function PeripheralsIndex({
                                     onApplyFilters={onApplyFilters}
                                     onReset={resetFilters}
                                 />
-
+                                <Button
+                                    className="flex items-center gap-2 bg-[hsl(183,40%,45%)] text-white border-none hover:bg-[hsl(183,40%,38%)]"
+                                    onClick={handlePrint}
+                                >
+                                    <Printer className="h-4 w-4" />
+                                    Print
+                                </Button>
                                 <Input
                                     placeholder="Search peripherals..."
                                     value={searchTerm}
@@ -523,20 +603,6 @@ export default function PeripheralsIndex({
                                                                 >
                                                                     <Edit2 className="h-4 w-4" />
                                                                     Edit
-                                                                </Button>
-
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="destructive"
-                                                                    className="flex items-center gap-2"
-                                                                    onClick={() =>
-                                                                        handleDelete(
-                                                                            p.id
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                    Delete
                                                                 </Button>
                                                             </TableCell>
                                                         </TableRow>
