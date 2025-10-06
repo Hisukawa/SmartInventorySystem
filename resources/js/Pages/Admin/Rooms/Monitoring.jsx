@@ -186,12 +186,15 @@ export default function AdminDashboard({ children }) {
                                         <div className="flex items-center space-x-4">
                                             {/* Faculty Photo */}
                                             {room.is_active &&
-                                            room.faculty_photo ? (
+                                            room.last_scanned_user?.photo ? (
                                                 <img
-                                                    src={room.faculty_photo}
+                                                    src={
+                                                        room.last_scanned_user
+                                                            .photo
+                                                    }
                                                     alt={
-                                                        room.last_scanned_by ||
-                                                        "Faculty"
+                                                        room.last_scanned_user
+                                                            .name
                                                     }
                                                     className="w-20 h-20 rounded-full object-cover border-2 border-green-500"
                                                 />
@@ -211,8 +214,9 @@ export default function AdminDashboard({ children }) {
                                                     }`}
                                                 >
                                                     {room.is_active &&
-                                                    room.last_scanned_by
-                                                        ? room.last_scanned_by
+                                                    room.last_scanned_user
+                                                        ? room.last_scanned_user
+                                                              .name
                                                         : "No Faculty"}
                                                 </span>
                                                 <span
