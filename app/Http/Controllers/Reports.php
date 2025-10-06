@@ -57,13 +57,20 @@ $reports = $query->get([
     'id',
     'room_id',
     'user_id',
-    'reportable_id',   // ✅ add this
+    'reportable_id',
     'reportable_type',
     'condition',
     'remarks',
     'resolved',
+    'photo_path',
     'created_at'
-]);
+])->map(function ($report) {
+    $report->photo_url = $report->photo_path
+        ? asset('storage/' . $report->photo_path)
+        : null;
+    return $report;
+});
+
 
     // ✅ build filter options (for dropdowns)
     $filterOptions = [

@@ -504,14 +504,16 @@ export default function FacultyReportsIndex({
                                                         {r.remarks}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {r.photo_path ? (
+                                                        {r.photo_url ? (
                                                             <img
-                                                                src={`/storage/${r.photo_path}`} // path to storage
+                                                                src={
+                                                                    r.photo_url
+                                                                }
                                                                 alt="Report"
                                                                 className="w-16 h-16 object-cover rounded cursor-pointer hover:shadow-lg"
                                                                 onClick={() =>
                                                                     handlePhotoClick(
-                                                                        r.photo_path
+                                                                        r.photo_url
                                                                     )
                                                                 }
                                                             />
@@ -615,7 +617,7 @@ export default function FacultyReportsIndex({
                         </DialogHeader>
                         {selectedPhoto && (
                             <img
-                                src={`/storage/${selectedPhoto}`}
+                                src={selectedPhoto}
                                 alt="Report"
                                 className="max-w-full max-h-[80vh] object-contain rounded"
                             />
