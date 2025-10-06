@@ -72,39 +72,43 @@ class AdminController extends Controller
     }
 
     // 🏫 Room occupancy widget
-    public function roomsStatus()
-    {
-        $rooms = Room::with(['latestStatus.scannedBy'])->get();
+   public function roomsStatus()
+{
+    $rooms = Room::with(['latestStatus.scannedBy'])->get();
 
-        $occupiedCount = 0;
-        $availableCount = 0;
-        $details = [];
+    $occupiedCount = 0;
+    $availableCount = 0;
+    $details = [];
 
-        foreach ($rooms as $room) {
-            $isActive = (bool) ($room->latestStatus->is_active ?? false);
+    foreach ($rooms as $room) {
+        $isActive = (bool) ($room->latestStatus->is_active ?? false);
 
-            if ($isActive) $occupiedCount++;
-            else $availableCount++;
+        if ($isActive) $occupiedCount++;
+        else $availableCount++;
 
-            $details[] = [
-                'id'              => $room->id,
-                'room_number'     => $room->room_number,
-                'is_active'       => $isActive,
-                'last_scanned_by' => $room->latestStatus?->scannedBy?->name,
-                'last_scanned_at' => $room->latestStatus?->created_at,
-                'faculty_photo' => $room->latestStatus?->scannedBy?->photo
-                    ? asset('storage/' . $room->latestStatus->scannedBy->photo)
-                    : null,
-
-            ];
+        // Build faculty photo URL properly
+        $facultyPhoto = null;
+        if ($room->latestStatus?->scannedBy?->photo) {
+            $facultyPhoto = asset($room->latestStatus->scannedBy->photo);
         }
 
-        return response()->json([
-            'occupied'  => $occupiedCount,
-            'available' => $availableCount,
-            'details'   => $details,
-        ]);
+        $details[] = [
+            'id'              => $room->id,
+            'room_number'     => $room->room_number,
+            'is_active'       => $isActive,
+            'last_scanned_by' => $room->latestStatus?->scannedBy?->name,
+            'last_scanned_at' => $room->latestStatus?->created_at,
+            'faculty_photo'   => $facultyPhoto,
+        ];
     }
+
+    return response()->json([
+        'occupied'  => $occupiedCount,
+        'available' => $availableCount,
+        'details'   => $details,
+    ]);
+}
+
 
     // 🖥 Overall equipment condition (all rooms)
 // 🖥 Overall equipment condition (all rooms or filtered by room)
