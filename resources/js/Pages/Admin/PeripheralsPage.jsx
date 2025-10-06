@@ -32,6 +32,7 @@ import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 
 import { Input } from "@/components/ui/input";
 import EditPeripheralModal from "./Peripherals/EditPeripheralModal";
+import { Upload, Download } from "lucide-react";
 
 /* 🔽 Faculty-style filter imports */
 import {
@@ -413,6 +414,137 @@ export default function PeripheralsIndex({
         printWindow.print();
     };
 
+    // Import Handler
+    // const handlePeripheralImport = async (e) => {
+    //     const file = e.target.files[0];
+    //     if (!file) return;
+
+    //     const formData = new FormData();
+    //     formData.append("file", file);
+
+    //     try {
+    //         const response = await fetch(route("peripherals.import"), {
+    //             method: "POST",
+    //             headers: {
+    //                 "X-CSRF-TOKEN": document.querySelector(
+    //                     'meta[name="csrf-token"]'
+    //                 ).content,
+    //             },
+    //             body: formData,
+    //         });
+
+    //         // Debug: log raw text
+    //         const text = await response.text();
+    //         console.log(text);
+
+    //         // Then parse JSON only if ok
+    //         if (response.ok) {
+    //             const data = JSON.parse(text);
+    //             Swal.fire({
+    //                 icon: "success",
+    //                 title: "Import Successful!",
+    //                 text: data.message,
+    //             });
+    //         } else {
+    //             Swal.fire({
+    //                 icon: "error",
+    //                 title: "Import Failed",
+    //                 text: text,
+    //             });
+    //         }
+    //     } catch (error) {
+    //         Swal.fire({
+    //             icon: "error",
+    //             title: "Import Error",
+    //             text: error.message,
+    //         });
+    //     } finally {
+    //         e.target.value = "";
+    //     }
+    // };
+
+    const handlePeripheralImport = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch(route("peripherals.import"), {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector(
+                        'meta[name="csrf-token"]'
+                    ).content,
+                },
+                body: formData,
+            });
+
+            const data = await response.json(); // parse JSON regardless of status
+
+            if (response.ok) {
+                // Successful import
+                Swal.fire({
+                    icon: "success",
+                    title: "Import Successful!",
+                    text: data.message || "Peripherals imported successfully.",
+                });
+            } else {
+                // Failed import
+                Swal.fire({
+                    icon: "error",
+                    title: "Import Failed",
+                    text: data.error || "An unknown error occurred.",
+                });
+            }
+        } catch (error) {
+            // Network or unexpected error
+            Swal.fire({
+                icon: "error",
+                title: "Import Error",
+                text: error.message,
+            });
+        } finally {
+            e.target.value = "";
+        }
+    };
+
+    // const handlePeripheralImport = async (e) => {
+    //     const file = e.target.files[0];
+    //     if (!file) return;
+
+    //     const formData = new FormData();
+    //     formData.append("file", file);
+
+    //     try {
+    //         const response = await fetch(route("peripherals.import"), {
+    //             method: "POST",
+    //             headers: {
+    //                 "X-CSRF-TOKEN": document.querySelector(
+    //                     'meta[name="csrf-token"]'
+    //                 ).content,
+    //             },
+    //             body: formData,
+    //         });
+
+    //         const text = await response.text(); // parse as text first
+
+    //         if (response.ok) {
+    //             // Try parsing JSON only if OK
+    //             const data = JSON.parse(text);
+    //             console.log("Import successful:", data.message);
+    //         } else {
+    //             // Server returned error HTML or JSON
+    //             console.error("Import failed:", text); // <-- log HTML
+    //         }
+    //     } catch (error) {
+    //         console.error("Import error:", error.message);
+    //     } finally {
+    //         e.target.value = "";
+    //     }
+    // };
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -470,6 +602,29 @@ export default function PeripheralsIndex({
                                     <Printer className="h-4 w-4" />
                                     Print
                                 </Button>
+                                {/* Import Button */}
+                                <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
+                                    <input
+                                        type="file"
+                                        accept=".csv"
+                                        onChange={handlePeripheralImport}
+                                        className="hidden"
+                                    />
+                                    <Upload className="h-4 w-4" />
+                                    Import
+                                </label>
+
+                                <Button
+                                    className="flex items-center gap-2 bg-[hsl(142,34%,45%)] text-white border-none hover:bg-[hsl(142,34%,38%)]"
+                                    onClick={() =>
+                                        (window.location.href =
+                                            "/admin/peripherals/export")
+                                    }
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Export
+                                </Button>
+
                                 <Input
                                     placeholder="Search peripherals..."
                                     value={searchTerm}
@@ -478,9 +633,9 @@ export default function PeripheralsIndex({
                                     }
                                     onKeyDown={handleSearch}
                                     className="flex-1 min-w-0 sm:max-w-xs w-full
-               border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
-               focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
-               placeholder:text-[hsl(142,34%,40%)]"
+                                        border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
+                                        focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
+                                        placeholder:text-[hsl(142,34%,40%)]"
                                 />
                             </div>
                             <div className="flex items-center space-x-4">

@@ -83,9 +83,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
 
 
-
+    // System Units CSV(Import/Export)
     Route::post('/system-units/import', [SystemUnitController::class, 'import'])->name('system-units.import');
     Route::get('/system-units/export', [SystemUnitController::class, 'export'])->name('system-units.export');
+
+
+    // Peripherals CSV(Import/Export)
+    Route::post('/peripherals/import', [PeripheralController::class, 'import'])->name('peripherals.import');
+    // Route::get('/peripherals/export', [PeripheralController::class, 'export'])->name('peripherals.export');
 
 
     // Shared Dashboard
@@ -115,21 +120,25 @@ Route::middleware(['auth'])->group(function () {
 
     //Wag motong i uncomment mag eerror yung guest
     Route::get('/room/{roomPath}', [RoomController::class, 'show'])
-       ->where('roomPath', '.*')
-      ->name('room.show');
+            ->where('roomPath', '.*')
+            ->name('room.show');
 
 // =======================================================================
 //                           ADMIN
 // =======================================================================
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
+        Route::get('/admin/peripherals/export', [PeripheralController::class, 'export'])->name('peripherals.export');
 
-// routes/api.php
+
+
+        // routes/api.php
         Route::get('/admin/faculty-logs', [MonitoringController::class, 'facultyLogs'])->name('admin.logHistory.logs');
-   // Faculties (dropdown)
-    Route::get('/admin/faculties/dropdown', function () {
-        return User::select('id', 'name')->get();
-    })->name('admin.api.faculties');
+
+        // Faculties (dropdown)
+        Route::get('/admin/faculties/dropdown', function () {
+            return User::select('id', 'name')->get();
+        })->name('admin.api.faculties');
 
         // Rooms (dropdown)
         Route::get('/admin/rooms/dropdown', function () {

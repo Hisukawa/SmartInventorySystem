@@ -14,7 +14,7 @@ class Peripheral extends Model
         'model',
         'serial_number',
         'condition',
-        'room_id',  // if applicable
+        'room_id',
         'unit_id',
         'qr_code_path',
     ];
@@ -34,8 +34,8 @@ class Peripheral extends Model
         return static::select('condition')->distinct()->pluck('condition');
     }
 
-      public function mr_to(){
-         return $this->belongsTo(User::class, 'mr_id');
+    public function mr_to(){
+        return $this->belongsTo(User::class, 'mr_id');
 
     }
 }

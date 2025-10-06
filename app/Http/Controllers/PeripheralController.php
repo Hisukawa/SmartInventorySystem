@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PeripheralExport;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Peripheral;
 use App\Models\Room;
 use App\Models\SystemUnit;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\PeripheralsImport;
+use App\Exports\PeripheralsExport;
+use App\Imports\PeripheralImport;
 
 class PeripheralController extends Controller
 {
@@ -214,4 +219,58 @@ class PeripheralController extends Controller
             'peripheral' => $peripheral,
         ]);
     }
+
+
+    // PeripheralController.php
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:2048',
+        ]);
+
+        try {
+            Excel::import(new PeripheralsImport, $request->file('file'));
+            return response()->json(['message' => 'Peripherals imported successfully!']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
+
+
+    public function export()
+    {
+        return Excel::download(new PeripheralsExport, 'peripherals_export.xlsx');
+    }
+
+    public function template()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="peripherals_template.csv"',
+        ];
+
+        $columns = [
+            'peripheral_code',
+            'unit_code',
+            'room_number',
+            'type',
+            'brand',
+            'model',
+            'serial_number',
+            'condition'
+        ];
+
+        $callback = function() use ($columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
 }
