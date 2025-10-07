@@ -11,7 +11,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Storage; 
 class AdminController extends Controller
 {
     public function dashboard()
@@ -92,8 +92,8 @@ class AdminController extends Controller
                 'is_active'       => $isActive,
                 'last_scanned_by' => $room->latestStatus?->scannedBy?->name,
                 'last_scanned_at' => $room->latestStatus?->created_at,
-                'faculty_photo' => $room->latestStatus?->scannedBy?->photo
-    ? asset(str_replace('public/', 'storage/', $room->latestStatus->scannedBy->photo))
+    'faculty_photo' => $room->latestStatus?->scannedBy?->photo
+    ? url(Storage::url($room->latestStatus->scannedBy->photo))
     : null,
 
             ];
