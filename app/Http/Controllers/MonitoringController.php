@@ -37,27 +37,30 @@ class MonitoringController extends Controller
 
 public function facultyLogs(Request $request)
 {
-    // Get all faculty & rooms for dropdowns (always show all)
+    // ✅ Dropdown data (faculties + rooms)
     $facultyOptions = \App\Models\User::select('id', 'name')
         ->orderBy('name')
         ->get()
-        ->toArray(); // ✅ Convert to array
+        ->toArray();
 
     $roomOptions = \App\Models\Room::select('id', 'room_number')
         ->orderBy('room_number')
         ->get()
-        ->toArray(); // ✅ Convert to array
+        ->toArray();
 
-    // Base query — get all faculty with their logs (if any)
-    $query = \App\Models\User::with(['roomStatuses.room:id,room_number'])
-        ->select('id', 'name');
+    // ✅ Base query: include logs (roomStatuses) + room info
+    $query = \App\Models\User::with([
+        'roomStatuses' => function ($q) {
+            $q->with('room:id,room_number')
+                ->orderBy('created_at', 'desc'); // 👈 newest logs first
+        },
+    ])->select('id', 'name');
 
-    // 🧩 Apply filters
+    // ✅ Filters
     if ($request->filled('faculty_id')) {
         $query->where('id', $request->faculty_id);
     }
 
-    // Filter by room
     if ($request->filled('room_id')) {
         $roomId = $request->room_id;
         $query->whereHas('roomStatuses', function ($sub) use ($roomId) {
@@ -65,13 +68,12 @@ public function facultyLogs(Request $request)
         });
     }
 
-    // Filter by date (created_at in RoomStatus)
- if ($request->filled('log_date')) {
-    $logDate = $request->log_date;
-    $query->whereHas('roomStatuses', function ($sub) use ($logDate) {
-        $sub->whereDate('created_at', $logDate);
-    });
-}
+    if ($request->filled('log_date')) {
+        $logDate = $request->log_date;
+        $query->whereHas('roomStatuses', function ($sub) use ($logDate) {
+            $sub->whereDate('created_at', $logDate);
+        });
+    }
 
     $faculties = $query->paginate(10);
 
@@ -81,7 +83,6 @@ public function facultyLogs(Request $request)
         'roomOptions' => $roomOptions,
     ]);
 }
-
 
 
 }

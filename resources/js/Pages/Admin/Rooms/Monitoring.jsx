@@ -204,10 +204,10 @@ export default function AdminDashboard({ children }) {
                                                         room.last_scanned_user
                                                             .name
                                                     }
-                                                    className="w-20 h-20 rounded-full object-cover border-2 border-green-500"
+                                                    className="w-28 h-28 rounded-full object-cover border-4 border-green-500 shadow-md"
                                                 />
                                             ) : (
-                                                <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm border-2 border-gray-300">
+                                                <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm border-4 border-gray-300 shadow-md">
                                                     No Photo
                                                 </div>
                                             )}
@@ -413,69 +413,101 @@ export default function AdminDashboard({ children }) {
                                                 faculty.room_statuses &&
                                                 faculty.room_statuses.length >
                                                     0 ? (
-                                                    faculty.room_statuses.map(
-                                                        (log, subIdx) => (
-                                                            <TableRow
-                                                                key={`${faculty.id}-${log.id}`}
-                                                            >
-                                                                <TableCell>
-                                                                    {idx +
-                                                                        1 +
-                                                                        (currentLogPage -
-                                                                            1) *
-                                                                            perPage}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {
-                                                                        faculty.name
-                                                                    }
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {log.created_at
-                                                                        ? new Date(
-                                                                              log.created_at
-                                                                          ).toLocaleString(
-                                                                              "en-PH",
-                                                                              {
-                                                                                  timeZone:
-                                                                                      "Asia/Manila",
-                                                                                  year: "numeric",
-                                                                                  month: "numeric",
-                                                                                  day: "numeric",
-                                                                                  hour: "numeric",
-                                                                                  minute: "2-digit",
-                                                                                  hour12: true,
-                                                                              }
-                                                                          )
-                                                                        : "—"}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {log.logged_out_at
-                                                                        ? new Date(
-                                                                              log.logged_out_at
-                                                                          ).toLocaleString(
-                                                                              "en-PH",
-                                                                              {
-                                                                                  timeZone:
-                                                                                      "Asia/Manila",
-                                                                                  year: "numeric",
-                                                                                  month: "numeric",
-                                                                                  day: "numeric",
-                                                                                  hour: "numeric",
-                                                                                  minute: "2-digit",
-                                                                                  hour12: true,
-                                                                              }
-                                                                          )
-                                                                        : "—"}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {log.room
-                                                                        ?.room_number ??
-                                                                        "N/A"}
-                                                                </TableCell>
-                                                            </TableRow>
+                                                    faculty.room_statuses
+                                                        .slice() // copy array
+                                                        .sort(
+                                                            (a, b) =>
+                                                                new Date(
+                                                                    b.created_at
+                                                                ) -
+                                                                new Date(
+                                                                    a.created_at
+                                                                )
                                                         )
-                                                    )
+                                                        .map((log, subIdx) => {
+                                                            // ✅ Safe date parsing (treat backend date as local already)
+                                                            const loginDate =
+                                                                log.created_at
+                                                                    ? new Date(
+                                                                          log.created_at.replace(
+                                                                              " ",
+                                                                              "T"
+                                                                          )
+                                                                      ).toLocaleString(
+                                                                          "en-PH",
+                                                                          {
+                                                                              year: "numeric",
+                                                                              month: "numeric",
+                                                                              day: "numeric",
+                                                                              hour: "numeric",
+                                                                              minute: "2-digit",
+                                                                              hour12: true,
+                                                                          }
+                                                                      )
+                                                                    : "—";
+
+                                                            const logoutDate =
+                                                                log.logged_out_at &&
+                                                                log.logged_out_at !==
+                                                                    null
+                                                                    ? new Date(
+                                                                          log.logged_out_at.replace(
+                                                                              " ",
+                                                                              "T"
+                                                                          )
+                                                                      ).toLocaleString(
+                                                                          "en-PH",
+                                                                          {
+                                                                              year: "numeric",
+                                                                              month: "numeric",
+                                                                              day: "numeric",
+                                                                              hour: "numeric",
+                                                                              minute: "2-digit",
+                                                                              hour12: true,
+                                                                          }
+                                                                      )
+                                                                    : ""; // 👈 Leave blank if not logged out
+
+                                                            return (
+                                                                <TableRow
+                                                                    key={`${faculty.id}-${log.id}`}
+                                                                >
+                                                                    <TableCell>
+                                                                        {idx +
+                                                                            1 +
+                                                                            (currentLogPage -
+                                                                                1) *
+                                                                                perPage}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        {
+                                                                            faculty.name
+                                                                        }
+                                                                    </TableCell>
+
+                                                                    {/* ✅ Login Date (correct local time) */}
+                                                                    <TableCell>
+                                                                        {
+                                                                            loginDate
+                                                                        }
+                                                                    </TableCell>
+
+                                                                    {/* ✅ Logout Date (blank if still active) */}
+                                                                    <TableCell>
+                                                                        {
+                                                                            logoutDate
+                                                                        }
+                                                                    </TableCell>
+
+                                                                    <TableCell>
+                                                                        {log
+                                                                            .room
+                                                                            ?.room_number ??
+                                                                            "N/A"}
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            );
+                                                        })
                                                 ) : (
                                                     <TableRow
                                                         key={`no-log-${faculty.id}`}
