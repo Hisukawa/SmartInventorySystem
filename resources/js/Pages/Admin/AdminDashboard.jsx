@@ -757,10 +757,15 @@ export default function AdminDashboard() {
                                                         src={
                                                             activeRoom.faculty_photo
                                                         }
-                                                        alt="Faculty"
-                                                        className="w-16 h-16 rounded-full object-cover border-4 border-[#59AC77]"
+                                                        alt={
+                                                            activeRoom.last_scanned_by ||
+                                                            "Faculty"
+                                                        }
+                                                        className="w-28 h-28 rounded-full object-cover border-4 border-[#59AC77] shadow-lg"
                                                         onError={(e) => {
-                                                            // If the photo URL is broken, fallback to default avatar
+                                                            // Fallback image if the faculty photo URL is broken or not accessible
+                                                            e.target.onerror =
+                                                                null;
                                                             e.target.src =
                                                                 "/default-avatar.png";
                                                         }}
@@ -769,7 +774,7 @@ export default function AdminDashboard() {
                                                     <img
                                                         src="/default-avatar.png"
                                                         alt="No Faculty"
-                                                        className="w-16 h-16 rounded-full object-cover border-4 border-gray-300"
+                                                        className="w-28 h-28 rounded-full object-cover border-4 border-gray-300 shadow-lg"
                                                     />
                                                 )}
                                                 <div>
