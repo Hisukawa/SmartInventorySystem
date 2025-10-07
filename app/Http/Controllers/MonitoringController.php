@@ -37,50 +37,52 @@ class MonitoringController extends Controller
 
 public function facultyLogs(Request $request)
 {
-    $query = RoomStatus::with(['scannedBy:id,name', 'room:id,room_number'])
-        ->orderBy('created_at', 'desc');
+    // ✅ Dropdown data (faculties + rooms)
+    $facultyOptions = \App\Models\User::select('id', 'name')
+        ->orderBy('name')
+        ->get()
+        ->toArray();
 
-    // 🔍 Search by faculty or room number (general search)
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->whereHas('scannedBy', function ($sub) use ($search) {
-                $sub->where('name', 'like', "%{$search}%");
-            })->orWhereHas('room', function ($sub) use ($search) {
-                $sub->where('room_number', 'like', "%{$search}%");
-            });
-        });
+    $roomOptions = \App\Models\Room::select('id', 'room_number')
+        ->orderBy('room_number')
+        ->get()
+        ->toArray();
+
+    // ✅ Base query: include logs (roomStatuses) + room info
+    $query = \App\Models\User::with([
+        'roomStatuses' => function ($q) {
+            $q->with('room:id,room_number')
+                ->orderBy('created_at', 'desc'); // 👈 newest logs first
+        },
+    ])->select('id', 'name');
+
+    // ✅ Filters
+    if ($request->filled('faculty_id')) {
+        $query->where('id', $request->faculty_id);
     }
 
-    // 🎓 Filter by Faculty Name
-    if ($request->filled('faculty_id')) { // change param name later if needed
-        $facultyName = $request->faculty_id;
-        $query->whereHas('scannedBy', function ($sub) use ($facultyName) {
-            $sub->where('name', 'like', "%{$facultyName}%");
-        });
-    }
-
-    // 🏫 Filter by Room Number
     if ($request->filled('room_id')) {
-        $roomNumber = $request->room_id;
-        $query->whereHas('room', function ($sub) use ($roomNumber) {
-            $sub->where('room_number', 'like', "%{$roomNumber}%");
+        $roomId = $request->room_id;
+        $query->whereHas('roomStatuses', function ($sub) use ($roomId) {
+            $sub->where('room_id', $roomId);
         });
     }
 
-    // 📅 Date From
-    if ($request->filled('date_from')) {
-        $query->whereDate('created_at', '>=', $request->date_from);
+    if ($request->filled('log_date')) {
+        $logDate = $request->log_date;
+        $query->whereHas('roomStatuses', function ($sub) use ($logDate) {
+            $sub->whereDate('created_at', $logDate);
+        });
     }
 
-    // 📅 Date To
-    if ($request->filled('date_to')) {
-        $query->whereDate('created_at', '<=', $request->date_to);
-    }
+    $faculties = $query->paginate(10);
 
-    $logs = $query->paginate(10);
-
-    return response()->json($logs);
+    return response()->json([
+        'logs' => $faculties,
+        'facultyOptions' => $facultyOptions,
+        'roomOptions' => $roomOptions,
+    ]);
 }
+
 
 }

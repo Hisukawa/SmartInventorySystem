@@ -53,7 +53,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(WebauthnCredential::class);
     }
-
+public function roomStatuses()
+{
+    return $this->hasMany(\App\Models\RoomStatus::class, 'scanned_by');
+}
 
 
 }

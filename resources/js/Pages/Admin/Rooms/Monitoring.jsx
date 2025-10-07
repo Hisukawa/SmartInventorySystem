@@ -42,8 +42,10 @@ export default function AdminDashboard({ children }) {
     const [search, setSearch] = useState("");
 
     const [activeFilters, setActiveFilters] = useState([]);
-
     const [showFilters, setShowFilters] = useState(false);
+    const [logDate, setLogDate] = useState("");
+    const [facultyOptions, setFacultyOptions] = useState([]);
+    const [roomOptions, setRoomOptions] = useState([]);
     const [facultyId, setFacultyId] = useState("");
     const [roomId, setRoomId] = useState("");
     const [dateFrom, setDateFrom] = useState("");
@@ -71,32 +73,38 @@ export default function AdminDashboard({ children }) {
                     search,
                     faculty_id: facultyId,
                     room_id: roomId,
-                    date_from: dateFrom,
-                    date_to: dateTo,
+                    log_date: logDate,
                 },
             });
-            setLogs(res.data.data);
+
+            // Backend now returns faculty list (with room_statuses)
+            setLogs(res.data.logs.data || []);
+
+            // Pagination
+            setTotalPages(res.data.logs.last_page || 1);
+
+            // Dropdowns
+            if (res.data.facultyOptions)
+                setFacultyOptions(res.data.facultyOptions);
+            if (res.data.roomOptions) setRoomOptions(res.data.roomOptions);
         } catch (err) {
             console.error("Failed to fetch logs:", err);
         }
     };
 
     // Initial fetch and auto-refresh every 5 seconds
+    // ✅ Unified data fetch and auto-refresh logic
     useEffect(() => {
         fetchRooms();
         fetchLogs();
+
         const interval = setInterval(() => {
             fetchRooms();
             fetchLogs();
         }, 5000);
+
         return () => clearInterval(interval);
-    }, [currentLogPage, search, facultyId, roomId, dateFrom, dateTo]);
-    const facultyOptions = [
-        ...new Set(logs.map((log) => log.scanned_by?.name).filter(Boolean)),
-    ];
-    const roomOptions = [
-        ...new Set(logs.map((log) => log.room?.room_number).filter(Boolean)),
-    ];
+    }, [currentLogPage, search, facultyId, roomId, logDate]);
 
     return (
         <SidebarProvider>
@@ -196,10 +204,10 @@ export default function AdminDashboard({ children }) {
                                                         room.last_scanned_user
                                                             .name
                                                     }
-                                                    className="w-20 h-20 rounded-full object-cover border-2 border-green-500"
+                                                    className="w-28 h-28 rounded-full object-cover border-4 border-green-500 shadow-md"
                                                 />
                                             ) : (
-                                                <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm border-2 border-gray-300">
+                                                <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm border-4 border-gray-300 shadow-md">
                                                     No Photo
                                                 </div>
                                             )}
@@ -252,237 +260,282 @@ export default function AdminDashboard({ children }) {
                             ))}
                         </div>
 
-                        {/* Faculty Logs Table */}
                         {/* 🔍 Search + Filters */}
-                        <div className="flex items-center justify-between mb-4">
-                            {/* Search */}
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    type="text"
-                                    placeholder="Search by faculty or room..."
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    className="w-64"
-                                />
-                                <Button onClick={fetchLogs}>Search</Button>
+                        <div className="space-y-4">
+                            {/* 🔍 Search + Filter Toggle */}
+                            {/* 🔍 Search + Filter Row */}
+                            <div className="flex items-center justify-between w-full mb-4">
+                                {/* 🌿 Filter Button (left) */}
+                                <Button
+                                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                    onClick={() => setShowFilters(!showFilters)}
+                                >
+                                    <Filter className="w-4 h-4" />
+                                    {showFilters
+                                        ? "Hide Filters"
+                                        : "Show Filters"}
+                                </Button>
+
+                                {/* 🔍 Search Bar + Button (right) */}
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="text"
+                                        placeholder="Search by faculty or room..."
+                                        value={search}
+                                        onChange={(e) =>
+                                            setSearch(e.target.value)
+                                        }
+                                        className="w-64"
+                                    />
+                                    <Button
+                                        onClick={fetchLogs}
+                                        className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                    >
+                                        Search
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
 
-                        <Card className="shadow-md rounded-2xl">
-                            <CardHeader>
-                                <CardTitle>Faculty Logs History</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableCaption>
-                                        A list of recent faculty room logs.
-                                    </TableCaption>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>#</TableHead>
-                                            <TableHead className="relative">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-medium text-gray-700">
-                                                        Faculty
-                                                    </span>
+                            {/* 🎛️ Filter Options */}
+                            {showFilters && (
+                                <div className="flex flex-wrap gap-5 items-end">
+                                    {/* Faculty Filter */}
+                                    <div className="flex flex-col">
+                                        <label className="text-sm text-gray-600 mb-1">
+                                            Faculty
+                                        </label>
+                                        <select
+                                            value={facultyId}
+                                            onChange={(e) =>
+                                                setFacultyId(e.target.value)
+                                            }
+                                            className="h-9 w-44 px-2 py-1 text-sm border rounded-md focus:ring-2 focus:ring-[hsl(142,34%,51%)] focus:outline-none"
+                                        >
+                                            <option value="">All</option>
+                                            {facultyOptions.map((f) => (
+                                                <option key={f.id} value={f.id}>
+                                                    {f.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
 
-                                                    <div className="flex items-center gap-1">
-                                                        <select
-                                                            value={facultyId}
-                                                            onChange={(e) => {
-                                                                setFacultyId(
-                                                                    e.target
-                                                                        .value
-                                                                );
-                                                                fetchLogs();
-                                                            }}
-                                                            className="
-          h-8
-          w-36
-          px-2
-          py-1
-          text-sm
-          text-gray-900
-          bg-white
-          border
-          border-gray-300
-          rounded-md
-          focus:outline-none
-          focus:ring-1
-          focus:ring-blue-500
-          focus:border-blue-500
-        "
-                                                        >
-                                                            <option value="">
-                                                                All
-                                                            </option>
-                                                            {facultyOptions.map(
-                                                                (name, idx) => (
-                                                                    <option
-                                                                        key={
-                                                                            idx
-                                                                        }
-                                                                        value={
-                                                                            name
-                                                                        }
-                                                                    >
-                                                                        {name}
-                                                                    </option>
-                                                                )
-                                                            )}
-                                                        </select>
+                                    {/* Room Filter */}
+                                    <div className="flex flex-col">
+                                        <label className="text-sm text-gray-600 mb-1">
+                                            Room
+                                        </label>
+                                        <select
+                                            value={roomId}
+                                            onChange={(e) =>
+                                                setRoomId(e.target.value)
+                                            }
+                                            className="h-9 w-44 px-2 py-1 text-sm border rounded-md focus:ring-2 focus:ring-[hsl(142,34%,51%)] focus:outline-none"
+                                        >
+                                            <option value="">All</option>
+                                            {roomOptions.map((r) => (
+                                                <option key={r.id} value={r.id}>
+                                                    {r.room_number}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
 
-                                                        <Filter className="w-4 h-4 text-gray-500" />
-                                                    </div>
-                                                </div>
-                                            </TableHead>
-                                            {/* LogIn Date filter */}
-                                            <TableHead className="relative">
-                                                <div className="flex items-center gap-2">
-                                                    LogIn Date
-                                                </div>
-                                            </TableHead>
-
-                                            {/* Logout Date filter */}
-                                            <TableHead className="relative">
-                                                <div className="flex items-center gap-2">
-                                                    Logout Date
-                                                </div>
-                                            </TableHead>
-
-                                            {/* Room filter */}
-                                            <TableHead className="relative">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-medium text-gray-700">
-                                                        Room
-                                                    </span>
-
-                                                    <div className="flex items-center gap-1">
-                                                        <select
-                                                            value={roomId}
-                                                            onChange={(e) => {
-                                                                const value =
-                                                                    e.target
-                                                                        .value;
-                                                                setRoomId(
-                                                                    value
-                                                                ); // empty string for "All Rooms"
-                                                                fetchLogs();
-                                                            }}
-                                                            className="
-          h-8
-          w-36
-          px-2
-          py-1
-          text-sm
-          text-gray-900
-          bg-white
-          border
-          border-gray-300
-          rounded-md
-          focus:outline-none
-          focus:ring-1
-          focus:ring-blue-500
-          focus:border-blue-500
-        "
-                                                        >
-                                                            <option value="">
-                                                                All
-                                                            </option>
-                                                            {roomOptions.map(
-                                                                (room, idx) => (
-                                                                    <option
-                                                                        key={
-                                                                            idx
-                                                                        }
-                                                                        value={
-                                                                            room
-                                                                        }
-                                                                    >
-                                                                        {room}
-                                                                    </option>
-                                                                )
-                                                            )}
-                                                        </select>
-
-                                                        <Filter className="w-4 h-4 text-gray-500" />
-                                                    </div>
-                                                </div>
-                                            </TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {logs.length === 0 && (
-                                            <TableRow>
-                                                <TableCell
-                                                    colSpan={5}
-                                                    className="text-center text-gray-500"
+                                    {/* Date Filter */}
+                                    {/* Date Filter */}
+                                    <div className="flex flex-col">
+                                        <label className="text-sm text-gray-600 mb-1">
+                                            Login Date
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                type="date"
+                                                value={logDate}
+                                                onChange={(e) =>
+                                                    setLogDate(e.target.value)
+                                                }
+                                                className="h-9 w-44 text-sm border rounded-md focus:ring-2 focus:ring-[hsl(142,34%,51%)] focus:outline-none"
+                                            />
+                                            {logDate && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        setLogDate("")
+                                                    }
+                                                    className="text-xs border-gray-300"
                                                 >
-                                                    No logs found.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
+                                                    Clear
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
-                                        {logs.map((log, idx) => (
-                                            <TableRow key={log.id}>
-                                                <TableCell>
-                                                    {idx +
-                                                        1 +
-                                                        (currentLogPage - 1) *
-                                                            perPage}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {log.scanned_by?.name ??
-                                                        "N/A"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {log.created_at
-                                                        ? new Date(
-                                                              log.created_at
-                                                          ).toLocaleString(
-                                                              "en-PH",
-                                                              {
-                                                                  timeZone:
-                                                                      "Asia/Manila",
-                                                                  year: "numeric",
-                                                                  month: "numeric",
-                                                                  day: "numeric",
-                                                                  hour: "numeric",
-                                                                  minute: "2-digit",
-                                                                  hour12: true,
-                                                              }
-                                                          )
-                                                        : "—"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {log.logged_out_at
-                                                        ? new Date(
-                                                              log.logged_out_at
-                                                          ).toLocaleString(
-                                                              "en-PH",
-                                                              {
-                                                                  timeZone:
-                                                                      "Asia/Manila",
-                                                                  year: "numeric",
-                                                                  month: "numeric",
-                                                                  day: "numeric",
-                                                                  hour: "numeric",
-                                                                  minute: "2-digit",
-                                                                  hour12: true,
-                                                              }
-                                                          )
-                                                        : "—"}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {log.room?.room_number ??
-                                                        "N/A"}
-                                                </TableCell>
+                            {/* 📋 Faculty Logs Table */}
+                            <Card className="shadow-md rounded-2xl">
+                                <CardHeader>
+                                    <CardTitle>Faculty Logs History</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableCaption>
+                                            A list of recent faculty room logs.
+                                        </TableCaption>
+                                        <TableHeader>
+                                            <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
+                                                <TableHead>#</TableHead>
+                                                <TableHead>Faculty</TableHead>
+                                                <TableHead>
+                                                    LogIn Date
+                                                </TableHead>
+                                                <TableHead>
+                                                    Logout Date
+                                                </TableHead>
+                                                <TableHead>Room</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
+                                        </TableHeader>
+
+                                        <TableBody>
+                                            {logs.length === 0 && (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={5}
+                                                        className="text-center text-gray-500"
+                                                    >
+                                                        No logs found.
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+
+                                            {logs.map((faculty, idx) =>
+                                                faculty.room_statuses &&
+                                                faculty.room_statuses.length >
+                                                    0 ? (
+                                                    faculty.room_statuses
+                                                        .slice() // copy array
+                                                        .sort(
+                                                            (a, b) =>
+                                                                new Date(
+                                                                    b.created_at
+                                                                ) -
+                                                                new Date(
+                                                                    a.created_at
+                                                                )
+                                                        )
+                                                        .map((log, subIdx) => {
+                                                            // ✅ Safe date parsing (treat backend date as local already)
+                                                            const loginDate =
+                                                                log.created_at
+                                                                    ? new Date(
+                                                                          log.created_at.replace(
+                                                                              " ",
+                                                                              "T"
+                                                                          )
+                                                                      ).toLocaleString(
+                                                                          "en-PH",
+                                                                          {
+                                                                              year: "numeric",
+                                                                              month: "numeric",
+                                                                              day: "numeric",
+                                                                              hour: "numeric",
+                                                                              minute: "2-digit",
+                                                                              hour12: true,
+                                                                          }
+                                                                      )
+                                                                    : "—";
+
+                                                            const logoutDate =
+                                                                log.logged_out_at &&
+                                                                log.logged_out_at !==
+                                                                    null
+                                                                    ? new Date(
+                                                                          log.logged_out_at.replace(
+                                                                              " ",
+                                                                              "T"
+                                                                          )
+                                                                      ).toLocaleString(
+                                                                          "en-PH",
+                                                                          {
+                                                                              year: "numeric",
+                                                                              month: "numeric",
+                                                                              day: "numeric",
+                                                                              hour: "numeric",
+                                                                              minute: "2-digit",
+                                                                              hour12: true,
+                                                                          }
+                                                                      )
+                                                                    : ""; // 👈 Leave blank if not logged out
+
+                                                            return (
+                                                                <TableRow
+                                                                    key={`${faculty.id}-${log.id}`}
+                                                                >
+                                                                    <TableCell>
+                                                                        {idx +
+                                                                            1 +
+                                                                            (currentLogPage -
+                                                                                1) *
+                                                                                perPage}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        {
+                                                                            faculty.name
+                                                                        }
+                                                                    </TableCell>
+
+                                                                    {/* ✅ Login Date (correct local time) */}
+                                                                    <TableCell>
+                                                                        {
+                                                                            loginDate
+                                                                        }
+                                                                    </TableCell>
+
+                                                                    {/* ✅ Logout Date (blank if still active) */}
+                                                                    <TableCell>
+                                                                        {
+                                                                            logoutDate
+                                                                        }
+                                                                    </TableCell>
+
+                                                                    <TableCell>
+                                                                        {log
+                                                                            .room
+                                                                            ?.room_number ??
+                                                                            "N/A"}
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            );
+                                                        })
+                                                ) : (
+                                                    <TableRow
+                                                        key={`no-log-${faculty.id}`}
+                                                    >
+                                                        <TableCell>
+                                                            {idx +
+                                                                1 +
+                                                                (currentLogPage -
+                                                                    1) *
+                                                                    perPage}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {faculty.name}
+                                                        </TableCell>
+                                                        <TableCell
+                                                            colSpan={3}
+                                                            className="text-center text-gray-400"
+                                                        >
+                                                            No log recorded
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </main>
             </SidebarInset>
