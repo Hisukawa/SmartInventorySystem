@@ -752,14 +752,26 @@ export default function AdminDashboard() {
                                                 key={activeRoom.id}
                                                 className="flex items-center gap-6 border-b pb-6 last:border-b-0"
                                             >
-                                                <img
-                                                    src={
-                                                        activeRoom.faculty_photo ||
-                                                        "/default-avatar.png"
-                                                    }
-                                                    alt="Faculty"
-                                                    className="w-16 h-16 rounded-full object-cover border-4 border-[#59AC77]"
-                                                />
+                                                {activeRoom.faculty_photo ? (
+                                                    <img
+                                                        src={
+                                                            activeRoom.faculty_photo
+                                                        }
+                                                        alt="Faculty"
+                                                        className="w-16 h-16 rounded-full object-cover border-4 border-[#59AC77]"
+                                                        onError={(e) => {
+                                                            // If the photo URL is broken, fallback to default avatar
+                                                            e.target.src =
+                                                                "/default-avatar.png";
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src="/default-avatar.png"
+                                                        alt="No Faculty"
+                                                        className="w-16 h-16 rounded-full object-cover border-4 border-gray-300"
+                                                    />
+                                                )}
                                                 <div>
                                                     <p className="text-base font-semibold text-[#2F4F2F]">
                                                         Room{" "}
