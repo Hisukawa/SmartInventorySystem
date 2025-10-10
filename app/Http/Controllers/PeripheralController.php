@@ -73,6 +73,7 @@ class PeripheralController extends Controller
             'model'         => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
             'condition'     => 'required|string|max:255',
+            'condition_details' => 'nullable|string|max:255',
             'room_id'       => 'required|exists:rooms,id',
             'unit_id'       => 'required|exists:system_units,id',
         ]);
@@ -111,6 +112,7 @@ class PeripheralController extends Controller
             'model'           => $validated['model'] ?? null,
             'serial_number'   => $validated['serial_number'] ?? null,
             'condition'       => $validated['condition'],
+            'condition_details' => $validated['condition_details'] ?? null, // ✅ NEW FIELD
             'room_id'         => $room->id,
             'unit_id'         => $validated['unit_id'],
             'peripheral_code' => $peripheralCode,
@@ -149,6 +151,7 @@ class PeripheralController extends Controller
             'model' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
             'condition' => 'required|string|max:255',
+                   'condition_details' => 'nullable|string|max:1000', // ✅ added
             'room_id' => 'required|exists:rooms,id',
             'unit_id' => 'required|exists:system_units,id',
         ]);

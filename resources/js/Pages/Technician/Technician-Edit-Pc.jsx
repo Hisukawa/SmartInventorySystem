@@ -4,9 +4,18 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import TechnicianRoomSidebar from "@/Components/TechnicianComponent/techician-scanned-sidebar";
-import { Menu } from "lucide-react";
-import Swal from "sweetalert2";
 
+import Swal from "sweetalert2";
+import {
+    Menu,
+    Keyboard,
+    Mouse,
+    Barcode,
+    Layers,
+    Tag,
+    Hash,
+    ArrowLeft,
+} from "lucide-react";
 export default function TechnicianEditPc({ room, user, unit }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { flash } = usePage().props;
@@ -217,8 +226,16 @@ export default function TechnicianEditPc({ room, user, unit }) {
                                     )}
                                 </div>
 
-                                {/* Submit Button */}
-                                <div className="sm:col-span-2 flex justify-end mt-2">
+                                <div className="sm:col-span-2 flex justify-end items-center gap-3 mt-6">
+                                    <Button
+                                        variant="outline"
+                                        className="flex items-center gap-2 hover:bg-green-100"
+                                        onClick={() => window.history.back()}
+                                    >
+                                        <ArrowLeft className="h-4 w-4" />
+                                        Back
+                                    </Button>
+
                                     <Button
                                         type="submit"
                                         disabled={processing}

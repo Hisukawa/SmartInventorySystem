@@ -31,35 +31,35 @@ export default function EditUnitModal({ unit, rooms, onClose }) {
         room_id: unit.room_id,
     });
 
-const handleSubmit = (e) => {
-    e.preventDefault();
+    const handleSubmit = (e) => {
+        e.preventDefault();
 
-    put(`/technician/units/${unit.id}`, {
-        onSuccess: () => {
-            onClose(); // close modal
+        put(`/technician/units/${unit.id}`, {
+            onSuccess: () => {
+                onClose(); // close modal
 
-            Swal.fire({
-                title: "System Unit updated successfully!",
-                icon: "success",
-                showConfirmButton: false,
-                timer: 1500,
-                customClass: {
-                    popup: "technician-success-message"
-                }
-            });
-        },
-        onError: (errors) => {
-            Swal.fire({
-                title: "Error updating system unit",
-                text: Object.values(errors).join("\n"),
-                icon: "error",
-                showConfirmButton: true,
-                customClass: {
-                    popup: "technician-error-message"
-                }
-            });
-        }
-    });
+                Swal.fire({
+                    title: "System Unit updated successfully!",
+                    icon: "success",
+                    showConfirmButton: false,
+                    timer: 1500,
+                    customClass: {
+                        popup: "technician-success-message",
+                    },
+                });
+            },
+            onError: (errors) => {
+                Swal.fire({
+                    title: "Error updating system unit",
+                    text: Object.values(errors).join("\n"),
+                    icon: "error",
+                    showConfirmButton: true,
+                    customClass: {
+                        popup: "technician-error-message",
+                    },
+                });
+            },
+        });
     };
 
     const getConditionColor = (condition) => {

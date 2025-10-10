@@ -755,18 +755,6 @@ export default function TechnicianRoomView({
                                                                 </Button>
 
                                                                 {/* Delete Button */}
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    className="flex items-center gap-1 text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
-                                                                    onClick={() =>
-                                                                        handleDelete(
-                                                                            item
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
                                                             </TableCell>
                                                         </TableRow>
                                                     )
