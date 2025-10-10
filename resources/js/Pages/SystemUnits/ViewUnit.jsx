@@ -46,7 +46,8 @@ export default function ViewUnit({ unit }) {
     const unitCode = unit?.unit_code || "N/A";
     const roomNumber = unit?.room?.room_number || "N/A";
 
-    const qrValue = `http://localhost:8000/unit/isu-ilagan/ict-department/room-${roomNumber}/${unitCode}`;
+    const domain = window.location.origin; // automatically gets http://localhost:8000 or your real domain
+    const qrValue = `${domain}/view/isu-ilagan/ict-department/room-${roomNumber}/${unitCode}`;
 
     const handleQRCodeClick = () => {
         setSelectedQR(qrValue);

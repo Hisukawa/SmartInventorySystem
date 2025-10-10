@@ -9,6 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea"; // ✅ add this
 import { cn } from "@/lib/utils";
 import Swal from "sweetalert2";
 
@@ -36,6 +37,7 @@ export default function EditPeripheralModal({
         model: peripheral?.model || "",
         serial_number: peripheral?.serial_number || "",
         condition: peripheral?.condition || "",
+        condition_details: peripheral?.condition_details || "", // ✅ added
         room_id: peripheral?.room_id || "",
         unit_id: peripheral?.unit_id || "",
     });
@@ -167,6 +169,25 @@ export default function EditPeripheralModal({
                         {errors.condition && (
                             <p className="text-sm text-red-500">
                                 {errors.condition}
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        <Label htmlFor="condition_details">
+                            Condition Details
+                        </Label>
+                        <Textarea
+                            id="condition_details"
+                            value={data.condition_details}
+                            onChange={(e) =>
+                                setData("condition_details", e.target.value)
+                            }
+                            placeholder="Add more details about the condition (e.g., missing keys, dim screen, loose cable)"
+                            rows={3}
+                        />
+                        {errors.condition_details && (
+                            <p className="text-sm text-red-500">
+                                {errors.condition_details}
                             </p>
                         )}
                     </div>

@@ -28,6 +28,7 @@ export default function EditUnitModal({ unit, rooms, onClose, onSuccess }) {
         gpu: unit.gpu,
         motherboard: unit.motherboard,
         condition: unit.condition,
+        condition_details: unit.condition_details || "", // ✅ NEW FIELD
         room_id: unit.room_id,
     });
 
@@ -184,6 +185,27 @@ export default function EditUnitModal({ unit, rooms, onClose, onSuccess }) {
                         {errors.condition && (
                             <p className="text-sm text-red-500">
                                 {errors.condition}
+                            </p>
+                        )}
+                    </div>
+                    {/* ✅ Condition Details */}
+                    <div>
+                        <Label htmlFor="condition_details">
+                            Condition Details
+                        </Label>
+                        <textarea
+                            id="condition_details"
+                            className="w-full border rounded-md p-2 text-sm"
+                            rows={3}
+                            placeholder="Describe condition details (e.g. slow performance, faulty port, etc.)"
+                            value={data.condition_details}
+                            onChange={(e) =>
+                                setData("condition_details", e.target.value)
+                            }
+                        />
+                        {errors.condition_details && (
+                            <p className="text-sm text-red-500">
+                                {errors.condition_details}
                             </p>
                         )}
                     </div>

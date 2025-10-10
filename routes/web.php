@@ -43,10 +43,9 @@ Route::get('/', function () {
 });
 
 //Route to see all users the units details without logging in
-Route::get('/unit/{unit_path}', [SystemUnitController::class, 'showUnitsDetails'])
+Route::get('/view/{unit_path}', [SystemUnitController::class, 'showUnitsDetails'])
     ->where('unit_path', '.*')
     ->name('units.public.show');
-
 //Route to see all users peripherals details without logging in
 Route::get('/peripherals/{peripheral_code}', [PeripheralController::class, 'showPeripheralsDetails'])
     ->name('peripherals.public.show');

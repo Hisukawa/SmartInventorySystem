@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import QRCode from "react-qr-code";
 import {
     Breadcrumb,
@@ -17,98 +17,91 @@ import {
     BreadcrumbList,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    Cpu,
+    Monitor,
+    Barcode,
+    Info,
+    AlertTriangle,
+    CheckCircle2,
+    QrCode,
+    Building2,
+    HardDrive,
+} from "lucide-react";
 
 export default function ViewPeripheral({ peripheral }) {
-    const [selectedQR, setSelectedQR] = useState("");
-    const [selectedRoomNumber, setSelectedRoomNumber] = useState("");
+    const [selectedQR, setSelectedQR] = useState(null);
+    const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const handleQRCodeClick = (peripheral) => {
-        const qrValue = route(
-            "peripherals.public.show",
-            peripheral.peripheral_code
-        );
+    const peripheralCode = peripheral?.peripheral_code || "N/A";
+    const unitCode = peripheral?.unit?.unit_code || "N/A";
+    const roomNumber = peripheral?.room?.room_number || "N/A";
+
+    const qrValue = `${window.location.origin}/peripherals/${peripheralCode}`;
+
+    const handleQRCodeClick = () => {
         setSelectedQR(qrValue);
-        setSelectedRoomNumber(peripheral.room?.room_number || "N/A");
+        setOpen(true);
         setCopied(false);
     };
 
-    const handleCopy = async () => {
+    const handleModalQRClick = async () => {
         if (selectedQR) {
-            await navigator.clipboard.writeText(selectedQR);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            try {
+                await navigator.clipboard.writeText(selectedQR);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            } catch (err) {
+                console.error("Failed to copy: ", err);
+            }
         }
     };
 
     const handleDownload = () => {
-        const svg = document.getElementById("qr-download");
+        if (!selectedQR) return;
+        const canvas = document.createElement("canvas");
+        const svg = document.querySelector("#modal-qr svg");
         if (!svg) return;
 
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        const DOMURL = window.URL || window.webkitURL || window;
-
+        const serializer = new XMLSerializer();
+        const svgStr = serializer.serializeToString(svg);
         const img = new Image();
-        const svgBlob = new Blob([svgData], {
+        const blob = new Blob([svgStr], {
             type: "image/svg+xml;charset=utf-8",
         });
-        const url = DOMURL.createObjectURL(svgBlob);
+        const url = URL.createObjectURL(blob);
 
         img.onload = () => {
-            const padding = 20; // padding around QR
-            const textHeight = 60; // space for 3 lines of text
+            const padding = 20;
+            const textHeight = 50;
             canvas.width = img.width + padding * 2;
             canvas.height = img.height + padding * 2 + textHeight;
+            const ctx = canvas.getContext("2d");
 
-            // background
             ctx.fillStyle = "#fff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // draw QR in center horizontally
-            const qrX = (canvas.width - img.width) / 2;
-            ctx.drawImage(img, qrX, padding);
-
-            // text values
-            const roomNumber = selectedRoomNumber || "N/A";
-            const unitCode = peripheral.unit?.unit_code || "N/A";
-            const peripheralCode = peripheral.peripheral_code || "N/A";
-
+            ctx.drawImage(img, padding, padding);
             ctx.fillStyle = "#000";
-            ctx.textAlign = "center";
             ctx.font = "bold 18px Arial";
-
-            // line 1: Room
+            ctx.textAlign = "center";
             ctx.fillText(
-                `Room ${roomNumber}`,
+                `Room ${roomNumber} - ${peripheralCode}`,
                 canvas.width / 2,
-                img.height + padding + 20
-            );
-            // line 2: Unit
-            ctx.fillText(
-                `${unitCode}`,
-                canvas.width / 2,
-                img.height + padding + 40
-            );
-            // line 3: Peripheral
-            ctx.fillText(
-                `${peripheralCode}`,
-                canvas.width / 2,
-                img.height + padding + 60
+                img.height + padding + 30
             );
 
-            DOMURL.revokeObjectURL(url);
-
-            // filename
-            const fileName = `ROOM-${roomNumber}_${unitCode}_${peripheralCode}-QR.png`;
-
+            URL.revokeObjectURL(url);
             const link = document.createElement("a");
-            link.download = fileName;
+            link.download = `ROOM-${roomNumber}_${peripheralCode}.png`;
             link.href = canvas.toDataURL("image/png");
-            document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
         };
         img.src = url;
     };
@@ -131,8 +124,7 @@ export default function ViewPeripheral({ peripheral }) {
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
-                                    href={`/admin/peripherals/${peripheral.peripheral_code}`}
-                                    aria-current="page"
+                                    href={`/admin/peripherals/${peripheralCode}`}
                                     className="font-semibold text-foreground"
                                 >
                                     View Peripheral
@@ -142,59 +134,107 @@ export default function ViewPeripheral({ peripheral }) {
                     </Breadcrumb>
                 </header>
 
-                <Head title={`View ${peripheral.peripheral_code}`} />
+                <Head title={`View ${peripheralCode}`} />
+
                 <main className="p-6">
-                    <h1 className="text-2xl font-bold mb-4">
+                    <h1 className="text-2xl font-bold mb-6 text-center">
                         Peripheral Information
                     </h1>
 
-                    <div className="bg-white shadow rounded p-6 max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <strong>Peripheral Code:</strong>{" "}
-                            {peripheral.peripheral_code}
-                        </div>
-                        <div>
-                            <strong>Type:</strong> {peripheral.type}
-                        </div>
-                        <div>
-                            <strong>Serial Number:</strong>{" "}
-                            {peripheral.serial_number || "N/A"}
-                        </div>
-                        <div>
-                            <strong>Condition:</strong> {peripheral.condition}
-                        </div>
-                        <div>
-                            <strong>Room:</strong>{" "}
-                            {peripheral.room
-                                ? `ROOM ${peripheral.room.room_number}`
-                                : "N/A"}
-                        </div>
-                        <div>
-                            <strong>Unit Code:</strong>{" "}
-                            {peripheral.unit
-                                ? peripheral.unit.unit_code
-                                : "N/A"}
-                        </div>
+                    <Card className="max-w-4xl mx-auto shadow-lg rounded-2xl">
+                        <CardHeader className="bg-[hsl(142,34%,51%)] text-white border-none text-center">
+                            <CardTitle className="text-lg">
+                                Peripheral Details
+                            </CardTitle>
+                        </CardHeader>
 
-                        {/* Clickable QR Code */}
-                        <div className="col-span-2 flex flex-col items-center mt-4">
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-5 bg-white">
+                            <div className="flex items-center gap-2">
+                                <QrCode className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">
+                                    Peripheral Code:
+                                </span>
+                                <span>{peripheralCode}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Cpu className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">Unit Code:</span>
+                                <span>{unitCode}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Building2 className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">Room:</span>
+                                <span>{roomNumber}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Monitor className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">Type:</span>
+                                <span>{peripheral?.type || "N/A"}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Barcode className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">
+                                    Serial Number:
+                                </span>
+                                <span>
+                                    {peripheral?.serial_number || "N/A"}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                {peripheral?.condition === "Functional" ? (
+                                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                ) : peripheral?.condition === "Needs Repair" ? (
+                                    <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                                ) : (
+                                    <Info className="w-5 h-5 text-gray-600" />
+                                )}
+                                <span className="font-medium">Condition:</span>
+                                <span
+                                    className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                                        peripheral?.condition === "Functional"
+                                            ? "bg-green-500"
+                                            : peripheral?.condition ===
+                                              "Needs Repair"
+                                            ? "bg-yellow-500"
+                                            : "bg-gray-500"
+                                    }`}
+                                >
+                                    {peripheral?.condition || "N/A"}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                                <Info className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">
+                                    Condition Details:
+                                </span>
+                                <span>
+                                    {peripheral?.condition_details ||
+                                        "No details"}
+                                </span>
+                            </div>
+                        </CardContent>
+
+                        {/* QR Section */}
+                        <div className="flex flex-col items-center py-6 bg-white rounded-b-2xl">
                             <div
-                                className="w-32 h-32 bg-white p-2 rounded cursor-pointer"
-                                onClick={() => handleQRCodeClick(peripheral)}
+                                className="bg-white p-3 rounded-lg shadow cursor-pointer hover:shadow-lg transition"
+                                onClick={handleQRCodeClick}
                             >
-                                <QRCode
-                                    id="qr-download"
-                                    value={`${window.location.origin}/peripherals/${peripheral.peripheral_code}`}
-                                    size={128}
-                                />
+                                <QRCode value={qrValue} size={128} />
                             </div>
                             <span className="mt-2 text-sm text-muted-foreground">
-                                Click QR to enlarge
+                                Scan to view public info
                             </span>
                         </div>
-                    </div>
+                    </Card>
 
-                    <div className="mt-6">
+                    <div className="mt-6 flex justify-center">
                         <Button
                             variant="secondary"
                             onClick={() => window.history.back()}
@@ -202,50 +242,38 @@ export default function ViewPeripheral({ peripheral }) {
                             Go Back
                         </Button>
                     </div>
-
-                    {/* QR Code Modal */}
-                    <Dialog
-                        open={!!selectedQR}
-                        onOpenChange={() => {
-                            setSelectedQR("");
-                            setSelectedRoomNumber("");
-                            setCopied(false);
-                        }}
-                    >
-                        <DialogContent className="max-w-sm text-center">
-                            <DialogTitle>ROOM {selectedRoomNumber}</DialogTitle>
-                            <div className="flex flex-col items-center justify-center">
-                                <div
-                                    className="inline-block p-4 bg-white rounded cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleCopy();
-                                    }}
-                                >
-                                    <QRCode
-                                        id="qr-download"
-                                        value={selectedQR}
-                                        size={200}
-                                    />
-                                    <p className="text-xs mt-2 text-muted-foreground">
-                                        Click QR to copy link
-                                    </p>
-                                </div>
-                                {copied && (
-                                    <p className="text-green-600 text-sm text-center mt-1">
-                                        Copied to clipboard!
-                                    </p>
-                                )}
-                                <Button
-                                    className="mt-4"
-                                    onClick={handleDownload}
-                                >
-                                    Download QR
-                                </Button>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
                 </main>
+
+                {/* Modal */}
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogContent className="flex flex-col items-center">
+                        <DialogHeader>
+                            <DialogTitle>
+                                QR Code for Room {roomNumber} - {peripheralCode}
+                            </DialogTitle>
+                        </DialogHeader>
+                        {selectedQR && (
+                            <div
+                                id="modal-qr"
+                                className="cursor-pointer"
+                                onClick={handleModalQRClick}
+                            >
+                                <QRCode value={selectedQR} size={256} />
+                            </div>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                            Click QR to copy link
+                        </span>
+                        {copied && (
+                            <span className="text-green-600 text-sm">
+                                QR code path copied!
+                            </span>
+                        )}
+                        <div className="mt-1 flex gap-2">
+                            <Button onClick={handleDownload}>Download</Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </SidebarInset>
         </SidebarProvider>
     );
