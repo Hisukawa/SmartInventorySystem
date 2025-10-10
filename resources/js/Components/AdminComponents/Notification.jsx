@@ -90,7 +90,8 @@ export default function Notification() {
                                         Condition: {notif.data.condition}
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                        Room ID: {notif.data.room_id}
+                                        {/* Room ID: {notif.data.room_id} */}
+                                        Room Number: {notif.data.room_number}
                                     </p>
                                     <p className="text-xs">
                                         {notif.data.remarks}

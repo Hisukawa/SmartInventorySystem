@@ -642,7 +642,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 Print
                             </Button>
                             {/* Import Button */}
-                            <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
+                            {/* <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
                                 <input
                                     type="file"
                                     accept=".csv"
@@ -651,10 +651,10 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 />
                                 <Upload className="h-4 w-4" />
                                 Import
-                            </label>
+                            </label> */}
 
                             {/* Export Data */}
-                            <Button
+                            {/* <Button
                                 className="flex items-center gap-2 bg-[hsl(142,34%,45%)] text-white border-none hover:bg-[hsl(142,34%,38%)]"
                                 onClick={() =>
                                     (window.location.href = route(
@@ -664,7 +664,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                             >
                                 <Download className="h-4 w-4" />
                                 Export
-                            </Button>
+                            </Button> */}
 
                             <Input
                                 placeholder="Search Unit Code or Room"

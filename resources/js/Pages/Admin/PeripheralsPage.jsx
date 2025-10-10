@@ -603,7 +603,7 @@ export default function PeripheralsIndex({
                                     Print
                                 </Button>
                                 {/* Import Button */}
-                                <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
+                                {/* <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
                                     <input
                                         type="file"
                                         accept=".csv"
@@ -623,7 +623,7 @@ export default function PeripheralsIndex({
                                 >
                                     <Download className="h-4 w-4" />
                                     Export
-                                </Button>
+                                </Button> */}
 
                                 <Input
                                     placeholder="Search peripherals..."

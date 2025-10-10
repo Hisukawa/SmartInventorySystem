@@ -107,11 +107,11 @@ const data = {
             url: "/admin/users",
             icon: User,
         },
-        {
-            title: "Announcements",
-            url: "/admin/announcement",
-            icon: Megaphone, // 📢 Icon for announcements
-        },
+        // {
+        //     title: "Announcements",
+        //     url: "/admin/announcement",
+        //     icon: Megaphone, // 📢 Icon for announcements
+        // },
     ],
     navSecondary: [],
 };
