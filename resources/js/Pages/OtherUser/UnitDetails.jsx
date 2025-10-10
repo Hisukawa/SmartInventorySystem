@@ -6,6 +6,7 @@ import {
     Monitor,
     Building,
     ShieldCheck,
+    User as UserIcon,
 } from "lucide-react";
 
 export default function UnitDetails({ unit }) {
@@ -28,6 +29,7 @@ export default function UnitDetails({ unit }) {
                                 label="Room"
                                 value={unit.room?.room_number ?? "N/A"}
                             />
+
                             <DetailItem
                                 icon={Cpu}
                                 label="Processor"
@@ -53,10 +55,18 @@ export default function UnitDetails({ unit }) {
                                 label="Motherboard"
                                 value={unit.motherboard}
                             />
+
                             <DetailItem
                                 icon={ShieldCheck}
                                 label="Condition"
                                 value={unit.condition}
+                            />
+                            <DetailItem
+                                icon={UserIcon}
+                                label="Material Responsible"
+                                value={
+                                    unit.mr_to ? `${unit.mr_to.name}` : "N/A"
+                                }
                             />
                         </div>
                     </CardContent>

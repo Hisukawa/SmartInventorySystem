@@ -150,6 +150,7 @@ class SystemUnitController extends Controller
             'gpu' => 'nullable|string',
             'motherboard' => 'nullable|string',
             'condition' => 'nullable|string',
+             'condition_details' => 'nullable|string|max:1000', // ✅ NEW FIELD
             'room_id' => 'required|exists:rooms,id',
         ]);
 
@@ -198,11 +199,15 @@ class SystemUnitController extends Controller
 
 
     public function showUnitsDetails($unit_path){
-        $unit = SystemUnit::with('room')->where('unit_path', $unit_path)->firstOrFail();
+       $unit = SystemUnit::with(['room', 'mr_to']) // ✅ Include material responsible user
+        ->where('unit_path', $unit_path)
+        ->firstOrFail();
 
-        return Inertia::render('OtherUser/UnitDetails', [
-            'unit' => $unit,
-        ]);
+    return Inertia::render('OtherUser/UnitDetails', [
+        'unit' => $unit,
+    ]);
+
+   
     }
 
 

@@ -51,6 +51,7 @@ export default function AddPeripheral({
         model: "",
         serial_number: "",
         condition: "",
+        condition_details: "", // ✅ NEW FIELD
         room_id: "",
         unit_id: "",
     });
@@ -296,6 +297,25 @@ export default function AddPeripheral({
                                                 )}
                                             </SelectContent>
                                         </Select>
+                                    </div>
+
+                                    <div className="col-span-1 gap-2">
+                                        <Label>Condition Details</Label>
+                                        <Input
+                                            value={data.condition_details}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "condition_details",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="Enter details about the condition (e.g., minor scratches, not detecting input, etc.)"
+                                        />
+                                        {errors.condition_details && (
+                                            <p className="text-sm text-red-500">
+                                                {errors.condition_details}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
