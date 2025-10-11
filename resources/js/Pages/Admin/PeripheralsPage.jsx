@@ -661,11 +661,11 @@ export default function PeripheralsIndex({
                                                 <TableHead>Type</TableHead>
                                                 <TableHead>Room</TableHead>
                                                 <TableHead>Units</TableHead>
-                                                <TableHead>Brand</TableHead>
+                                                {/* <TableHead>Brand</TableHead>
                                                 <TableHead>Model</TableHead>
                                                 <TableHead>
                                                     Serial Number
-                                                </TableHead>
+                                                </TableHead> */}
                                                 <TableHead>Condition</TableHead>
                                                 <TableHead>Actions</TableHead>
                                             </TableRow>
@@ -701,7 +701,7 @@ export default function PeripheralsIndex({
                                                                           .unit_code
                                                                     : "N/A"}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            {/* <TableCell>
                                                                 {p.brand}
                                                             </TableCell>
                                                             <TableCell>
@@ -711,7 +711,7 @@ export default function PeripheralsIndex({
                                                                 {
                                                                     p.serial_number
                                                                 }
-                                                            </TableCell>
+                                                            </TableCell> */}
                                                             <TableCell>
                                                                 {p.condition ? (
                                                                     <span
