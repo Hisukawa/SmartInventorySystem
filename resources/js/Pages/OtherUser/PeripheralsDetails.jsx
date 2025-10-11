@@ -33,7 +33,7 @@ export default function PeripheralDetails({ peripheral }) {
                             <DetailItem
                                 icon={Monitor}
                                 label="Unit"
-                                value={peripheral.unit_code ?? "N/A"}
+                                value={peripheral.unit?.unit_code ?? "N/A"}
                             />
                             <DetailItem
                                 icon={Barcode}
