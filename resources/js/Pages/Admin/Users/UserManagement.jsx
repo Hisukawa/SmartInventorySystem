@@ -39,13 +39,28 @@ export default function UserManagement({ users }) {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    // ✅ Filter users based on search input
+    const roleOrder = {
+        admin: 1,
+        technician: 2,
+        faculty: 3,
+        guest: 4,
+    };
+
     const filteredUsers = useMemo(() => {
-        return users.filter(
-            (user) =>
-                user.name.toLowerCase().includes(search.toLowerCase()) ||
-                user.email.toLowerCase().includes(search.toLowerCase())
-        );
+        return users
+            .filter(
+                (user) =>
+                    user.name.toLowerCase().includes(search.toLowerCase()) ||
+                    user.email.toLowerCase().includes(search.toLowerCase())
+            )
+            .sort((a, b) => {
+                // Sort by role first
+                const roleDiff = roleOrder[a.role] - roleOrder[b.role];
+                if (roleDiff !== 0) return roleDiff;
+
+                // Optional: sort alphabetically by name within same role
+                return a.name.localeCompare(b.name);
+            });
     }, [users, search]);
 
     // ✅ Pagination
@@ -60,18 +75,6 @@ export default function UserManagement({ users }) {
         if (e.key === "Enter") {
             setCurrentPage(1);
         }
-    };
-
-    // ✅ Delete user
-    const handleDelete = (id) => {
-        router.delete(route("admin.users.destroy", id), {
-            onSuccess: () => {
-                console.log("User deleted successfully");
-            },
-            onError: (errors) => {
-                console.error(errors);
-            },
-        });
     };
 
     return (
@@ -127,7 +130,10 @@ export default function UserManagement({ users }) {
                             />
                         </div>
 
-                        <Button asChild     className="text-sm sm:text-base px-3 py-1 sm:py-2 bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium">
+                        <Button
+                            asChild
+                            className="text-sm sm:text-base px-3 py-1 sm:py-2 bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                        >
                             <a href={route("register")}>Register User</a>
                         </Button>
                     </div>
@@ -136,7 +142,7 @@ export default function UserManagement({ users }) {
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         <Table className="w-full">
                             <TableHeader>
-                               <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
+                                <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
                                     <TableHead className="w-12 px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">
                                         #
                                     </TableHead>
@@ -197,35 +203,65 @@ export default function UserManagement({ users }) {
                                                         </Button>
                                                         <Button
                                                             size="sm"
-                                                            variant="outline"
-                                                            className="px-3"
-                                                            asChild
-                                                        >
-                                                            <a
-                                                                href={route(
-                                                                    "admin.users.edit",
-                                                                    user.id
-                                                                )}
-                                                            >
-                                                                Edit
-                                                            </a>
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
                                                             variant="destructive"
                                                             className="px-3"
                                                             onClick={() => {
                                                                 Swal.fire({
                                                                     title: `Delete ${user.name}?`,
-                                                                    text: "This action cannot be undone!",
+                                                                    text: "Please verify your password to continue.",
                                                                     icon: "warning",
+                                                                    input: "password",
+                                                                    inputPlaceholder:
+                                                                        "Enter your password",
+                                                                    inputAttributes:
+                                                                        {
+                                                                            autocapitalize:
+                                                                                "off",
+                                                                            autocorrect:
+                                                                                "off",
+                                                                        },
                                                                     showCancelButton: true,
                                                                     confirmButtonColor:
                                                                         "#d33",
                                                                     cancelButtonColor:
                                                                         "#3085d6",
                                                                     confirmButtonText:
-                                                                        "Yes, delete it!",
+                                                                        "Confirm Delete",
+                                                                    preConfirm:
+                                                                        (
+                                                                            password
+                                                                        ) => {
+                                                                            if (
+                                                                                !password
+                                                                            ) {
+                                                                                Swal.showValidationMessage(
+                                                                                    "Password is required"
+                                                                                );
+                                                                                return false;
+                                                                            }
+                                                                            return router.post(
+                                                                                route(
+                                                                                    "admin.users.verifyAndDelete"
+                                                                                ),
+                                                                                {
+                                                                                    user_id:
+                                                                                        user.id,
+                                                                                    password,
+                                                                                },
+                                                                                {
+                                                                                    preserveScroll: true,
+                                                                                    onError:
+                                                                                        (
+                                                                                            errors
+                                                                                        ) => {
+                                                                                            Swal.showValidationMessage(
+                                                                                                errors.password ||
+                                                                                                    "Password verification failed."
+                                                                                            );
+                                                                                        },
+                                                                                }
+                                                                            );
+                                                                        },
                                                                 }).then(
                                                                     (
                                                                         result
@@ -233,12 +269,9 @@ export default function UserManagement({ users }) {
                                                                         if (
                                                                             result.isConfirmed
                                                                         ) {
-                                                                            handleDelete(
-                                                                                user.id
-                                                                            );
                                                                             Swal.fire(
                                                                                 "Deleted!",
-                                                                                `${user.name} has been deleted.`,
+                                                                                `${user.name} has been successfully deleted.`,
                                                                                 "success"
                                                                             );
                                                                         }
@@ -265,6 +298,55 @@ export default function UserManagement({ users }) {
                                 )}
                             </TableBody>
                         </Table>
+
+                        {/* Pagination OUTSIDE table */}
+                        {filteredUsers.length > itemsPerPage && (
+                            <div className="flex justify-between items-center mt-4 px-4 py-2 border-t bg-gray-50 rounded-b">
+                                <span className="text-sm text-gray-600">
+                                    Showing {paginatedUsers.length} of{" "}
+                                    {filteredUsers.length} users
+                                </span>
+                                <div className="flex gap-1">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={currentPage === 1}
+                                        onClick={() =>
+                                            setCurrentPage((prev) => prev - 1)
+                                        }
+                                    >
+                                        Previous
+                                    </Button>
+                                    {Array.from(
+                                        { length: totalPages },
+                                        (_, i) => i + 1
+                                    ).map((page) => (
+                                        <Button
+                                            key={page}
+                                            size="sm"
+                                            variant={
+                                                page === currentPage
+                                                    ? "default"
+                                                    : "outline"
+                                            }
+                                            onClick={() => setCurrentPage(page)}
+                                        >
+                                            {page}
+                                        </Button>
+                                    ))}
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() =>
+                                            setCurrentPage((prev) => prev + 1)
+                                        }
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </main>
             </SidebarInset>

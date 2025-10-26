@@ -53,20 +53,35 @@ export default function EditUser({ user }) {
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem>
-                                    <BreadcrumbLink
-                                        href="/admin/users"
-                                        aria-current="page"
-                                    >
+                                    <BreadcrumbLink href="/admin/users">
                                         User Lists
                                     </BreadcrumbLink>
+                                </BreadcrumbItem>
 
-                                    <BreadcrumbSeparator />
+                                <BreadcrumbSeparator />
+
+                                <BreadcrumbItem>
                                     <BreadcrumbLink
-                                        href={`/admin/users/${user.id}/edit`}
-                                        aria-current="page"
+                                        href={route(
+                                            "admin.users.show",
+                                            user.id
+                                        )}
+                                    >
+                                        User Profile
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
+
+                                <BreadcrumbSeparator />
+
+                                <BreadcrumbItem>
+                                    <BreadcrumbLink
+                                        href={route(
+                                            "admin.users.edit",
+                                            user.id
+                                        )}
                                         className="font-semibold text-foreground"
                                     >
-                                        Edit User
+                                        Edit Profile
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
@@ -79,7 +94,7 @@ export default function EditUser({ user }) {
                             <div className="w-full max-w-lg bg-white shadow-lg rounded-lg p-8">
                                 <CardHeader className="p-0 mb-6">
                                     <CardTitle className="text-2xl font-bold">
-                                        Edit User
+                                        Edit Profile
                                     </CardTitle>
                                     <CardDescription>
                                         Update user details below

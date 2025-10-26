@@ -21,43 +21,43 @@ class UserController extends Controller
         ]);
     }
 
-public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email',
-        'password' => 'required|string|min:8|confirmed',
-        'role' => 'required|string',
-        'photo' => 'nullable|image|max:2048',
-        'face_descriptor' => 'nullable|string', // base64 string from frontend
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|string',
+            'photo' => 'nullable|image|max:2048',
+            'face_descriptor' => 'nullable|string', // base64 string from frontend
+        ]);
 
-    $photoPath = null;
+        $photoPath = null;
 
-    if ($request->hasFile('photo')) {
-        $photoPath = $request->file('photo')->store('photos', 'public');
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('photos', 'public');
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role' => $request->role,
+            'photo' => $photoPath,
+            'face_descriptor' => $request->face_descriptor ?? null, // store Luxand face descriptor
+        ]);
+
+        // Log User Creation
+        UserHistory::create([
+            'user_name' => Auth::user()->name,
+            'action' => 'Created User',
+            'component' => 'Role',
+            'old_value' => '-',
+            'new_value' => $request->role . ' - ' . $request->name,
+        ]);
+
+        return redirect()->route('admin.users.index');
     }
-
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => bcrypt($request->password),
-        'role' => $request->role,
-        'photo' => $photoPath,
-        'face_descriptor' => $request->face_descriptor ?? null, // store Luxand face descriptor
-    ]);
-
-    // Log User Creation
-    UserHistory::create([
-        'user_name' => Auth::user()->name,
-        'action' => 'Created User',
-        'component' => 'Role',
-        'old_value' => '-',
-        'new_value' => $request->role . ' - ' . $request->name,
-    ]);
-
-    return redirect()->route('admin.users.index');
-}
 
 
     public function edit(User $user)
@@ -141,4 +141,59 @@ public function store(Request $request)
             'user' => $user
         ]);
     }
+
+    public function updatePhoto(Request $request, User $user)
+    {
+        $request->validate([
+            'photo' => 'required|image|max:2048',
+        ]);
+
+        // Delete old photo if exists
+        if ($user->photo && \Storage::disk('public')->exists($user->photo)) {
+            \Storage::disk('public')->delete($user->photo);
+        }
+
+        // Store new photo
+        $path = $request->file('photo')->store('photos', 'public');
+        $user->update(['photo' => $path]);
+
+        // Log photo change
+        UserHistory::create([
+            'user_name' => Auth::user()->name,
+            'action' => 'Updated User Photo',
+            'component' => 'Photo',
+            'old_value' => $user->photo,
+            'new_value' => $path,
+        ]);
+
+        return back()->with('success', 'Photo updated successfully.');
+    }
+
+    public function verifyAndDelete(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'password' => 'required|string',
+        ]);
+
+        $admin = Auth::user();
+
+        // Verify password first
+        if (!Hash::check($request->password, $admin->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        // Prevent self-deletion
+        if ($request->user_id == $admin->id) {
+            return back()->withErrors(['error' => 'You cannot delete your own account.']);
+        }
+
+        // Delete user
+        $user = User::findOrFail($request->user_id);
+        $user->delete();
+
+        return back()->with('success', 'User deleted successfully.');
+    }
+
+
 }

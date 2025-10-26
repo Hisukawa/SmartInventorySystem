@@ -635,6 +635,18 @@ export default function FacultyReportsIndex({
                         </DialogHeader>
 
                         <div className="flex flex-col gap-4 mt-2">
+                            {/* Existing Remarks Display (if any) */}
+                            {selectedReport?.remarks && (
+                                <div>
+                                    <Label className="text-gray-600">
+                                        Remarks
+                                    </Label>
+                                    <div className="border rounded-md p-2 text-sm bg-gray-50">
+                                        {selectedReport.remarks}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Condition Select */}
                             <div>
                                 <Label>Condition</Label>

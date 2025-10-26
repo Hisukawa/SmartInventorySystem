@@ -147,7 +147,7 @@ export default function AdminDashboard({ children }) {
                         </h1>
 
                         {/* Room Cards */}
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-8">
                             {rooms.length === 0 && (
                                 <p className="col-span-full text-center text-gray-500">
                                     No rooms found.
@@ -157,13 +157,13 @@ export default function AdminDashboard({ children }) {
                             {rooms.map((room) => (
                                 <Card
                                     key={room.id}
-                                    className={`rounded-2xl transition-all duration-200 ease-in-out shadow-md 
-              hover:scale-[1.02] hover:shadow-lg
-              ${
-                  room.is_active
-                      ? "bg-[#59AC77]  border border-green-700 text-white"
-                      : "bg-[#59AC77]  border border-gray-300 text-gray-900"
-              }`}
+                                    className={`rounded-2xl transition-all duration-200 ease-in-out shadow-md
+                                                hover:scale-[1.02] hover:shadow-lg
+                                                ${
+                                                    room.is_active
+                                                        ? "bg-[#59AC77]  border border-green-700 text-white"
+                                                        : "bg-[#59AC77]  border border-gray-300 text-gray-900"
+                                                }`}
                                 >
                                     {/* Header: Room Name + Status */}
                                     <CardHeader className="flex flex-row items-center justify-between pb-2">

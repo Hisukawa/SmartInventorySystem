@@ -182,8 +182,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/system-units/create', [SystemUnitController::class, 'create'])->name('admin.system-units.create');
         // Route::get('/system-units/view/{unit_code}', [SystemUnitController::class, 'show'])->name('system-units.view');
         Route::get('/system-units/view/{unit_path}', [SystemUnitController::class, 'show'])
-    ->where('unit_path', '.*')   // ✅ allow slashes
-    ->name('units.show');
+                ->where('unit_path', '.*')   // ✅ allow slashes
+                ->name('units.show');
 
         // Peripherals
         Route::get('/admin/peripherals', [PeripheralController::class, 'index'])->name('peripherals.index');
@@ -213,6 +213,12 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
         Route::get('/admin/users/{user}', [UserController::class, 'show'])->name('admin.users.show');
 
+        Route::post('/admin/users/{user}/update-photo', [UserController::class, 'updatePhoto'])
+                                    ->name('admin.users.updatePhoto');
+        Route::post('/users/verify-delete', [UserController::class, 'verifyAndDelete'])
+                                    ->name('admin.users.verifyAndDelete');
+
+
 
         // User Registration
         Route::get('/register', [RegisteredUserController::class, 'create'])
@@ -225,10 +231,10 @@ Route::middleware(['auth'])->group(function () {
 
         //Resolving the Faculty Reports
         Route::post('/admin/faculty-reports/{report}/resolve', [AuditReportsController::class, 'store'])
-    ->name('admin.faculty-reports.store');
+                ->name('admin.faculty-reports.store');
         // Viewing Audit Reports
-Route::get('/admin/audit_reports', [AuditReportsController::class, 'show'])
-    ->name('admin.audit_reports.show');
+        Route::get('/admin/audit_reports', [AuditReportsController::class, 'show'])
+            ->name('admin.audit_reports.show');
         // status for force logout
         Route::put('/api/admin/rooms/{room}/status', [RoomController::class, 'updateStatus']);
 
