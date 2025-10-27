@@ -780,8 +780,19 @@ export default function PeripheralsIndex({
                                 {/* Pagination Controls */}
                                 <div className="flex justify-between items-center p-4">
                                     <span className="text-sm text-muted-foreground">
-                                        Page {currentPage} of {totalPages}
+                                        Showing{" "}
+                                        {filteredData.length === 0
+                                            ? 0
+                                            : (currentPage - 1) * itemsPerPage +
+                                              1}{" "}
+                                        –
+                                        {Math.min(
+                                            currentPage * itemsPerPage,
+                                            filteredData.length
+                                        )}{" "}
+                                        of {filteredData.length} peripherals{" "}
                                     </span>
+
                                     <div className="flex gap-2">
                                         <Button
                                             size="sm"

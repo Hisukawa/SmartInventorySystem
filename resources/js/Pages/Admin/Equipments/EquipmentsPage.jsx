@@ -530,7 +530,16 @@ export default function EquipmentsPage({
                     <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-2">
                         {/* Page Info */}
                         <span className="text-sm text-muted-foreground">
-                            Page {currentPage} of {totalPages}
+                            Showing{" "}
+                            {equipments.length === 0
+                                ? 0
+                                : (currentPage - 1) * itemsPerPage + 1}{" "}
+                            –
+                            {Math.min(
+                                currentPage * itemsPerPage,
+                                equipments.length
+                            )}{" "}
+                            of {equipments.length} equipment
                         </span>
 
                         {/* Controls */}

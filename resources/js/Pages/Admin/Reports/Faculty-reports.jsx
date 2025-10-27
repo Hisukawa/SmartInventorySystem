@@ -8,7 +8,7 @@ import Notification from "@/Components/AdminComponents/Notification";
 import { Eye, Edit2, Trash2, CheckCircle2, Check } from "lucide-react";
 
 import { Label } from "@/components/ui/label";
-
+import { toast } from "sonner";
 import {
     Dialog,
     DialogContent,
@@ -274,14 +274,15 @@ export default function FacultyReportsIndex({
     };
     const handleResolveSubmit = (report) => {
         if (!updatedCondition) {
-            Swal.fire({
-                icon: "warning",
-                title: "Select Condition",
-                text: "Please select a new condition before resolving.",
+            toast.warning("Select Condition", {
+                description: "Please select a new condition before resolving.",
+                duration: 2500,
             });
             return;
         }
+
         setIsResolving(true); // ✅ disable save while processing
+
         router.post(
             `/admin/faculty-reports/${report.id}/resolve`,
             {
@@ -297,12 +298,9 @@ export default function FacultyReportsIndex({
                     setUpdatedCondition("");
                     setResolveRemarks("");
 
-                    Swal.fire({
-                        icon: "success",
-                        title: "Resolved!",
-                        text: `Report #${report.id} has been successfully resolved.`,
-                        timer: 2000,
-                        showConfirmButton: false,
+                    toast.success("Resolved!", {
+                        description: `Report #${report.id} has been successfully resolved.`,
+                        duration: 2000,
                     });
 
                     // ✅ update local state
@@ -319,16 +317,15 @@ export default function FacultyReportsIndex({
                     );
                 },
                 onError: () => {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Failed to resolve report. Please try again.",
+                    toast.error("Error", {
+                        description:
+                            "Failed to resolve report. Please try again.",
+                        duration: 2500,
                     });
                 },
             }
         );
     };
-
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
     const totalPages = Math.ceil(reportsData.length / itemsPerPage);
@@ -567,44 +564,67 @@ export default function FacultyReportsIndex({
                                     {/* Modal for selected photo */}
                                 </Table>
 
-                                {/* Pagination */}
-                                <div className="flex justify-center mt-4 space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={currentPage === 1}
-                                        onClick={() =>
-                                            setCurrentPage(currentPage - 1)
-                                        }
-                                    >
-                                        Previous
-                                    </Button>
-                                    {[...Array(totalPages)].map((_, idx) => (
+                                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 p-2 gap-2">
+                                    {/* Showing text */}
+                                    <span className="text-sm text-muted-foreground">
+                                        Showing{" "}
+                                        {reportsData.length === 0
+                                            ? 0
+                                            : (currentPage - 1) * itemsPerPage +
+                                              1}{" "}
+                                        –
+                                        {Math.min(
+                                            currentPage * itemsPerPage,
+                                            reportsData.length
+                                        )}{" "}
+                                        of {reportsData.length} reports
+                                    </span>
+
+                                    {/* Pagination buttons */}
+                                    <div className="flex space-x-2">
                                         <Button
-                                            key={idx}
-                                            variant={
-                                                currentPage === idx + 1
-                                                    ? "default"
-                                                    : "outline"
-                                            }
+                                            variant="outline"
                                             size="sm"
+                                            disabled={currentPage === 1}
                                             onClick={() =>
-                                                setCurrentPage(idx + 1)
+                                                setCurrentPage(currentPage - 1)
                                             }
                                         >
-                                            {idx + 1}
+                                            Previous
                                         </Button>
-                                    ))}
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={currentPage === totalPages}
-                                        onClick={() =>
-                                            setCurrentPage(currentPage + 1)
-                                        }
-                                    >
-                                        Next
-                                    </Button>
+
+                                        {[...Array(totalPages)].map(
+                                            (_, idx) => (
+                                                <Button
+                                                    key={idx}
+                                                    variant={
+                                                        currentPage === idx + 1
+                                                            ? "default"
+                                                            : "outline"
+                                                    }
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        setCurrentPage(idx + 1)
+                                                    }
+                                                >
+                                                    {idx + 1}
+                                                </Button>
+                                            )
+                                        )}
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={
+                                                currentPage === totalPages
+                                            }
+                                            onClick={() =>
+                                                setCurrentPage(currentPage + 1)
+                                            }
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

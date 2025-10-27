@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
-
+import { toast } from "sonner";
 import { Edit2, Trash2 } from "lucide-react";
 
 <TableCell className="flex gap-2">
@@ -98,18 +98,25 @@ export default function RoomPage({ rooms, search }) {
             onSuccess: () => {
                 reset();
                 // setAddRoomModalOpen(false);
-                setSuccessMessage("Room added successfully!");
-                setTimeout(() => setSuccessMessage(""), 5000);
+                toast.success("Room Added", {
+                    description: "The room has been added successfully!",
+                    duration: 2000,
+                });
             },
-            // onError: (errors) => {
-            //     if (errors.room_number) {
-            //         Swal.fire({
-            //             icon: "error",
-            //             title: "Room already exists!",
-            //             text: errors.room_number,
-            //         });
-            //     }
-            // },
+            onError: (errors) => {
+                if (errors.room_number) {
+                    toast.error("Room already exists!", {
+                        description: errors.room_number,
+                        duration: 2500,
+                    });
+                } else {
+                    toast.error("Error", {
+                        description:
+                            "Something went wrong. Please check your inputs.",
+                        duration: 2500,
+                    });
+                }
+            },
         });
     };
 
@@ -454,11 +461,22 @@ export default function RoomPage({ rooms, search }) {
                                     </div>
 
                                     {/* Pagination with page info */}
-                                    <div className="mt-2 flex flex-col sm:flex-row justify-between items-center gap-2">
+                                    <div className="mt-2 flex flex-col sm:flex-row justify-between items-center gap-2 p-2">
                                         {/* Page Info */}
                                         <span className="text-sm text-muted-foreground m-2">
-                                            Page {rooms.current_page} of{" "}
-                                            {rooms.last_page}
+                                            Showing{" "}
+                                            {rooms.data.length === 0
+                                                ? 0
+                                                : (rooms.current_page - 1) *
+                                                      rooms.per_page +
+                                                  1}{" "}
+                                            –
+                                            {Math.min(
+                                                rooms.current_page *
+                                                    rooms.per_page,
+                                                rooms.total
+                                            )}{" "}
+                                            of {rooms.total} rooms
                                         </span>
 
                                         {/* Pagination Buttons */}

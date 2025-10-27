@@ -816,7 +816,16 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                     <div className="flex justify-between items-center mt-4">
                         {/* Page Info */}
                         <span className="text-sm text-muted-foreground">
-                            Page {currentPage} of {totalPages}
+                            Showing{" "}
+                            {filteredUnits.length === 0
+                                ? 0
+                                : (currentPage - 1) * itemsPerPage + 1}{" "}
+                            –
+                            {Math.min(
+                                currentPage * itemsPerPage,
+                                filteredUnits.length
+                            )}{" "}
+                            of {filteredUnits.length} System Units
                         </span>
 
                         {/* Buttons */}
