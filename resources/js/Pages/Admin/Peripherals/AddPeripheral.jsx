@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import { cn } from "@/lib/utils";
-import Swal from "sweetalert2";
 
+import { toast } from "sonner";
 import {
     SidebarProvider,
     SidebarInset,
@@ -75,27 +75,26 @@ export default function AddPeripheral({
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
         post("/admin/peripherals", {
             onSuccess: () => {
+                // ✅ Clear the form fields
                 reset();
-                Swal.fire({
-                    icon: "success",
-                    title: "Peripheral Added",
-                    text: "The peripheral has been added successfully!",
-                    showConfirmButton: false,
-                    timer: 2000,
+
+                // ✅ Show success message
+                toast.success("Peripheral Added", {
+                    description: "The peripheral has been added successfully!",
+                    duration: 2000,
                 });
             },
             onError: () => {
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "Something went wrong. Please check your inputs.",
+                toast.error("Error", {
+                    description:
+                        "Something went wrong. Please check your inputs.",
                 });
             },
         });
     };
-
     return (
         <SidebarProvider>
             <Head title="Add Peripheral" />

@@ -64,7 +64,7 @@ class EquipmentController extends Controller
 
         Equipment::create($validated);
 
-        return redirect()->route('equipments.index')->with('success', 'Equipment added successfully.');
+        return redirect()->route('equipments.create')->with('success', 'Equipment added successfully.');
     }
 
     public function show($equipment_code)

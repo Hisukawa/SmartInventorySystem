@@ -84,14 +84,13 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
         ) {
             setSelectedField("unit_code");
             setSelectedValue(filters.unit_code);
+        } else if (
+            filters.type &&
+            (activeSection === "peripherals" || activeSection === "equipments")
+        ) {
+            setSelectedField("type");
+            setSelectedValue(filters.type);
         }
-        else if (
-    filters.type &&
-    (activeSection === "peripherals" || activeSection === "equipments")
-) {
-    setSelectedField("type");
-    setSelectedValue(filters.type);
-}
     }, [filters, activeSection]);
 
     // Trigger filter immediately on change
@@ -103,41 +102,43 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
             onApplyFilters(newValue, filters.unit_code, filters.search);
         } else if (selectedField === "unit_code") {
             onApplyFilters(filters.condition, newValue, filters.search);
-        }else if (selectedField === "type") {
-    onApplyFilters(filters.condition, filters.unit_code, newValue, filters.search);
-}
-
+        } else if (selectedField === "type") {
+            onApplyFilters(
+                filters.condition,
+                filters.unit_code,
+                newValue,
+                filters.search
+            );
+        }
     };
 
-   const handleReset = () => {
-    setSelectedField("");
-    setSelectedValue("");
-    onApplyFilters(
-        "",                 // condition
-        "",                 // unit_code
-        filters.search || "", // search
-        ""                  // type
-    );
-};
+    const handleReset = () => {
+        setSelectedField("");
+        setSelectedValue("");
+        onApplyFilters(
+            "", // condition
+            "", // unit_code
+            filters.search || "", // search
+            "" // type
+        );
+    };
 
- const getAvailableFields = () => {
-    const fields = [{ value: "condition", label: "Condition" }];
+    const getAvailableFields = () => {
+        const fields = [{ value: "condition", label: "Condition" }];
 
-    if (activeSection === "system-units" || activeSection === "peripherals") {
-        fields.push({ value: "unit_code", label: "Unit Code" });
-    }
+        if (
+            activeSection === "system-units" ||
+            activeSection === "peripherals"
+        ) {
+            fields.push({ value: "unit_code", label: "Unit Code" });
+        }
 
-    if (
-      
-        activeSection === "peripherals" ||
-        activeSection === "equipments"
-    ) {
-        fields.push({ value: "type", label: "Type" });
-    }
+        if (activeSection === "peripherals" || activeSection === "equipments") {
+            fields.push({ value: "type", label: "Type" });
+        }
 
-    return fields;
-};
-
+        return fields;
+    };
 
     return (
         <Popover>
@@ -229,53 +230,56 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                                 </SelectContent>
                             </Select>
                         )}
-        {selectedField === "type" &&
-    (activeSection === "equipments" || activeSection === "peripherals") && (
-    <Select
-        value={selectedValue || "all"}
-        onValueChange={(val) => {
-            const newValue = val === "all" ? "" : val;
-            setSelectedValue(newValue);
-            onApplyFilters(
-                filters.condition,
-                filters.unit_code,
-                filters.search,
-                newValue // type
-            );
-        }}
-    >
-        <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select Type" />
-        </SelectTrigger>
-        <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            {filterOptions.types?.map((t) => (
-                <SelectItem key={t} value={t}>
-                    {t}
-                </SelectItem>
-            ))}
-        </SelectContent>
-    </Select>
-)}
-
+                    {selectedField === "type" &&
+                        (activeSection === "equipments" ||
+                            activeSection === "peripherals") && (
+                            <Select
+                                value={selectedValue || "all"}
+                                onValueChange={(val) => {
+                                    const newValue = val === "all" ? "" : val;
+                                    setSelectedValue(newValue);
+                                    onApplyFilters(
+                                        filters.condition,
+                                        filters.unit_code,
+                                        filters.search,
+                                        newValue // type
+                                    );
+                                }}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select Type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    {filterOptions.types?.map((t) => (
+                                        <SelectItem key={t} value={t}>
+                                            {t}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
 
                     {/* ✅ Reset Button now works for system-units & peripherals */}
-                  {(filters.condition ||
-  ((activeSection === "system-units" || activeSection === "peripherals") && filters.unit_code) ||
-  ((activeSection === "equipments" || activeSection === "peripherals") && filters.type)) && (
-    <div className="flex justify-end">
-        <Button
-            size="sm"
-            variant="outline"
-            onClick={handleReset}
-            className="flex items-center gap-1 text-red-600 hover:bg-red-50 w-auto"
-        >
-            <X className="h-4 w-4" />
-            Reset
-        </Button>
-    </div>
-)}
-
+                    {(filters.condition ||
+                        ((activeSection === "system-units" ||
+                            activeSection === "peripherals") &&
+                            filters.unit_code) ||
+                        ((activeSection === "equipments" ||
+                            activeSection === "peripherals") &&
+                            filters.type)) && (
+                        <div className="flex justify-end">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleReset}
+                                className="flex items-center gap-1 text-red-600 hover:bg-red-50 w-auto"
+                            >
+                                <X className="h-4 w-4" />
+                                Reset
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </PopoverContent>
         </Popover>
@@ -289,14 +293,11 @@ export default function FacultyRoomView({
     peripherals,
     section,
     filters = {}, // ✅ default to empty object
-  filterOptions = { conditions: [], unit_codes: [], types: [] }
-
+    filterOptions = { conditions: [], unit_codes: [], types: [] },
 }) {
     const { auth } = usePage().props;
 
-    const [activeSection, setActiveSection] = useState(
-        section || "dashboard"
-    );
+    const [activeSection, setActiveSection] = useState(section || "dashboard");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -308,21 +309,23 @@ export default function FacultyRoomView({
 
     const [page, setPage] = useState(1);
     const pageSize = 10;
-const [type, setType] = useState(filters?.type || "");
+    const [type, setType] = useState(filters?.type || "");
 
-   const data =
-    activeSection === "system-units"
-        ? systemUnits
-        : activeSection === "peripherals"
-        ? peripherals
-        : activeSection === "equipments"
-        ? equipments
-        : []; // ← dashboard shows no table
-        useEffect(() => {
-    if (activeSection === "dashboard") {
-        window.location.href = route("faculty.ScannedRoom.dashboard", { roomPath: room.room_path });
-    }
-}, [activeSection]);
+    const data =
+        activeSection === "system-units"
+            ? systemUnits
+            : activeSection === "peripherals"
+            ? peripherals
+            : activeSection === "equipments"
+            ? equipments
+            : []; // ← dashboard shows no table
+    useEffect(() => {
+        if (activeSection === "dashboard") {
+            window.location.href = route("faculty.ScannedRoom.dashboard", {
+                roomPath: room.room_path,
+            });
+        }
+    }, [activeSection]);
 
     const pageCount = Math.ceil(data.length / pageSize);
     const paginated = data.slice((page - 1) * pageSize, page * pageSize);
@@ -335,24 +338,24 @@ const [type, setType] = useState(filters?.type || "");
     }, [activeSection, filters]);
 
     const applyFilters = (
-    newCondition = condition,
-    newUnitCode = unitCode,
-    newSearch = search,
-    newType = filters?.type || ""
-) => {
-    window.location.href = route("faculty.room.show", {
-        roomPath: room.room_path,
-        section: activeSection,
-        condition: newCondition || undefined,
-        unit_code:
-            activeSection === "system-units" || activeSection === "peripherals"
-                ? newUnitCode || undefined
-                : undefined,
-        search: newSearch || undefined,
-        type: newType || undefined, // <-- pass type
-    });
-};
-
+        newCondition = condition,
+        newUnitCode = unitCode,
+        newSearch = search,
+        newType = filters?.type || ""
+    ) => {
+        window.location.href = route("faculty.room.show", {
+            roomPath: room.room_path,
+            section: activeSection,
+            condition: newCondition || undefined,
+            unit_code:
+                activeSection === "system-units" ||
+                activeSection === "peripherals"
+                    ? newUnitCode || undefined
+                    : undefined,
+            search: newSearch || undefined,
+            type: newType || undefined, // <-- pass type
+        });
+    };
 
     return (
         <>
@@ -445,30 +448,64 @@ const [type, setType] = useState(filters?.type || "");
                                 {/* Header with Filter + Search */}
                                 <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center p-4 border-b">
                                     <div className="flex gap-2 items-center w-full sm:w-auto">
-                                     <Filter
-                                        filters={filters}
-                                        filterOptions={filterOptions}
-                                        activeSection={activeSection}
-                                        onApplyFilters={applyFilters}
-                                    />
-
-                                        <Input
-                                            placeholder="Search..."
-                                            value={search}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                setSearch(value);
-                                                applyFilters(
-                                                    condition,
-                                                    unitCode,
-                                                    value
-                                                );
-                                            }}
-                                            className="flex-1 min-w-0 sm:max-w-xs w-full
-                                            border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
-                                            focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
-                                            placeholder:text-[hsl(142,34%,40%)]"
+                                        <Filter
+                                            filters={filters}
+                                            filterOptions={filterOptions}
+                                            activeSection={activeSection}
+                                            onApplyFilters={applyFilters}
                                         />
+
+                                        <div className="flex gap-2 items-center">
+                                            <Input
+                                                placeholder="Search..."
+                                                value={search}
+                                                onChange={(e) => {
+                                                    const value =
+                                                        e.target.value;
+                                                    setSearch(value);
+
+                                                    // ✅ If user clears the search bar, immediately show all data
+                                                    if (value.trim() === "") {
+                                                        applyFilters(
+                                                            condition,
+                                                            unitCode,
+                                                            ""
+                                                        );
+                                                    }
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        const value =
+                                                            search.trim();
+                                                        // ✅ If empty, show all data; otherwise search
+                                                        applyFilters(
+                                                            condition,
+                                                            unitCode,
+                                                            value || ""
+                                                        );
+                                                    }
+                                                }}
+                                                className="flex-1 min-w-0 sm:max-w-xs w-full
+      border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
+      focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
+      placeholder:text-[hsl(142,34%,40%)]"
+                                            />
+
+                                            <Button
+                                                className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                onClick={() => {
+                                                    const value = search.trim();
+                                                    // ✅ Click “Search” → apply filter (empty means show all)
+                                                    applyFilters(
+                                                        condition,
+                                                        unitCode,
+                                                        value || ""
+                                                    );
+                                                }}
+                                            >
+                                                Search
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
 

@@ -25,6 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 // ✅ Equipment Types
 const TYPE_OPTIONS = ["Furniture", "Appliances", "Networking", "Safety"];
@@ -52,22 +53,50 @@ const CONDITION_COLORS = {
 };
 
 export default function AddEquipment({ rooms }) {
-    const [name, setName] = useState(""); // Equipment Name
+    const [name, setName] = useState("");
     const [type, setType] = useState("");
     const [brand, setBrand] = useState("");
     const [condition, setCondition] = useState("");
     const [room, setRoom] = useState("");
 
+    // ✅ CLEAR FORM FUNCTION
+    const clearForm = () => {
+        setName("");
+        setType("");
+        setBrand("");
+        setCondition("");
+        setRoom("");
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        router.post("/equipments", {
-            equipment_name: name,
-            type,
-            brand,
-            condition,
-            room_id: room,
-        });
+        router.post(
+            "/equipments",
+            {
+                equipment_name: name,
+                type,
+                brand,
+                condition,
+                room_id: room,
+            },
+            {
+                onSuccess: () => {
+                    clearForm(); // ✅ clear inputs safely
+                    toast.success("Equipment Added", {
+                        description:
+                            "The equipment has been added successfully!",
+                        duration: 2000,
+                    });
+                },
+                onError: () => {
+                    toast.error("Error", {
+                        description:
+                            "Something went wrong. Please check your inputs.",
+                    });
+                },
+            }
+        );
     };
 
     return (
@@ -112,15 +141,13 @@ export default function AddEquipment({ rooms }) {
                                 onSubmit={handleSubmit}
                                 className="space-y-6 mt-4"
                             >
-                                {/* Row 1: Type + Name */}
+                                {/* Row 1 */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <Label>Room</Label>
                                         <Select
                                             value={room}
-                                            onValueChange={(val) =>
-                                                setRoom(val)
-                                            }
+                                            onValueChange={setRoom}
                                             required
                                         >
                                             <SelectTrigger>
@@ -144,7 +171,7 @@ export default function AddEquipment({ rooms }) {
                                             value={type}
                                             onValueChange={(val) => {
                                                 setType(val);
-                                                setCondition(""); // reset condition when type changes
+                                                setCondition("");
                                             }}
                                             required
                                         >
@@ -165,7 +192,7 @@ export default function AddEquipment({ rooms }) {
                                     </div>
                                 </div>
 
-                                {/* Row 2: Brand + Room */}
+                                {/* Row 2 */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <Label>Equipment Name</Label>
@@ -191,16 +218,13 @@ export default function AddEquipment({ rooms }) {
                                     </div>
                                 </div>
 
-                                {/* Row 3: Condition (full width) */}
-                                {/* Row 3: Condition (left aligned like others) */}
+                                {/* Row 3 */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <Label>Condition</Label>
                                         <Select
                                             value={condition}
-                                            onValueChange={(val) =>
-                                                setCondition(val)
-                                            }
+                                            onValueChange={setCondition}
                                             disabled={!type}
                                             required
                                         >
@@ -235,7 +259,7 @@ export default function AddEquipment({ rooms }) {
                                     </div>
                                 </div>
 
-                                {/* Submit */}
+                                {/* Submit Button */}
                                 <div className="flex justify-center">
                                     <Button
                                         type="submit"

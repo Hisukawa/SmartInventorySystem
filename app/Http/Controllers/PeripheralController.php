@@ -119,7 +119,7 @@ class PeripheralController extends Controller
             'qr_code_path'    => $qrCodePath,
         ]);
 
-        return redirect()->route('peripherals.index')->with('success', 'Peripheral added successfully.');
+        return redirect()->route('admin.peripherals.create')->with('success', 'Peripheral added successfully.');
     }
 
     public function edit($id)
