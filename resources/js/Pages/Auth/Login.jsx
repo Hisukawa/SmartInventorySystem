@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import * as faceapi from "face-api.js";
 import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,87 +14,140 @@ export default function Login({ status }) {
         remember: false,
     });
 
-    // const videoRef = useRef(null);
-    const canvasRef = useRef(null);
-    // const scanIntervalRef = useRef(null);
+    const videoRef = useRef(null);
+    const [modelsLoaded, setModelsLoaded] = useState(false);
+    const [isCameraOn, setIsCameraOn] = useState(false);
+    const [faceStatus, setFaceStatus] = useState("");
+    const [isVerifying, setIsVerifying] = useState(false);
 
-    // const [scanning, setScanning] = useState(false);
-    // const [faceLoginProcessing, setFaceLoginProcessing] = useState(false);
+    // Load face-api models
+    useEffect(() => {
+        const loadModels = async () => {
+            try {
+                await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+                await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
+                await faceapi.nets.faceLandmark68TinyNet.loadFromUri("/models");
+                setModelsLoaded(true);
+                setFaceStatus("✅ Face models loaded successfully.");
+            } catch (err) {
+                console.error(err);
+                setFaceStatus("❌ Failed to load face models.");
+            }
+        };
+        loadModels();
+    }, []);
 
-    // // Start webcam on mount
-    // useEffect(() => {
-    //     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    //         navigator.mediaDevices
-    //             .getUserMedia({ video: { facingMode: "user" } })
-    //             .then((stream) => {
-    //                 if (videoRef.current) {
-    //                     videoRef.current.srcObject = stream;
-    //                     videoRef.current.play();
-    //                 }
-    //             })
-    //             .catch((err) => console.warn("Camera not available:", err));
-    //     }
-    // }, []);
+    // Start camera
+    const startCamera = async () => {
+        if (!modelsLoaded) {
+            setFaceStatus("⏳ Models are still loading...");
+            return;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+            });
+            videoRef.current.srcObject = stream;
+            setIsCameraOn(true);
+            setFaceStatus(
+                "🎥 Camera started. Please look straight at the camera."
+            );
+        } catch (err) {
+            console.error(err);
+            setFaceStatus("⚠️ Please allow camera access to continue.");
+        }
+    };
 
-    // // Function to start face login
-    // const startFaceLogin = () => {
-    //     if (!videoRef.current) return;
-    //     setScanning(true);
-    //     setFaceLoginProcessing(true);
+    // Stop camera
+    const stopCamera = () => {
+        const stream = videoRef.current?.srcObject;
+        if (stream) stream.getTracks().forEach((t) => t.stop());
+        setIsCameraOn(false);
+    };
 
-    //     let attempts = 0;
-    //     scanIntervalRef.current = setInterval(async () => {
-    //         if (attempts >= 10) {
-    //             // stop after 10 attempts
-    //             clearInterval(scanIntervalRef.current);
-    //             setScanning(false);
-    //             setFaceLoginProcessing(false);
-    //             return;
-    //         }
-    //         attempts++;
+    // Capture and verify face
+    const handleFaceVerify = async () => {
+        if (!isCameraOn) {
+            setFaceStatus("⚠️ Please start the camera first.");
+            return;
+        }
 
-    //         const video = videoRef.current;
-    //         const canvas = canvasRef.current;
-    //         canvas.width = video.videoWidth;
-    //         canvas.height = video.videoHeight;
-    //         const ctx = canvas.getContext("2d");
-    //         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    //         const imageBase64 = canvas.toDataURL("image/jpeg").split(",")[1];
+        setIsVerifying(true);
+        setFaceStatus("🔍 Detecting face...");
 
-    //         try {
-    //             const response = await fetch(route("login.face"), {
-    //                 method: "POST",
-    //                 headers: { "Content-Type": "application/json" },
-    //                 body: JSON.stringify({ face_descriptor: imageBase64 }),
-    //             });
-    //             const result = await response.json();
+        try {
+            const detection = await faceapi
+                .detectSingleFace(
+                    videoRef.current,
+                    new faceapi.TinyFaceDetectorOptions()
+                )
+                .withFaceLandmarks(true)
+                .withFaceDescriptor();
 
-    //             if (result.success && result.role) {
-    //                 // Face matched: redirect based on role
-    //                 if (result.role === "admin")
-    //                     window.location.href = "/admin/dashboard";
-    //                 else if (result.role === "faculty")
-    //                     window.location.href = "/faculty/dashboard";
-    //                 else if (result.role === "technician")
-    //                     window.location.href = "/technician/dashboard";
-    //                 else window.location.href = "/dashboard";
+            if (!detection) {
+                setFaceStatus("❌ No face detected. Please try again.");
+                setIsVerifying(false);
+                return;
+            }
 
-    //                 clearInterval(scanIntervalRef.current);
-    //                 setScanning(false);
-    //                 setFaceLoginProcessing(false);
-    //             }
-    //         } catch (err) {
-    //             console.error("Face login error:", err);
-    //         }
-    //     }, 1500);
-    // };
+            const descriptor = Array.from(detection.descriptor);
+            const currentUrl = window.location.href; // redirect to current page
 
-    // Normal login submit
+            await verifyFace(descriptor, currentUrl);
+        } catch (error) {
+            console.error("Face detection error:", error);
+            setFaceStatus("❌ Error detecting face.");
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
+    // Verify face via backend and redirect
+    const verifyFace = async (descriptor, targetUrl) => {
+        try {
+            const response = await fetch("/verify-face", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN":
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute("content") || "",
+                },
+                body: JSON.stringify({ descriptor }), // no need for redirect_url
+            });
+
+            const text = await response.text();
+            let data;
+
+            try {
+                data = JSON.parse(text);
+            } catch {
+                console.error("Invalid JSON from server:", text);
+                throw new Error("Server returned invalid response (not JSON)");
+            }
+
+            if (!response.ok)
+                throw new Error(data.message || "Face verification failed");
+
+            if (data.success) {
+                setFaceStatus("✅ Face verified successfully!");
+                // Use server-provided redirect URL
+                window.location.href = data.redirect_url;
+            } else {
+                setFaceStatus("❌ Face not recognized. Please try again.");
+            }
+        } catch (error) {
+            console.error("Face verification error:", error);
+            setFaceStatus(`⚠️ ${error.message}`);
+        }
+    };
+
+    // Normal login
     const submit = (e) => {
         e.preventDefault();
-        post(route("login"), {
-            onFinish: () => reset("password"),
-        });
+        post(route("login"), { onFinish: () => reset("password") });
     };
 
     return (
@@ -134,7 +188,8 @@ export default function Login({ status }) {
                                 Login Account
                             </CardTitle>
                             <CardDescription>
-                                Please enter your details or scan your face
+                                Please enter your details or login with your
+                                face
                             </CardDescription>
                         </CardHeader>
 
@@ -144,7 +199,7 @@ export default function Login({ status }) {
                             </div>
                         )}
 
-                        {/* Normal login */}
+                        {/* Email/Password Login */}
                         <form onSubmit={submit} className="space-y-4">
                             <div className="space-y-1">
                                 <Label htmlFor="email">Email Address</Label>
@@ -211,33 +266,53 @@ export default function Login({ status }) {
 
                         <hr className="my-6" />
 
-                        {/* Face login */}
-                        {/* <div className="space-y-4">
+                        {/* Face Login */}
+                        <div className="space-y-4">
                             <Label>Login with Face</Label>
-                            <div className="relative w-64 h-64 mx-auto">
+
+                            {/* Video container */}
+                            <div
+                                className={`relative mx-auto transition-all duration-300 ${
+                                    isCameraOn
+                                        ? "w-64 h-64 opacity-100 scale-100"
+                                        : "w-0 h-0 opacity-0 scale-0"
+                                }`}
+                            >
                                 <video
                                     ref={videoRef}
+                                    autoPlay
+                                    muted
                                     className="w-full h-full rounded-full border-4 border-green-500 object-cover"
                                 />
                                 <div className="absolute inset-0 border-4 border-dashed border-green-300 rounded-full pointer-events-none"></div>
-                                {scanning && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white font-semibold rounded-full">
-                                        Scanning...
-                                    </div>
-                                )}
                             </div>
 
-                            <Button
-                                type="button"
-                                className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white"
-                                onClick={startFaceLogin}
-                                disabled={scanning || faceLoginProcessing}
-                            >
-                                {scanning || faceLoginProcessing
-                                    ? "Scanning..."
-                                    : "Login with Face"}
-                            </Button>
-                        </div> */}
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    onClick={startCamera}
+                                    disabled={isCameraOn || !modelsLoaded}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                    {isCameraOn ? "Camera On" : "Start Camera"}
+                                </Button>
+
+                                <Button
+                                    type="button"
+                                    onClick={handleFaceVerify}
+                                    disabled={!isCameraOn || isVerifying}
+                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                    {isVerifying
+                                        ? "Verifying..."
+                                        : "Verify Face"}
+                                </Button>
+                            </div>
+
+                            <p className="text-sm text-gray-600 text-center mt-2">
+                                {faceStatus}
+                            </p>
+                        </div>
 
                         <div className="text-center text-sm mt-6">
                             Don’t have an account?{" "}
@@ -246,8 +321,6 @@ export default function Login({ status }) {
                                 request one.
                             </span>
                         </div>
-
-                        <canvas ref={canvasRef} style={{ display: "none" }} />
                     </div>
                 </div>
             </div>

@@ -450,6 +450,20 @@ export default function RoomPage({ rooms, search }) {
                                                                             <Edit2 className="h-4 w-4" />
                                                                             Edit
                                                                         </Button>
+                                                                        {/* Delete Button */}
+                                                                        {/* <Button
+                                                                            size="sm"
+                                                                            variant="destructive"
+                                                                            className="flex items-center gap-2 bg-[hsl(0,72%,51%)] text-white border-none hover:bg-[hsl(0,72%,45%)]"
+                                                                            onClick={() =>
+                                                                                handleDelete(
+                                                                                    room.id
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                            Delete
+                                                                        </Button> */}
                                                                     </TableCell>
                                                                 </TableRow>
                                                             );

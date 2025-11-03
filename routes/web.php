@@ -36,6 +36,19 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\AuditReportsController;
+use App\Http\Controllers\FaceRecognitionController;
+
+// FACE RECOGNITION ROUTE
+Route::post('/register-face', [FaceRecognitionController::class, 'registerFace'])->name('face.register');
+Route::post('/verify-face', [FaceRecognitionController::class, 'verify'])->name('face.verify');
+
+// 🧩 Face Registration Page (GET)
+Route::get('/face-register', function () {
+    return Inertia::render('Auth/FaceRegister');
+})->name('face.register.page');
+
+
+
 
 // ✅ Public routes (only login/register/etc.)
 Route::get('/', function () {
@@ -76,8 +89,12 @@ Route::post('/webauthn/login/options', [WebAuthnController::class, 'loginOptions
 require __DIR__ . '/auth.php';
 
 
+
 // All protected routes go here
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
+
+
+
     // API endpoint to fetch rooms with status for Admin Dashboard
     Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
 
@@ -131,6 +148,8 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+
+
         // routes/api.php
         Route::get('/admin/faculty-logs', [MonitoringController::class, 'facultyLogs'])->name('admin.logHistory.logs');
 
@@ -157,6 +176,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/rooms-list', [AdminController::class, 'roomsList']);
 
         Route::get('/admin/equipment-types', [AdminController::class, 'equipmentTypes']);
+
         // Admin Dashboard
         Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
