@@ -53,9 +53,18 @@ class FaceRecognitionController extends Controller
                 // Log the user in
                 Auth::login($matchedUser);
 
-                // Get redirect URL from request OR fallback to intended URL stored in session
-                $redirectUrl = $request->input('redirect_url', session()->pull('url.intended', route('dashboard')));
+                // Determine default redirect URL based on role
+                $roleRedirectMap = [
+                    'admin'     => route('admin.dashboard'),
+                    'faculty'   => route('faculty.dashboard'),
+                    'technician'=> route('technician.dashboard'),
+                    // add more roles if needed
+                ];
 
+                $defaultRedirect = $roleRedirectMap[strtolower($matchedUser->role)] ?? route('admin.dashboard');
+
+                // Use provided redirect_url OR Laravel's intended URL OR role-based default
+                $redirectUrl = $request->input('redirect_url', session()->pull('url.intended', $defaultRedirect));
 
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
@@ -67,6 +76,7 @@ class FaceRecognitionController extends Controller
 
                 return redirect($redirectUrl);
             }
+
 
             return response()->json([
                 'success' => false,
