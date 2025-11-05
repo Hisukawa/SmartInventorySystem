@@ -82,7 +82,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
     const [selectedValue, setSelectedValue] = useState("");
 
     useEffect(() => {
-        // load default filters from backend
+        // Load default filters from backend
         if (filters.condition) {
             setSelectedField("condition");
             setSelectedValue(filters.condition);
@@ -102,21 +102,44 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
         }
     }, [filters, activeSection]);
 
-    // Trigger filter immediately on change
+    // ✅ Get type options dynamically based on section
+    const getTypeOptions = () => {
+        if (!filterOptions?.types) return [];
+
+        if (activeSection === "equipments") {
+            return filterOptions.types.equipments || [];
+        }
+        if (activeSection === "peripherals") {
+            return filterOptions.types.peripherals || [];
+        }
+        return [];
+    };
+
+    // ✅ Trigger filter immediately when value changes
     const handleValueChange = (value) => {
         const newValue = value === "all" ? "" : value;
         setSelectedValue(newValue);
 
         if (selectedField === "condition") {
-            onApplyFilters(newValue, filters.unit_code, filters.search);
+            onApplyFilters(
+                newValue,
+                filters.unit_code,
+                filters.search,
+                filters.type
+            );
         } else if (selectedField === "unit_code") {
-            onApplyFilters(filters.condition, newValue, filters.search);
+            onApplyFilters(
+                filters.condition,
+                newValue,
+                filters.search,
+                filters.type
+            );
         } else if (selectedField === "type") {
             onApplyFilters(
                 filters.condition,
                 filters.unit_code,
-                newValue,
-                filters.search
+                filters.search,
+                newValue
             );
         }
     };
@@ -124,12 +147,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
     const handleReset = () => {
         setSelectedField("");
         setSelectedValue("");
-        onApplyFilters(
-            "", // condition
-            "", // unit_code
-            filters.search || "", // search
-            "" // type
-        );
+        onApplyFilters("", "", filters.search || "", "");
     };
 
     const getAvailableFields = () => {
@@ -142,7 +160,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
             fields.push({ value: "unit_code", label: "Unit Code" });
         }
 
-        if (activeSection === "peripherals" || activeSection === "equipments") {
+        if (activeSection === "equipments" || activeSection === "peripherals") {
             fields.push({ value: "type", label: "Type" });
         }
 
@@ -156,9 +174,8 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                     <FilterIcon className="h-4 w-4" />
                     Filter
                     {(filters.condition ||
-                        ((activeSection === "system-units" ||
-                            activeSection === "peripherals") &&
-                            filters.unit_code)) && (
+                        filters.unit_code ||
+                        filters.type) && (
                         <X
                             className="h-4 w-4 ml-1 cursor-pointer"
                             onClick={(e) => {
@@ -169,6 +186,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                     )}
                 </Button>
             </PopoverTrigger>
+
             <PopoverContent
                 className="w-[calc(100vw-2rem)] sm:w-[400px] p-4"
                 align="start"
@@ -199,7 +217,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                         </SelectContent>
                     </Select>
 
-                    {/* Value Dropdown */}
+                    {/* Condition Filter */}
                     {selectedField === "condition" && (
                         <Select
                             value={selectedValue || "all"}
@@ -219,6 +237,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                         </Select>
                     )}
 
+                    {/* Unit Code Filter */}
                     {selectedField === "unit_code" &&
                         (activeSection === "system-units" ||
                             activeSection === "peripherals") && (
@@ -227,7 +246,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                                 onValueChange={handleValueChange}
                             >
                                 <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select Unit" />
+                                    <SelectValue placeholder="Select Unit Code" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All</SelectItem>
@@ -239,28 +258,21 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                                 </SelectContent>
                             </Select>
                         )}
+
+                    {/* ✅ Type Filter (Dynamic per section) */}
                     {selectedField === "type" &&
                         (activeSection === "equipments" ||
                             activeSection === "peripherals") && (
                             <Select
                                 value={selectedValue || "all"}
-                                onValueChange={(val) => {
-                                    const newValue = val === "all" ? "" : val;
-                                    setSelectedValue(newValue);
-                                    onApplyFilters(
-                                        filters.condition,
-                                        filters.unit_code,
-                                        filters.search,
-                                        newValue // type
-                                    );
-                                }}
+                                onValueChange={handleValueChange}
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select Type" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All</SelectItem>
-                                    {filterOptions.types?.map((t) => (
+                                    {getTypeOptions().map((t) => (
                                         <SelectItem key={t} value={t}>
                                             {t}
                                         </SelectItem>
@@ -269,14 +281,10 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                             </Select>
                         )}
 
-                    {/* ✅ Reset Button now works for system-units & peripherals */}
+                    {/* Reset Button */}
                     {(filters.condition ||
-                        ((activeSection === "system-units" ||
-                            activeSection === "peripherals") &&
-                            filters.unit_code) ||
-                        ((activeSection === "equipments" ||
-                            activeSection === "peripherals") &&
-                            filters.type)) && (
+                        filters.unit_code ||
+                        filters.type) && (
                         <div className="flex justify-end">
                             <Button
                                 size="sm"
@@ -515,23 +523,57 @@ export default function TechnicianRoomView({
                                             onApplyFilters={applyFilters}
                                         />
 
-                                        <Input
-                                            placeholder="Search..."
-                                            value={search}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                setSearch(value);
-                                                applyFilters(
-                                                    condition,
-                                                    unitCode,
-                                                    value
-                                                );
-                                            }}
-                                            className="flex-1 min-w-0 sm:max-w-xs w-full
-                                            border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
-                                            focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
-                                            placeholder:text-[hsl(142,34%,40%)]"
-                                        />
+                                        <div className="flex gap-2 items-center">
+                                            <Input
+                                                placeholder="Search..."
+                                                value={search}
+                                                onChange={(e) => {
+                                                    const value =
+                                                        e.target.value;
+                                                    setSearch(value);
+
+                                                    // ✅ If user clears the search bar, immediately show all data
+                                                    if (value.trim() === "") {
+                                                        applyFilters(
+                                                            condition,
+                                                            unitCode,
+                                                            ""
+                                                        );
+                                                    }
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        const value =
+                                                            search.trim();
+                                                        // ✅ If empty, show all data; otherwise search
+                                                        applyFilters(
+                                                            condition,
+                                                            unitCode,
+                                                            value || ""
+                                                        );
+                                                    }
+                                                }}
+                                                className="flex-1 min-w-0 sm:max-w-xs w-full
+                                             border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
+                                             focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
+                                             placeholder:text-[hsl(142,34%,40%)]"
+                                            />
+
+                                            <Button
+                                                className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                onClick={() => {
+                                                    const value = search.trim();
+                                                    // ✅ Click “Search” → apply filter (empty means show all)
+                                                    applyFilters(
+                                                        condition,
+                                                        unitCode,
+                                                        value || ""
+                                                    );
+                                                }}
+                                            >
+                                                Search
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     {/* Add Button per section */}

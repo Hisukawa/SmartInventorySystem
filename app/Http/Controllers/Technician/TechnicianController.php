@@ -101,12 +101,11 @@ class TechnicianController extends Controller
             ->pluck('unit_code');
 
         // NEW: Type options
-        $typeOptions = collect()
-            ->merge(Equipment::select('type')->distinct()->pluck('type'))
-            ->merge(Peripheral::select('type')->distinct()->pluck('type'))
-            ->unique()
-            ->filter()
-            ->values();
+       $typeOptions = [
+    'equipments' => Equipment::select('type')->distinct()->pluck('type')->filter(),
+    'peripherals' => Peripheral::select('type')->distinct()->pluck('type')->filter(),
+];
+
 
         return Inertia::render('Technician/Technician-Scanned-Room', [
             'room' => $room,

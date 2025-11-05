@@ -740,7 +740,6 @@ export default function AdminDashboard() {
                                         Active Room Occupancy
                                     </CardTitle>
                                 </CardHeader>
-
                                 <div className="space-y-6 p-4">
                                     {activeRooms.length === 0 ? (
                                         <p className="text-[#3B5C47] text-sm text-center">
@@ -763,7 +762,6 @@ export default function AdminDashboard() {
                                                         }
                                                         className="w-28 h-28 rounded-full object-cover border-4 border-[#59AC77] shadow-lg"
                                                         onError={(e) => {
-                                                            // Fallback image if the faculty photo URL is broken or not accessible
                                                             e.target.onerror =
                                                                 null;
                                                             e.target.src =
@@ -777,18 +775,30 @@ export default function AdminDashboard() {
                                                         className="w-28 h-28 rounded-full object-cover border-4 border-gray-300 shadow-lg"
                                                     />
                                                 )}
+
                                                 <div>
                                                     <p className="text-base font-semibold text-[#2F4F2F]">
                                                         Room{" "}
                                                         {activeRoom.room_number}
                                                     </p>
+
                                                     <p className="text-sm text-[#3B5C47]">
                                                         Scanned by{" "}
                                                         <span className="font-medium text-[#2F4F2F]">
                                                             {activeRoom.last_scanned_by ??
                                                                 "Unknown"}
                                                         </span>
+                                                        {activeRoom.faculty_role && (
+                                                            <span className="text-xs text-gray-600 ml-2">
+                                                                (
+                                                                {
+                                                                    activeRoom.faculty_role
+                                                                }
+                                                                )
+                                                            </span>
+                                                        )}
                                                     </p>
+
                                                     <p className="text-xs text-gray-500">
                                                         {activeRoom.last_scanned_at
                                                             ? new Date(

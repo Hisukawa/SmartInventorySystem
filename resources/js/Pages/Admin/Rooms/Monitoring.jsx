@@ -29,7 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { X, Filter } from "lucide-react";
+import { X, Filter, Tally1Icon } from "lucide-react";
 import axios from "axios";
 
 export default function AdminDashboard({ children }) {
@@ -52,19 +52,24 @@ export default function AdminDashboard({ children }) {
     const [dateTo, setDateTo] = useState("");
 
     const [faculties, setFaculties] = useState([]);
-
+    const [totalLogs, setTotalLogs] = useState(0);
+    const [totalRoomPages, setTotalRoomPages] = useState(1);
+    const [totalLogPages, setTotalLogPages] = useState(1);
     // Fetch rooms from API
+    // ✅ Fetch Rooms (auto-refresh)
     const fetchRooms = async () => {
         try {
             const res = await axios.get(
                 `/api/admin/rooms-status?page=${currentPage}&per_page=${perPage}`
             );
             setRooms(res.data.data);
-            setTotalPages(res.data.meta.total_pages);
+            setTotalRoomPages(res.data.meta.total_pages);
         } catch (err) {
             console.error("Failed to fetch rooms:", err);
         }
     };
+
+    // ✅ Fetch Logs (manual refresh or pagination change)
     const fetchLogs = async () => {
         try {
             const res = await axios.get(`/admin/faculty-logs`, {
@@ -77,13 +82,10 @@ export default function AdminDashboard({ children }) {
                 },
             });
 
-            // Backend now returns faculty list (with room_statuses)
             setLogs(res.data.logs.data || []);
+            setTotalLogPages(res.data.logs.last_page || 1);
+            setTotalLogs(res.data.logs.total || 0);
 
-            // Pagination
-            setTotalPages(res.data.logs.last_page || 1);
-
-            // Dropdowns
             if (res.data.facultyOptions)
                 setFacultyOptions(res.data.facultyOptions);
             if (res.data.roomOptions) setRoomOptions(res.data.roomOptions);
@@ -92,18 +94,16 @@ export default function AdminDashboard({ children }) {
         }
     };
 
-    // Initial fetch and auto-refresh every 5 seconds
-    // ✅ Unified data fetch and auto-refresh logic
+    // 🔹 Auto-refresh rooms every 5 seconds
     useEffect(() => {
         fetchRooms();
-        fetchLogs();
-
-        const interval = setInterval(() => {
-            fetchRooms();
-            fetchLogs();
-        }, 5000);
-
+        const interval = setInterval(fetchRooms, 5000);
         return () => clearInterval(interval);
+    }, [currentPage]);
+
+    // 🔹 Fetch logs only on interaction (no auto refresh)
+    useEffect(() => {
+        fetchLogs();
     }, [currentLogPage, search, facultyId, roomId, logDate]);
 
     return (
@@ -223,8 +223,7 @@ export default function AdminDashboard({ children }) {
                                                 >
                                                     {room.is_active &&
                                                     room.last_scanned_user
-                                                        ? room.last_scanned_user
-                                                              .name
+                                                        ? `${room.last_scanned_user.name} (${room.last_scanned_user.role})`
                                                         : "No Faculty"}
                                                 </span>
                                                 <span
@@ -302,7 +301,7 @@ export default function AdminDashboard({ children }) {
                                     {/* Faculty Filter */}
                                     <div className="flex flex-col">
                                         <label className="text-sm text-gray-600 mb-1">
-                                            Faculty
+                                            Users
                                         </label>
                                         <select
                                             value={facultyId}
@@ -374,9 +373,10 @@ export default function AdminDashboard({ children }) {
                             )}
 
                             {/* 📋 Faculty Logs Table */}
+
                             <Card className="shadow-md rounded-2xl">
                                 <CardHeader>
-                                    <CardTitle>Faculty Logs History</CardTitle>
+                                    <CardTitle>Users Logs History</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <Table>
@@ -386,9 +386,10 @@ export default function AdminDashboard({ children }) {
                                         <TableHeader>
                                             <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
                                                 <TableHead>#</TableHead>
-                                                <TableHead>Faculty</TableHead>
+                                                <TableHead>User</TableHead>
+                                                <TableHead>Role</TableHead>
                                                 <TableHead>
-                                                    LogIn Date
+                                                    Login Date
                                                 </TableHead>
                                                 <TableHead>
                                                     Logout Date
@@ -396,12 +397,11 @@ export default function AdminDashboard({ children }) {
                                                 <TableHead>Room</TableHead>
                                             </TableRow>
                                         </TableHeader>
-
                                         <TableBody>
                                             {logs.length === 0 && (
                                                 <TableRow>
                                                     <TableCell
-                                                        colSpan={5}
+                                                        colSpan={6}
                                                         className="text-center text-gray-500"
                                                     >
                                                         No logs found.
@@ -409,109 +409,48 @@ export default function AdminDashboard({ children }) {
                                                 </TableRow>
                                             )}
 
-                                            {logs.map((faculty, idx) =>
-                                                faculty.room_statuses &&
-                                                faculty.room_statuses.length >
-                                                    0 ? (
-                                                    faculty.room_statuses
-                                                        .slice() // copy array
-                                                        .sort(
-                                                            (a, b) =>
-                                                                new Date(
-                                                                    b.created_at
-                                                                ) -
-                                                                new Date(
-                                                                    a.created_at
-                                                                )
-                                                        )
-                                                        .map((log, subIdx) => {
-                                                            // ✅ Safe date parsing (treat backend date as local already)
-                                                            const loginDate =
-                                                                log.created_at
-                                                                    ? new Date(
-                                                                          log.created_at.replace(
-                                                                              " ",
-                                                                              "T"
-                                                                          )
-                                                                      ).toLocaleString(
-                                                                          "en-PH",
-                                                                          {
-                                                                              year: "numeric",
-                                                                              month: "numeric",
-                                                                              day: "numeric",
-                                                                              hour: "numeric",
-                                                                              minute: "2-digit",
-                                                                              hour12: true,
-                                                                          }
-                                                                      )
-                                                                    : "—";
+                                            {logs.map((log, idx) => {
+                                                const loginDate = log.created_at
+                                                    ? new Date(
+                                                          log.created_at.replace(
+                                                              " ",
+                                                              "T"
+                                                          )
+                                                      ).toLocaleString(
+                                                          "en-PH",
+                                                          {
+                                                              year: "numeric",
+                                                              month: "numeric",
+                                                              day: "numeric",
+                                                              hour: "numeric",
+                                                              minute: "2-digit",
+                                                              hour12: true,
+                                                          }
+                                                      )
+                                                    : "—";
 
-                                                            const logoutDate =
-                                                                log.logged_out_at &&
-                                                                log.logged_out_at !==
-                                                                    null
-                                                                    ? new Date(
-                                                                          log.logged_out_at.replace(
-                                                                              " ",
-                                                                              "T"
-                                                                          )
-                                                                      ).toLocaleString(
-                                                                          "en-PH",
-                                                                          {
-                                                                              year: "numeric",
-                                                                              month: "numeric",
-                                                                              day: "numeric",
-                                                                              hour: "numeric",
-                                                                              minute: "2-digit",
-                                                                              hour12: true,
-                                                                          }
-                                                                      )
-                                                                    : ""; // 👈 Leave blank if not logged out
+                                                const logoutDate =
+                                                    log.logged_out_at
+                                                        ? new Date(
+                                                              log.logged_out_at.replace(
+                                                                  " ",
+                                                                  "T"
+                                                              )
+                                                          ).toLocaleString(
+                                                              "en-PH",
+                                                              {
+                                                                  year: "numeric",
+                                                                  month: "numeric",
+                                                                  day: "numeric",
+                                                                  hour: "numeric",
+                                                                  minute: "2-digit",
+                                                                  hour12: true,
+                                                              }
+                                                          )
+                                                        : "";
 
-                                                            return (
-                                                                <TableRow
-                                                                    key={`${faculty.id}-${log.id}`}
-                                                                >
-                                                                    <TableCell>
-                                                                        {idx +
-                                                                            1 +
-                                                                            (currentLogPage -
-                                                                                1) *
-                                                                                perPage}
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        {
-                                                                            faculty.name
-                                                                        }
-                                                                    </TableCell>
-
-                                                                    {/* ✅ Login Date (correct local time) */}
-                                                                    <TableCell>
-                                                                        {
-                                                                            loginDate
-                                                                        }
-                                                                    </TableCell>
-
-                                                                    {/* ✅ Logout Date (blank if still active) */}
-                                                                    <TableCell>
-                                                                        {
-                                                                            logoutDate
-                                                                        }
-                                                                    </TableCell>
-
-                                                                    <TableCell>
-                                                                        {log
-                                                                            .room
-                                                                            ?.room_number ??
-                                                                            "N/A"}
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            );
-                                                        })
-                                                ) : (
-                                                    <TableRow
-                                                        key={`no-log-${faculty.id}`}
-                                                    >
+                                                return (
+                                                    <TableRow key={log.id}>
                                                         <TableCell>
                                                             {idx +
                                                                 1 +
@@ -520,19 +459,132 @@ export default function AdminDashboard({ children }) {
                                                                     perPage}
                                                         </TableCell>
                                                         <TableCell>
-                                                            {faculty.name}
+                                                            {log.faculty
+                                                                ?.name ?? "N/A"}
+                                                        </TableCell>{" "}
+                                                        {/* updated */}
+                                                        <TableCell>
+                                                            {log.faculty
+                                                                ?.role ?? "N/A"}
+                                                        </TableCell>{" "}
+                                                        {/* updated */}
+                                                        <TableCell>
+                                                            {loginDate}
                                                         </TableCell>
-                                                        <TableCell
-                                                            colSpan={3}
-                                                            className="text-center text-gray-400"
-                                                        >
-                                                            No log recorded
+                                                        <TableCell>
+                                                            {logoutDate}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {log.room
+                                                                ?.room_number ??
+                                                                "N/A"}
                                                         </TableCell>
                                                     </TableRow>
-                                                )
-                                            )}
+                                                );
+                                            })}
                                         </TableBody>
                                     </Table>
+
+                                    <div className="flex justify-between items-center mt-4">
+                                        {/* Page Info */}
+                                        <span className="text-sm text-muted-foreground">
+                                            Showing{" "}
+                                            {logs.length === 0
+                                                ? 0
+                                                : (currentLogPage - 1) *
+                                                      perPage +
+                                                  1}{" "}
+                                            –{" "}
+                                            {Math.min(
+                                                currentLogPage * perPage,
+                                                totalLogs
+                                            )}{" "}
+                                            of {totalLogs} Logs
+                                        </span>
+
+                                        {/* Pagination Buttons */}
+                                        <div className="flex gap-2 items-center">
+                                            {/* Previous */}
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={currentLogPage === 1}
+                                                onClick={() =>
+                                                    setCurrentLogPage(
+                                                        (prev) => prev - 1
+                                                    )
+                                                }
+                                            >
+                                                Previous
+                                            </Button>
+
+                                            {/* Page Numbers */}
+                                            {Array.from(
+                                                { length: totalLogPages },
+                                                (_, idx) => idx + 1
+                                            )
+
+                                                .filter((page) => {
+                                                    if (
+                                                        page === 1 ||
+                                                        page === totalPages
+                                                    )
+                                                        return true;
+                                                    return (
+                                                        page >=
+                                                            currentLogPage -
+                                                                2 &&
+                                                        page <=
+                                                            currentLogPage + 2
+                                                    );
+                                                })
+                                                .map((page, idx, arr) => (
+                                                    <React.Fragment key={page}>
+                                                        {idx > 0 &&
+                                                            arr[idx] -
+                                                                arr[idx - 1] >
+                                                                1 && (
+                                                                <span className="px-1">
+                                                                    ...
+                                                                </span>
+                                                            )}
+                                                        <Button
+                                                            size="sm"
+                                                            variant={
+                                                                currentLogPage ===
+                                                                page
+                                                                    ? "default"
+                                                                    : "outline"
+                                                            }
+                                                            onClick={() =>
+                                                                setCurrentLogPage(
+                                                                    page
+                                                                )
+                                                            }
+                                                        >
+                                                            {page}
+                                                        </Button>
+                                                    </React.Fragment>
+                                                ))}
+
+                                            {/* Next */}
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={
+                                                    currentLogPage ===
+                                                    totalPages
+                                                }
+                                                onClick={() =>
+                                                    setCurrentLogPage(
+                                                        (prev) => prev + 1
+                                                    )
+                                                }
+                                            >
+                                                Next
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>

@@ -67,13 +67,11 @@ function Pagination({ page, pageCount, onPageChange }) {
     );
 }
 
-// ✅ Adjusted Filter Component for responsiveness and "All" option
 function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
     const [selectedField, setSelectedField] = useState("");
     const [selectedValue, setSelectedValue] = useState("");
 
     useEffect(() => {
-        // load default filters from backend
         if (filters.condition) {
             setSelectedField("condition");
             setSelectedValue(filters.condition);
@@ -93,21 +91,30 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
         }
     }, [filters, activeSection]);
 
-    // Trigger filter immediately on change
     const handleValueChange = (value) => {
         const newValue = value === "all" ? "" : value;
         setSelectedValue(newValue);
 
         if (selectedField === "condition") {
-            onApplyFilters(newValue, filters.unit_code, filters.search);
+            onApplyFilters(
+                newValue,
+                filters.unit_code,
+                filters.search,
+                filters.type
+            );
         } else if (selectedField === "unit_code") {
-            onApplyFilters(filters.condition, newValue, filters.search);
+            onApplyFilters(
+                filters.condition,
+                newValue,
+                filters.search,
+                filters.type
+            );
         } else if (selectedField === "type") {
             onApplyFilters(
                 filters.condition,
                 filters.unit_code,
-                newValue,
-                filters.search
+                filters.search,
+                newValue
             );
         }
     };
@@ -115,29 +122,29 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
     const handleReset = () => {
         setSelectedField("");
         setSelectedValue("");
-        onApplyFilters(
-            "", // condition
-            "", // unit_code
-            filters.search || "", // search
-            "" // type
-        );
+        onApplyFilters("", "", filters.search || "", "");
     };
 
     const getAvailableFields = () => {
         const fields = [{ value: "condition", label: "Condition" }];
-
         if (
             activeSection === "system-units" ||
             activeSection === "peripherals"
         ) {
             fields.push({ value: "unit_code", label: "Unit Code" });
         }
-
-        if (activeSection === "peripherals" || activeSection === "equipments") {
+        if (activeSection === "equipments" || activeSection === "peripherals") {
             fields.push({ value: "type", label: "Type" });
         }
-
         return fields;
+    };
+
+    const getTypeOptions = () => {
+        if (activeSection === "equipments")
+            return filterOptions.types?.equipments || [];
+        if (activeSection === "peripherals")
+            return filterOptions.types?.peripherals || [];
+        return [];
     };
 
     return (
@@ -147,9 +154,8 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                     <FilterIcon className="h-4 w-4" />
                     Filter
                     {(filters.condition ||
-                        ((activeSection === "system-units" ||
-                            activeSection === "peripherals") &&
-                            filters.unit_code)) && (
+                        filters.unit_code ||
+                        filters.type) && (
                         <X
                             className="h-4 w-4 ml-1 cursor-pointer"
                             onClick={(e) => {
@@ -160,6 +166,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                     )}
                 </Button>
             </PopoverTrigger>
+
             <PopoverContent
                 className="w-[calc(100vw-2rem)] sm:w-[400px] p-4"
                 align="start"
@@ -190,7 +197,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                         </SelectContent>
                     </Select>
 
-                    {/* Value Dropdown */}
+                    {/* Condition */}
                     {selectedField === "condition" && (
                         <Select
                             value={selectedValue || "all"}
@@ -210,6 +217,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                         </Select>
                     )}
 
+                    {/* Unit Code */}
                     {selectedField === "unit_code" &&
                         (activeSection === "system-units" ||
                             activeSection === "peripherals") && (
@@ -218,7 +226,7 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                                 onValueChange={handleValueChange}
                             >
                                 <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select Unit" />
+                                    <SelectValue placeholder="Select Unit Code" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All</SelectItem>
@@ -230,28 +238,21 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                                 </SelectContent>
                             </Select>
                         )}
+
+                    {/* ✅ Type */}
                     {selectedField === "type" &&
                         (activeSection === "equipments" ||
                             activeSection === "peripherals") && (
                             <Select
                                 value={selectedValue || "all"}
-                                onValueChange={(val) => {
-                                    const newValue = val === "all" ? "" : val;
-                                    setSelectedValue(newValue);
-                                    onApplyFilters(
-                                        filters.condition,
-                                        filters.unit_code,
-                                        filters.search,
-                                        newValue // type
-                                    );
-                                }}
+                                onValueChange={handleValueChange}
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select Type" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All</SelectItem>
-                                    {filterOptions.types?.map((t) => (
+                                    {getTypeOptions().map((t) => (
                                         <SelectItem key={t} value={t}>
                                             {t}
                                         </SelectItem>
@@ -260,14 +261,10 @@ function Filter({ filters, filterOptions, activeSection, onApplyFilters }) {
                             </Select>
                         )}
 
-                    {/* ✅ Reset Button now works for system-units & peripherals */}
+                    {/* Reset Button */}
                     {(filters.condition ||
-                        ((activeSection === "system-units" ||
-                            activeSection === "peripherals") &&
-                            filters.unit_code) ||
-                        ((activeSection === "equipments" ||
-                            activeSection === "peripherals") &&
-                            filters.type)) && (
+                        filters.unit_code ||
+                        filters.type) && (
                         <div className="flex justify-end">
                             <Button
                                 size="sm"

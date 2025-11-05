@@ -90,10 +90,21 @@ class GuestDashboardController extends Controller
     $room     = Room::where('room_path', $roomPath)->firstOrFail();
     $user     = Auth::user();
 
-    RoomStatus::updateOrCreate(
-        ['room_id' => $room->id],
-        ['scanned_by' => $user?->id, 'is_active' => 1]
-    );
+ // ✅ Step 1: Mark any previous active session as logged out
+    RoomStatus::where('room_id', $room->id)
+        ->where('scanned_by', $user->id)
+        ->where('is_active', 1)
+        ->update([
+            'is_active' => 0,
+            'logged_out_at' => now(),
+        ]);
+
+    // ✅ Step 2: Create a new record for this new login
+    RoomStatus::create([
+        'room_id'    => $room->id,
+        'scanned_by' => $user->id,
+        'is_active'  => 1,
+    ]);
 
     $condition = $request->query('condition');
     $unitCode  = $request->query('unit_code');
@@ -161,12 +172,11 @@ class GuestDashboardController extends Controller
         ->pluck('unit_code');
 
     // NEW: Type options
-    $typeOptions = collect()
-        ->merge(Equipment::select('type')->distinct()->pluck('type'))
-        ->merge(Peripheral::select('type')->distinct()->pluck('type'))
-        ->unique()
-        ->filter()
-        ->values();
+       // NEW: Type options
+       $typeOptions = [
+    'equipments' => Equipment::select('type')->distinct()->pluck('type')->filter(),
+    'peripherals' => Peripheral::select('type')->distinct()->pluck('type')->filter(),
+];
 
     return Inertia::render('Guest/GuestScannedRoomView', [
         'room' => $room,

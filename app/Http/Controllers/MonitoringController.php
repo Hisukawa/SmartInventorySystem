@@ -33,56 +33,59 @@ class MonitoringController extends Controller
 
     return redirect('/'); // or login page
 }
-
-
 public function facultyLogs(Request $request)
 {
-    // ✅ Dropdown data (faculties + rooms)
-    $facultyOptions = \App\Models\User::select('id', 'name')
+    // Dropdown data
+    $facultyOptions = \App\Models\User::select('id', 'name', 'role')
         ->orderBy('name')
-        ->get()
-        ->toArray();
+        ->get();
 
     $roomOptions = \App\Models\Room::select('id', 'room_number')
         ->orderBy('room_number')
-        ->get()
-        ->toArray();
+        ->get();
 
-    // ✅ Base query: include logs (roomStatuses) + room info
-    $query = \App\Models\User::with([
-        'roomStatuses' => function ($q) {
-            $q->with('room:id,room_number')
-                ->orderBy('created_at', 'desc'); // 👈 newest logs first
-        },
-    ])->select('id', 'name');
+    // Base query: RoomStatus with user and room
+    $query = \App\Models\RoomStatus::with([
+        'faculty:id,name,role', // ✅ use the correct relationship name
+        'room:id,room_number'
+    ]);
 
-    // ✅ Filters
+    // Filters
     if ($request->filled('faculty_id')) {
-        $query->where('id', $request->faculty_id);
+        $query->where('scanned_by', $request->faculty_id);
     }
 
     if ($request->filled('room_id')) {
-        $roomId = $request->room_id;
-        $query->whereHas('roomStatuses', function ($sub) use ($roomId) {
-            $sub->where('room_id', $roomId);
-        });
+        $query->where('room_id', $request->room_id);
     }
 
     if ($request->filled('log_date')) {
-        $logDate = $request->log_date;
-        $query->whereHas('roomStatuses', function ($sub) use ($logDate) {
-            $sub->whereDate('created_at', $logDate);
+        $query->whereDate('created_at', $request->log_date);
+    }
+
+    // Optional search by faculty name
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->whereHas('faculty', function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%");
         });
     }
 
-    $faculties = $query->paginate(10);
+    try {
+        $logs = $query->orderBy('created_at', 'desc')->paginate(10);
+    } catch (\Exception $e) {
+        \Log::error('Failed to fetch logs: ' . $e->getMessage());
+        return response()->json(['message' => 'Failed to fetch logs'], 500);
+    }
 
     return response()->json([
-        'logs' => $faculties,
+        'logs' => $logs,
         'facultyOptions' => $facultyOptions,
         'roomOptions' => $roomOptions,
     ]);
 }
+
+
 
 
 }
