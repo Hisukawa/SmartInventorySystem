@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { usePage, Link, Head } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Menu, Eye, FileText, Filter as FilterIcon, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+
 import {
     Table,
     TableBody,
@@ -353,7 +356,13 @@ export default function FacultyRoomView({
             type: newType || undefined, // <-- pass type
         });
     };
-
+    const handleSuccess = () => {
+        setShowReportModal(false);
+        toast.success("Report submitted successfully!", {
+            description: "Thank you for your feedback!",
+            duration: 2500,
+        });
+    };
     return (
         <>
             <Head title={`Room - ${room.room_name}`} />
@@ -572,46 +581,74 @@ export default function FacultyRoomView({
                                                             <TableCell className="flex gap-2 py-3">
                                                                 {activeSection ===
                                                                     "system-units" && (
-                                                                    <Link
-                                                                        href={route(
-                                                                            "faculty.units.show",
-                                                                            {
-                                                                                roomId: room.id,
-                                                                                unitId: item.id,
-                                                                            }
-                                                                        )}
+                                                                    <motion.div
+                                                                        whileTap={{
+                                                                            scale: 0.9,
+                                                                        }}
+                                                                        transition={{
+                                                                            duration: 0.1,
+                                                                        }}
                                                                     >
-                                                                        <Button
-                                                                            size="sm"
-                                                                            variant="outline"
-                                                                            className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
+                                                                        <Link
+                                                                            href={route(
+                                                                                "faculty.units.show",
+                                                                                {
+                                                                                    roomId: room.id,
+                                                                                    unitId: item.id,
+                                                                                }
+                                                                            )}
                                                                         >
-                                                                            <Eye className="h-4 w-4" />{" "}
-                                                                            View
-                                                                        </Button>
-                                                                    </Link>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                                className="flex items-center gap-1 
+                text-[hsl(142,34%,51%)] 
+                border-[hsl(142,34%,51%)] 
+                hover:bg-[hsl(142,34%,51%)] 
+                hover:text-white 
+                transition-all duration-200"
+                                                                            >
+                                                                                <Eye className="h-4 w-4" />{" "}
+                                                                                View
+                                                                            </Button>
+                                                                        </Link>
+                                                                    </motion.div>
                                                                 )}
                                                                 {activeSection ===
                                                                     "peripherals" && (
-                                                                    <Link
-                                                                        href={route(
-                                                                            "faculty.peripherals.show",
-                                                                            {
-                                                                                room: room.id,
-                                                                                peripheral:
-                                                                                    item.id,
-                                                                            }
-                                                                        )}
+                                                                    <motion.div
+                                                                        whileTap={{
+                                                                            scale: 0.9,
+                                                                        }}
+                                                                        transition={{
+                                                                            duration: 0.1,
+                                                                        }}
                                                                     >
-                                                                        <Button
-                                                                            size="sm"
-                                                                            variant="outline"
-                                                                            className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
+                                                                        <Link
+                                                                            href={route(
+                                                                                "faculty.peripherals.show",
+                                                                                {
+                                                                                    room: room.id,
+                                                                                    peripheral:
+                                                                                        item.id,
+                                                                                }
+                                                                            )}
                                                                         >
-                                                                            <Eye className="h-4 w-4" />{" "}
-                                                                            View
-                                                                        </Button>
-                                                                    </Link>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                                className="flex items-center gap-1 
+                text-[hsl(142,34%,51%)] 
+                border-[hsl(142,34%,51%)] 
+                hover:bg-[hsl(142,34%,51%)] 
+                hover:text-white 
+                transition-all duration-200"
+                                                                            >
+                                                                                <Eye className="h-4 w-4" />{" "}
+                                                                                View
+                                                                            </Button>
+                                                                        </Link>
+                                                                    </motion.div>
                                                                 )}
                                                                 {activeSection ===
                                                                     "equipments" &&
@@ -622,25 +659,39 @@ export default function FacultyRoomView({
                                                                         item.id
                                                                     ),
                                                                     (
-                                                                        <Link
-                                                                            href={route(
-                                                                                "faculty.equipments.show",
-                                                                                {
-                                                                                    room: room.id,
-                                                                                    equipment:
-                                                                                        item.id,
-                                                                                }
-                                                                            )}
+                                                                        <motion.div
+                                                                            whileTap={{
+                                                                                scale: 0.9,
+                                                                            }}
+                                                                            transition={{
+                                                                                duration: 0.1,
+                                                                            }}
                                                                         >
-                                                                            <Button
-                                                                                size="sm"
-                                                                                variant="outline"
-                                                                                className="flex items-center gap-1 text-[hsl(142,34%,51%)] border-[hsl(142,34%,51%)] hover:bg-[hsl(142,34%,51%)] hover:text-white"
+                                                                            <Link
+                                                                                href={route(
+                                                                                    "faculty.equipments.show",
+                                                                                    {
+                                                                                        room: room.id,
+                                                                                        equipment:
+                                                                                            item.id,
+                                                                                    }
+                                                                                )}
                                                                             >
-                                                                                <Eye className="h-4 w-4" />{" "}
-                                                                                View
-                                                                            </Button>
-                                                                        </Link>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    className="flex items-center gap-1 
+                text-[hsl(142,34%,51%)] 
+                border-[hsl(142,34%,51%)] 
+                hover:bg-[hsl(142,34%,51%)] 
+                hover:text-white 
+                transition-all duration-200"
+                                                                                >
+                                                                                    <Eye className="h-4 w-4" />{" "}
+                                                                                    View
+                                                                                </Button>
+                                                                            </Link>
+                                                                        </motion.div>
                                                                     ))}
                                                                 <Button
                                                                     size="sm"
@@ -695,7 +746,6 @@ export default function FacultyRoomView({
                     </div>
                 </div>
             </div>
-
             {showReportModal && (
                 <ReportFormModal
                     open={showReportModal}
@@ -703,15 +753,9 @@ export default function FacultyRoomView({
                     item={selectedItem}
                     section={activeSection}
                     room={room}
-                    onSuccess={() => setShowSuccessModal(true)}
+                    onSuccess={handleSuccess}
                 />
             )}
-
-            <SuccessModal
-                open={showSuccessModal}
-                onClose={() => setShowSuccessModal(false)}
-                message="Report submitted successfully!"
-            />
         </>
     );
 }

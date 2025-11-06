@@ -11,6 +11,7 @@ import {
     Tag,
     Hash,
     ArrowLeft,
+    SquareCheckBig,
 } from "lucide-react";
 
 import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view-sidebar";
@@ -119,6 +120,16 @@ export default function FacultyPeripheralsView({ room, peripheral, user }) {
                                     icon={Barcode}
                                     label="Serial Number"
                                     value={peripheral.serial_number}
+                                />
+                                <DetailItem
+                                    icon={SquareCheckBig}
+                                    label="Condition"
+                                    value={peripheral.condition}
+                                />
+                                <DetailItem
+                                    icon={SquareCheckBig}
+                                    label="Condition Details"
+                                    value={peripheral.condition_details}
                                 />
                             </div>
 

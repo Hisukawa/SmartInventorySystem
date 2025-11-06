@@ -32,10 +32,12 @@ public function show($room_path)
 
 public function showUnit($roomId, $unitId)
 {
-
-    
     $room = Room::findOrFail($roomId);
-    $unit = $room->systemUnits()->findOrFail($unitId);
+
+    // ✅ Eager-load the mr_to relation so we get user info directly
+    $unit = $room->systemUnits()
+        ->with('mr_to')
+        ->findOrFail($unitId);
 
     return Inertia::render('Faculty/FacultyUnitView', [
         'room' => $room,
@@ -46,7 +48,6 @@ public function showUnit($roomId, $unitId)
         'peripherals' => $room->peripherals,
     ]);
 }
-
 
 }
 

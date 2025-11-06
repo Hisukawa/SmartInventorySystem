@@ -51,10 +51,13 @@ export default function FacultyUnitView({ room, unit, user }) {
                             user={user}
                             onSelect={(section) => {
                                 setSidebarOpen(false);
-                                window.location.href = route("faculty.room.show", {
-                                    roomPath: room.room_path,
-                                    section: section,
-                                });
+                                window.location.href = route(
+                                    "faculty.room.show",
+                                    {
+                                        roomPath: room.room_path,
+                                        section: section,
+                                    }
+                                );
                             }}
                             active="system-units"
                         />
@@ -124,6 +127,20 @@ export default function FacultyUnitView({ room, unit, user }) {
                                     icon={SquareCheckBig}
                                     label="Condition"
                                     value={unit.condition}
+                                />
+                                <DetailItem
+                                    icon={SquareCheckBig}
+                                    label="Condition Details"
+                                    value={unit.condition_details}
+                                />
+                                <DetailItem
+                                    icon={SquareCheckBig}
+                                    label="Material Responsible"
+                                    value={
+                                        unit.mr_to
+                                            ? `${unit.mr_to.name}`
+                                            : "Not Assigned"
+                                    }
                                 />
                             </div>
 
