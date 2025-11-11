@@ -50,22 +50,28 @@ class FaceRecognitionController extends Controller
             $threshold = 0.45;
 
             if ($matchedUser && $minDistance < $threshold) {
+                // Check if user has deactivated face recognition
+                if (!$matchedUser->face_recognition_enabled) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Face recognition is disabled for this user.'
+                    ], 403);
+                }
+
                 // Log the user in
                 Auth::login($matchedUser);
 
-                // Determine default redirect URL based on role
-                $roleRedirectMap = [
-                    'admin'     => route('admin.dashboard'),
-                    'faculty'   => route('faculty.dashboard'),
-                    'technician'=> route('technician.dashboard'),
-                    // add more roles if needed
-                ];
+                // Determine redirect URL
+                if (strtolower($matchedUser->role) === 'admin') {
+                    // Admin users go to admin dashboard
+                    $redirectUrl = route('admin.dashboard');
+                } else {
+                    // Other users go to profile page
+                    $profileRedirect = route('profile.edit');
+                    $redirectUrl = $request->input('redirect_url', session()->pull('url.intended', $profileRedirect));
+                }
 
-                $defaultRedirect = $roleRedirectMap[strtolower($matchedUser->role)] ?? route('admin.dashboard');
-
-                // Use provided redirect_url OR Laravel's intended URL OR role-based default
-                $redirectUrl = $request->input('redirect_url', session()->pull('url.intended', $defaultRedirect));
-
+                // Return JSON for AJAX requests
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
                         'success' => true,
@@ -111,12 +117,82 @@ class FaceRecognitionController extends Controller
         }
 
         $user->face_descriptor = json_encode($request->descriptor);
+        $user->face_recognition_enabled = true; // auto-enable when registered
         $user->save();
 
         return response()->json([
             'success' => true,
             'message' => 'Face registered successfully!',
             'role' => $user->role ?? null,
+        ]);
+    }
+
+    /**
+     * Deactivate face recognition (keeps descriptor but disables login).
+     */
+    public function deactivate(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
+        }
+
+        $user->face_recognition_enabled = false;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Face recognition has been deactivated.'
+        ]);
+    }
+
+    /**
+     * Delete face recognition data (completely removes descriptor).
+     */
+    public function deleteFaceData(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
+        }
+
+        $user->face_descriptor = null;
+        $user->face_recognition_enabled = false;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Face recognition data has been deleted.'
+        ]);
+    }
+
+    /**
+     * Reactivate face recognition (enable login again without re-scanning).
+     */
+    public function reactivate(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
+        }
+
+        // Only allow reactivation if the face descriptor still exists
+        if (!$user->face_descriptor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No saved face data found. Please re-register your face.'
+            ], 404);
+        }
+
+        $user->face_recognition_enabled = true;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Face recognition has been reactivated.'
         ]);
     }
 

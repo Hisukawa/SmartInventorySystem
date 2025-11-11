@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { router } from "@inertiajs/react";
 
-// Helper to capitalize role names
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
 export default function FaceRegister({ user }) {
     const videoRef = useRef();
+    const overlayRef = useRef();
     const [status, setStatus] = useState("Loading models...");
     const [isCapturing, setIsCapturing] = useState(false);
 
@@ -110,32 +110,54 @@ export default function FaceRegister({ user }) {
                 </h2>
             }
         >
-            <div className="flex flex-col items-center justify-center  bg-gray-50 p-4">
-                <Card className="max-w-lg w-full shadow-lg rounded-xl overflow-hidden">
-                    <CardHeader className="bg-gray-100 text-center">
+            <div className="flex flex-col items-center justify-center min-h-[80vh] bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 p-4">
+                <Card className="max-w-md w-full shadow-2xl rounded-3xl backdrop-blur-md bg-white/60 overflow-hidden">
+                    <CardHeader className="bg-gray-100 text-center py-4">
                         <CardTitle className="text-2xl font-bold">
                             Register Your Face
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex flex-col items-center gap-6 p-6">
-                        <video
-                            ref={videoRef}
-                            autoPlay
-                            muted
-                            playsInline
-                            className="w-full max-w-md h-64 rounded-lg border border-gray-300 shadow-sm object-cover"
-                        />
-                        <Button
-                            type="button"
-                            onClick={captureFace}
-                            disabled={isCapturing}
-                            className="w-full sm:w-auto"
-                        >
-                            {isCapturing
-                                ? "Processing..."
-                                : "Capture & Save Face"}
-                        </Button>
-                        <p className="text-gray-600 text-sm text-center">
+                    <CardContent className="flex flex-col items-center gap-6 p-6 relative">
+                        {/* Camera wrapper with circular modern design */}
+                        <div className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-gray-300 shadow-lg ring-2 ring-indigo-500 ring-offset-2 ring-offset-white animate-pulse">
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover"
+                            />
+                            {/* Optional overlay guide circle */}
+                            <div
+                                ref={overlayRef}
+                                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                            >
+                                <div className="w-44 h-44 border-2 border-dashed border-indigo-400 rounded-full" />
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center mt-4">
+                            <Button
+                                type="button"
+                                onClick={captureFace}
+                                disabled={isCapturing}
+                                className="flex-1 sm:flex-none shadow-md"
+                            >
+                                {isCapturing
+                                    ? "Processing..."
+                                    : "Capture & Save Face"}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => router.visit("/profile")}
+                                className="flex-1 sm:flex-none"
+                            >
+                                Back
+                            </Button>
+                        </div>
+
+                        <p className="text-gray-700 text-sm text-center mt-2 font-medium">
                             {status}
                         </p>
                     </CardContent>

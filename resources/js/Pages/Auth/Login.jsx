@@ -28,10 +28,10 @@ export default function Login({ status }) {
                 await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
                 await faceapi.nets.faceLandmark68TinyNet.loadFromUri("/models");
                 setModelsLoaded(true);
-                setFaceStatus("✅ Face models loaded successfully.");
+                // setFaceStatus("✅ Face models loaded successfully.");
             } catch (err) {
                 console.error(err);
-                setFaceStatus("❌ Failed to load face models.");
+                // setFaceStatus("❌ Failed to load face models.");
             }
         };
         loadModels();

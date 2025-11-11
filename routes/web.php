@@ -93,6 +93,12 @@ require __DIR__ . '/auth.php';
 // All protected routes go here
 Route::middleware(['auth', 'verified'])->group(function () {
 
+    // Disable/Enable/Delete of Face Recognition
+    Route::post('/face/deactivate', [FaceRecognitionController::class, 'deactivate'])->name('face.deactivate');
+    Route::post('/face/delete', [FaceRecognitionController::class, 'deleteFaceData'])->name('face.delete');
+    Route::post('/face/reactivate', [FaceRecognitionController::class, 'reactivate'])->name('face.reactivate');
+
+
     // API endpoint to fetch rooms with status for Admin Dashboard
     Route::get('/api/admin/rooms-status', [RoomController::class, 'getRoomStatus']);
 
