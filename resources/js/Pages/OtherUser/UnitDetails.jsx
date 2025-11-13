@@ -7,6 +7,7 @@ import {
     Building,
     ShieldCheck,
     User as UserIcon,
+    Info,
 } from "lucide-react";
 
 export default function UnitDetails({ unit }) {
@@ -60,6 +61,11 @@ export default function UnitDetails({ unit }) {
                                 icon={ShieldCheck}
                                 label="Condition"
                                 value={unit.condition}
+                            />
+                            <DetailItem
+                                icon={Info}
+                                label="Condition Details"
+                                value={unit.condition_details}
                             />
                             <DetailItem
                                 icon={UserIcon}

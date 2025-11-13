@@ -10,6 +10,7 @@ import {
     Factory,
     SquareCheckBig,
     ArrowLeft,
+    Info,
 } from "lucide-react";
 
 import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view-sidebar";
@@ -108,6 +109,11 @@ export default function FacultyRoomEquipmentView({ room, equipment, user }) {
                                     icon={SquareCheckBig}
                                     label="Condition"
                                     value={equipment.condition}
+                                />
+                                <DetailItem
+                                    icon={SquareCheckBig}
+                                    label="Condition"
+                                    value={equipment.condition_details}
                                 />
                             </div>
 

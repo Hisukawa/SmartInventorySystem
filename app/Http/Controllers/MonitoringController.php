@@ -15,24 +15,26 @@ class MonitoringController extends Controller
         ]);
     }
 
-   public function deactivateOnLogout(Request $request)
+public function deactivateOnLogout(Request $request)
 {
     if (Auth::check()) {
+        // Deactivate all active logs for this user
         RoomStatus::where('scanned_by', Auth::id())
-            ->where('is_active', true) // only update active sessions
+            ->where('is_active', true)
             ->update([
                 'is_active' => false,
-                'logged_out_at' => now(),
+                'logged_out_at' => now(), // fill logout time
             ]);
     }
 
-    // continue logout
     Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
 
-    return redirect('/'); // or login page
+    return redirect('/');
 }
+
+
 public function facultyLogs(Request $request)
 {
     // Dropdown data
@@ -46,9 +48,9 @@ public function facultyLogs(Request $request)
 
     // Base query: RoomStatus with user and room
     $query = \App\Models\RoomStatus::with([
-        'faculty:id,name,role', // ✅ use the correct relationship name
+        'faculty:id,name,role,photo', // include photo if needed
         'room:id,room_number'
-    ]);
+    ])->select('id', 'room_id', 'scanned_by', 'is_active', 'created_at', 'logged_out_at'); // ✅ include logged_out_at
 
     // Filters
     if ($request->filled('faculty_id')) {

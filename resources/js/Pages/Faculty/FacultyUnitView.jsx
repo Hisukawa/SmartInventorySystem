@@ -12,6 +12,8 @@ import {
     Monitor,
     SquareCheckBig,
     ArrowLeft,
+    User,
+    Info,
 } from "lucide-react";
 
 import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view-sidebar";
@@ -129,12 +131,12 @@ export default function FacultyUnitView({ room, unit, user }) {
                                     value={unit.condition}
                                 />
                                 <DetailItem
-                                    icon={SquareCheckBig}
+                                    icon={Info}
                                     label="Condition Details"
                                     value={unit.condition_details}
                                 />
                                 <DetailItem
-                                    icon={SquareCheckBig}
+                                    icon={User}
                                     label="Material Responsible"
                                     value={
                                         unit.mr_to
