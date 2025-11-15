@@ -4,11 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,7 +27,7 @@ class ProfileController extends Controller
     /**
      * Update profile info including photo.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request): Response
     {
         $user = $request->user();
 
@@ -38,30 +36,33 @@ class ProfileController extends Controller
 
         // Handle profile photo
         if ($request->hasFile('photo')) {
-            // Delete old photo if exists
             if ($user->photo && Storage::disk('public')->exists($user->photo)) {
                 Storage::disk('public')->delete($user->photo);
             }
 
-            // Store new photo
             $path = $request->file('photo')->store('photos', 'public');
             $user->photo = $path;
         }
 
-        // Reset email verification if changed
+        // Reset email verification if email changed
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
         $user->save();
 
-        return Redirect::route('profile.edit')->with('status', 'Profile updated successfully.');
+        // ✅ Return Inertia response with updated user
+        return Inertia::render('Profile/Edit', [
+            'user' => $user,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
+            'status' => 'profile-updated',
+        ])->with('success', 'Profile updated successfully!');
     }
 
     /**
      * Delete account.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request)
     {
         $request->validate([
             'password' => ['required', 'current_password'],
@@ -76,6 +77,6 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::to('/');
+        return redirect('/');
     }
 }

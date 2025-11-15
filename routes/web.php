@@ -36,6 +36,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\AuditReportsController;
+use App\Http\Controllers\Auth\UpdateProfileController;
 use App\Http\Controllers\FaceRecognitionController;
 
 // FACE RECOGNITION ROUTE
@@ -123,6 +124,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::post('/profile', [UpdateProfileController::class, 'updatePhoto'])
+        ->name('profile.photo.update');
 
 
     //Route::get('/room/{roomPath}', [RoomController::class, 'show'])->where('roomPath', '.*') // <-- this allows slashes in parameter

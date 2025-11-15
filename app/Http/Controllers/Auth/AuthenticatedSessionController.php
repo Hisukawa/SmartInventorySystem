@@ -41,16 +41,16 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->intended(route('admin.dashboard'));
 
             case 'faculty':
-                return redirect()->intended(route('faculty.dashboard'));
+                return redirect()->intended(route('profile.edit'));
 
             case 'technician':
-                return redirect()->intended(route('technician.dashboard'));
+                return redirect()->intended(route('profile.edit'));
 
             case 'guest':
-                return redirect()->intended(route('guest.dashboard'));
+                return redirect()->intended(route('profile.edit'));
 
             default:
-                return redirect()->route('dashboard'); // fallback
+                return redirect()->route('profile.edit'); // fallback
         }
     }
 
