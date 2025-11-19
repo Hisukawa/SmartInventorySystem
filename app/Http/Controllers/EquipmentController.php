@@ -106,12 +106,12 @@ class EquipmentController extends Controller
         return redirect()->back()->with('success', 'Equipment updated successfully.');
     }
 
-        public function destroy(Equipment $equipment)
-        {
-            $equipment->delete();
+    public function destroy(Equipment $equipment)
+    {
+        $equipment->delete();
 
-            return redirect()->route('equipments.index')->with('success', 'Equipment deleted successfully.');
-        }
+        return redirect()->route('equipments.index')->with('success', 'Equipment deleted successfully.');
+    }
 
     public function showRoomEquipments(Room $room, $equipmentId)
     {

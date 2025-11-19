@@ -508,6 +508,34 @@ export default function EquipmentsPage({
                                                         <Edit2 className="h-4 w-4" />
                                                         Edit
                                                     </Button>
+                                                    {/* Delete Button */}
+                                                    <Button
+                                                        size="sm"
+                                                        className="flex items-center gap-2 bg-red-500 text-white border-none hover:bg-red-600"
+                                                        onClick={() => {
+                                                            if (
+                                                                confirm(
+                                                                    `Are you sure you want to delete ${eq.name}?`
+                                                                )
+                                                            ) {
+                                                                router.delete(
+                                                                    `/equipments/${eq.equipment_code}`, // your Laravel route expects {equipment}
+                                                                    {
+                                                                        preserveScroll: true, // optional
+                                                                        onSuccess:
+                                                                            () => {
+                                                                                toast.success(
+                                                                                    "Equipment deleted successfully."
+                                                                                );
+                                                                            },
+                                                                    }
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                        Delete
+                                                    </Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

@@ -794,6 +794,26 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                         <Edit2 className="h-4 w-4" />
                                                         Edit
                                                     </Button>
+
+                                                    {/* Delete Button */}
+                                                    <Button
+                                                        size="sm"
+                                                        className="flex items-center gap-2 bg-red-600 text-white border-none hover:bg-red-700"
+                                                        onClick={() => {
+                                                            if (
+                                                                confirm(
+                                                                    `Are you sure you want to delete ${unit.unit_name}?`
+                                                                )
+                                                            ) {
+                                                                router.delete(
+                                                                    `/system-units/${unit.id}`
+                                                                );
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                        Delete
+                                                    </Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

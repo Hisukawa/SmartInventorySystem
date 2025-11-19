@@ -28,20 +28,21 @@ class Equipment extends Model
         return static::select('condition')->distinct()->pluck('condition');
     }
 
-public function getRouteKeyName()
-{
-    if (
-        request()->routeIs('faculty.*') ||
-        request()->routeIs('guest.*') ||
-        request()->routeIs('technician.*') // 👈 added this
-    ) {
-        return 'id';
+    public function getRouteKeyName()
+    {
+        if (
+            request()->routeIs('faculty.*') ||
+            request()->routeIs('guest.*') ||
+            request()->routeIs('technician.*') // 👈 added this
+        ) {
+            return 'id';
+        }
+
+        return 'equipment_code'; // Admin
     }
 
-    return 'equipment_code'; // Admin
-}
-      public function mr_to(){
-         return $this->belongsTo(User::class, 'mr_id');
+    public function mr_to(){
+        return $this->belongsTo(User::class, 'mr_id');
 
     }
 
