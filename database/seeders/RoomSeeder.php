@@ -13,8 +13,8 @@ class RoomSeeder extends Seeder
             [
                 'room_number'     => '102',
                 'room_path'       => 'isu-ilagan/ict-department/room-102',
-                'created_at'      => '2025-09-03 04:33:31',
-                'updated_at'      => '2025-09-03 04:33:31',
+                'created_at'      => now(),
+                'updated_at'      => now(),
             ],
             [
                 'room_number'     => '103',

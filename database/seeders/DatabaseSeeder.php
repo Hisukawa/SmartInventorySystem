@@ -18,9 +18,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoomSeeder::class,
             UserSeeder::class,
-            UnitsSeeder::class,
-            PeripheralsSeeder::class,
-            RoomEquipmentsSeeder::class,
+            // UnitsSeeder::class,
+            // PeripheralsSeeder::class,
+            // RoomEquipmentsSeeder::class,
             // UserHistorySeeder::class,
             // RoomHistorySeeder::class,
             // SystemUnitHistorySeeder::class,
