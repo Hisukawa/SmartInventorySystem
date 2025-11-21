@@ -47,7 +47,7 @@ export default function ViewUnit({ unit }) {
 
     // ✅ Use the REAL unit_path
     const domain = window.location.origin;
-    const qrValue = `${domain}/system-units/view/${unit.unit_path}`;
+    const qrValue = `${domain}/view/${unit.unit_path}`;
 
     const handleQRCodeClick = () => {
         setSelectedQR(qrValue);
