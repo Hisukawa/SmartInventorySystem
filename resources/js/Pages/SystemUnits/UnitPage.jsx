@@ -773,7 +773,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                         className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
                                                         onClick={() =>
                                                             router.visit(
-                                                                `/system-units/view/${unit.unit_code}`
+                                                                `/system-units/view/${unit.unit_path}`
                                                             )
                                                         }
                                                     >

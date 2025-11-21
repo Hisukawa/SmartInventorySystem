@@ -42,12 +42,12 @@ export default function ViewUnit({ unit }) {
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    // Optional chaining to prevent undefined errors
     const unitCode = unit?.unit_code || "N/A";
     const roomNumber = unit?.room?.room_number || "N/A";
 
-    const domain = window.location.origin; // automatically gets http://localhost:8000 or your real domain
-    const qrValue = `${domain}/view/isu-ilagan/ict-department/room-${roomNumber}/${unitCode}`;
+    // ✅ Use the REAL unit_path
+    const domain = window.location.origin;
+    const qrValue = `${domain}/system-units/view/${unit.unit_path}`;
 
     const handleQRCodeClick = () => {
         setSelectedQR(qrValue);
@@ -119,12 +119,16 @@ export default function ViewUnit({ unit }) {
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="#">Assets</BreadcrumbLink>
                                 <BreadcrumbSeparator />
+
                                 <BreadcrumbLink href="/admin/system-units">
                                     System Unit Lists
                                 </BreadcrumbLink>
+
                                 <BreadcrumbSeparator />
+
+                                {/* ✅ FIXED — Correct unit_path link */}
                                 <BreadcrumbLink
-                                    href={`/system-units/view/${unitCode}`}
+                                    href={`/system-units/view/${unit.unit_path}`}
                                     className="font-semibold text-foreground"
                                 >
                                     View Unit
@@ -135,6 +139,7 @@ export default function ViewUnit({ unit }) {
                 </header>
 
                 <Head title={`View ${unitCode}`} />
+
                 <main className="p-6">
                     <h1 className="text-2xl font-bold mb-6 text-center">
                         System Unit Information
@@ -153,31 +158,37 @@ export default function ViewUnit({ unit }) {
                                 <span className="font-medium">Unit Code:</span>
                                 <span>{unitCode}</span>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 <Building2 className="w-5 h-5 text-green-600" />
                                 <span className="font-medium">Room:</span>
                                 <span>{roomNumber}</span>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 <Cpu className="w-5 h-5 text-green-600" />
                                 <span className="font-medium">Processor:</span>
                                 <span>{unit?.processor || "N/A"}</span>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 <Database className="w-5 h-5 text-green-600" />
                                 <span className="font-medium">RAM:</span>
                                 <span>{unit?.ram || "N/A"}</span>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 <HardDrive className="w-5 h-5 text-green-600" />
                                 <span className="font-medium">Storage:</span>
                                 <span>{unit?.storage || "N/A"}</span>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 <Monitor className="w-5 h-5 text-green-600" />
                                 <span className="font-medium">GPU:</span>
                                 <span>{unit?.gpu || "N/A"}</span>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 <CircuitBoard className="w-5 h-5 text-green-600" />
                                 <span className="font-medium">
@@ -185,6 +196,7 @@ export default function ViewUnit({ unit }) {
                                 </span>
                                 <span>{unit?.motherboard || "N/A"}</span>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 {unit?.condition === "Functional" ? (
                                     <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -206,6 +218,7 @@ export default function ViewUnit({ unit }) {
                                     {unit?.condition || "N/A"}
                                 </span>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 <Info className="w-5 h-5 text-green-600" />
                                 <span className="font-medium">
@@ -215,6 +228,7 @@ export default function ViewUnit({ unit }) {
                                     {unit?.condition_details || "No details"}
                                 </span>
                             </div>
+
                             <div className="flex items-center gap-2">
                                 <User className="w-5 h-5 text-green-600" />
                                 <span className="font-medium">
@@ -225,6 +239,7 @@ export default function ViewUnit({ unit }) {
                         </CardContent>
 
                         <div className="flex flex-col items-center py-6 bg-white rounded-b-2xl">
+                            {/* QR Code */}
                             <div
                                 className="bg-white p-3 rounded-lg shadow cursor-pointer hover:shadow-lg transition"
                                 onClick={handleQRCodeClick}
@@ -254,6 +269,7 @@ export default function ViewUnit({ unit }) {
                                 QR Code for Room {roomNumber} - {unitCode}
                             </DialogTitle>
                         </DialogHeader>
+
                         {selectedQR && (
                             <div
                                 id="modal-qr"
@@ -263,14 +279,17 @@ export default function ViewUnit({ unit }) {
                                 <QRCode value={selectedQR} size={256} />
                             </div>
                         )}
+
                         <span className="text-xs text-muted-foreground">
                             Click QR to copy link
                         </span>
+
                         {copied && (
                             <span className="text-green-600 text-sm">
                                 QR code path copied!
                             </span>
                         )}
+
                         <div className="mt-1 flex gap-2">
                             <Button onClick={handleDownload}>Download</Button>
                         </div>

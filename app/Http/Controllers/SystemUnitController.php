@@ -185,33 +185,28 @@ class SystemUnitController extends Controller
         return back()->with('success', 'Unit deleted successfully.');
     }
 
-public function show($unit_code)
-{
-    // Always fetch the exact, latest record with matching room
-    $unit = SystemUnit::with(['room', 'mr_to'])
-        ->where('unit_code', $unit_code)
-        ->orderByDesc('updated_at') // ensure the latest record if duplicates exist
-        ->firstOrFail();
+    public function show($unit_path)
+    {
+        $unit = SystemUnit::with(['room', 'mr_to'])
+            ->where('unit_path', $unit_path)
+            ->orderByDesc('updated_at')
+            ->firstOrFail();
 
-    // Refresh relationships to ensure no stale cache
-    $unit->load('room', 'mr_to');
+        return Inertia::render('SystemUnits/ViewUnit', [
+            'unit' => $unit,
+        ]);
+    }
 
-    return Inertia::render('SystemUnits/ViewUnit', [
-        'unit' => $unit,
-    ]);
-}
 
 
     public function showUnitsDetails($unit_path){
        $unit = SystemUnit::with(['room', 'mr_to']) // ✅ Include material responsible user
-        ->where('unit_path', $unit_path)
-        ->firstOrFail();
+                        ->where('unit_path', $unit_path)
+                        ->firstOrFail();
 
-    return Inertia::render('OtherUser/UnitDetails', [
-        'unit' => $unit,
-    ]);
-
-
+        return Inertia::render('OtherUser/UnitDetails', [
+            'unit' => $unit,
+        ]);
     }
 
 
