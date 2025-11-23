@@ -78,33 +78,48 @@ class EquipmentController extends Controller
         ]);
     }
 
-    public function edit(Equipment $equipment)
+    public function edit($equipment_code)
     {
-        $rooms = Room::all();
+        $equipment = Equipment::where('equipment_code', $equipment_code)
+            ->with('room') // load room relation
+            ->firstOrFail();
 
-        return Inertia::render('Admin/Equipments/Edit', [
+        $rooms = Room::all(); // for dropdown
+
+        return Inertia::render('Admin/Equipments/EditEquipmentPage', [
             'equipment' => $equipment,
-            'rooms'     => $rooms,
+            'rooms' => $rooms,
         ]);
     }
 
-    public function update(Request $request, Equipment $equipment)
+
+    public function update(Request $request, $equipment_code)
     {
+        $equipment = Equipment::where("equipment_code", $equipment_code)->firstOrFail();
+
         $validated = $request->validate([
-            'equipment_code' => 'required|string|max:255',
+            'equipment_name' => 'required|string|max:255',
+            'brand'          => 'nullable|string|max:255',
             'type'           => 'required|string|max:255',
             'condition'      => 'required|string|max:255',
             'room_id'        => 'required|exists:rooms,id',
         ]);
 
-        // Update QR path if room changes
         $room = Room::findOrFail($validated['room_id']);
-        $validated['qr_code_path'] = strtolower("isu-ilagan/ict-department/room-{$room->room_number}/{$equipment->equipment_code}");
+
+        // regenerate QR path
+        $validated['qr_code'] = strtolower(
+            "isu-ilagan/ict-department/room-{$room->room_number}/{$equipment->equipment_code}"
+        );
 
         $equipment->update($validated);
 
-        return redirect()->back()->with('success', 'Equipment updated successfully.');
+        return redirect()->back()->with('success', 'Equipment updated successfully!');
     }
+
+
+
+
 
     public function destroy(Equipment $equipment)
     {
@@ -144,4 +159,48 @@ class EquipmentController extends Controller
             'equipment' => $equipment,
         ]);
     }
+
+    public function storeBulk(Request $request)
+    {
+        $request->validate([
+            'equipments' => 'required|array',
+            'equipments.*.equipment_name' => 'required|string|max:255',
+            'equipments.*.type' => 'required|string',
+            'equipments.*.brand' => 'required|string|max:255',
+            'equipments.*.condition' => 'required|string',
+            'equipments.*.room_id' => 'required|exists:rooms,id',
+        ]);
+
+        foreach ($request->equipments as $eq) {
+            // Auto-generate equipment_code
+            $last = Equipment::latest('id')->first();
+            $nextCode = 'EQP-' . str_pad(($last ? $last->id + 1 : 1), 2, '0', STR_PAD_LEFT);
+
+            // Optional: Handle duplicate equipment_name
+            $baseName = $eq['equipment_name'];
+            $counter = 1;
+            while (Equipment::where('equipment_name', $eq['equipment_name'])->exists()) {
+                $eq['equipment_name'] = $baseName . ' #' . $counter;
+                $counter++;
+            }
+
+            // Find the room
+            $room = Room::findOrFail($eq['room_id']);
+
+            // Generate QR code path
+            $qrCodePath = strtolower("isu-ilagan/ict-department/room-{$room->room_number}/{$nextCode}");
+
+            $eq['equipment_code'] = $nextCode;
+            $eq['qr_code'] = $qrCodePath;
+
+            Equipment::create($eq);
+        }
+
+        // return redirect()->back()->with('success', "{$request->quantity} equipment(s) added successfully!");
+        return redirect()->back()->with('success', 'Equipments added successfully!');
+
+
+    }
+
+
 }

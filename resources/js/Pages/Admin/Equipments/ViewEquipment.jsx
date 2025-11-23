@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import {
     SidebarProvider,
@@ -42,8 +42,7 @@ export default function ViewEquipment() {
         );
     }
 
-    // QR URL (fixed to use relation)
-    // QR URL (based on route)
+    // QR URL
     const qrValue = `${window.location.origin}/equipment/${equipment.equipment_code}`;
 
     const handleQRCodeClick = (qrValue, roomNumber, equipmentCode) => {
@@ -74,7 +73,7 @@ export default function ViewEquipment() {
         img.onload = () => {
             const qrSize = 200;
             const padding = 10;
-            const textHeight = 30;
+            const textHeight = 50; // extra space for condition details
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
 
@@ -93,6 +92,14 @@ export default function ViewEquipment() {
                 `ROOM ${selectedRoomNumber} - ${selectedEquipmentCode}`,
                 canvas.width / 2,
                 qrSize + padding * 2 + 15
+            );
+
+            // Add Condition Details below
+            ctx.font = "14px sans-serif";
+            ctx.fillText(
+                equipment.condition_details || "No additional details",
+                canvas.width / 2,
+                qrSize + padding * 2 + 35
             );
 
             const finalImage = canvas.toDataURL("image/png");
@@ -116,16 +123,14 @@ export default function ViewEquipment() {
                     <Breadcrumb>
                         <BreadcrumbList>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href="#" aria-current="page">
-                                    Assets
-                                </BreadcrumbLink>
+                                <BreadcrumbLink href="#">Assets</BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink href="/equipments">
                                     Equipments
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
-                                    href={`${qrValue}`}
+                                    href={qrValue}
                                     aria-current="page"
                                     className="font-semibold text-foreground"
                                 >
@@ -162,11 +167,16 @@ export default function ViewEquipment() {
                             <strong>Condition:</strong> {equipment.condition}
                         </div>
                         <div>
+                            <strong>Condition Details:</strong>{" "}
+                            {equipment.condition_details ||
+                                "No additional details"}
+                        </div>
+                        <div>
                             <strong>Room Number:</strong>{" "}
                             {equipment.room?.room_number}
                         </div>
 
-                        {/* QR Code (clickable) */}
+                        {/* QR Code */}
                         <div
                             className="col-span-2 flex flex-col items-center mt-4 cursor-pointer"
                             onClick={() =>
@@ -184,16 +194,17 @@ export default function ViewEquipment() {
                         </div>
                     </div>
 
-                    <div className="mt-6">
+                    {/* Buttons */}
+                    <div className="mt-6 flex gap-2">
                         <Button
                             variant="secondary"
-                            onClick={() => window.history.back()}
+                            onClick={() => router.visit("/equipments")}
                         >
                             Go Back
                         </Button>
                     </div>
 
-                    {/* Modal */}
+                    {/* QR Modal */}
                     <Dialog open={modalOpen} onOpenChange={setModalOpen}>
                         <DialogContent className="max-w-sm mx-auto">
                             <DialogHeader>
@@ -209,7 +220,7 @@ export default function ViewEquipment() {
                             >
                                 <QRCode
                                     id="qr-download"
-                                    value={selectedQR} // ✅ fixed to use same QR link
+                                    value={selectedQR}
                                     size={200}
                                     className="cursor-pointer"
                                     onClick={handleCopy}

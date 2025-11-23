@@ -6,7 +6,7 @@ import UpdateProfilePhoto from "./Partials/UpdateProfilePhoto";
 import { toast, Toaster } from "sonner";
 import axios from "axios";
 
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default function Edit({ user, mustVerifyEmail, status }) {
     const { props: pageProps } = usePage();
@@ -196,6 +196,15 @@ export default function Edit({ user, mustVerifyEmail, status }) {
                                                       ? ` (${cooldown}s)`
                                                       : ""
                                               }`}
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={() => setDeleteDialogOpen(true)}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                                >
+                                    <TrashIcon className="w-5 h-5" />
+                                    <span className="text-sm sm:text-xs">
+                                        Delete Face
                                     </span>
                                 </button>
                             </div>

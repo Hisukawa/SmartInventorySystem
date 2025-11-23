@@ -38,6 +38,10 @@ class Equipment extends Model
             return 'id';
         }
 
+        if (request()->routeIs('admin.*')) {
+            return 'equipment_code';
+        }
+
         return 'equipment_code'; // Admin
     }
 

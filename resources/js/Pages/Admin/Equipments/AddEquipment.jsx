@@ -30,18 +30,50 @@ import { toast } from "sonner";
 // ✅ Equipment Types
 const TYPE_OPTIONS = ["Furniture", "Appliances", "Networking", "Safety"];
 
-// ✅ Unified Equipment Condition Options
-const EQUIPMENT_CONDITION_OPTIONS = [
-    "Functional",
-    "Defective",
-    "Intermittent Issue",
-    "Needs Cleaning",
-    "For Replacement",
-    "For Disposal",
-    "Condemn",
-];
+// ✅ Condition Lists per Type
+const CONDITION_OPTIONS = {
+    Furniture: [
+        "Functional",
+        "Minor Damage",
+        "Needs Repair",
+        "Needs Cleaning",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+    ],
+    Appliances: [
+        "Functional",
+        "Defective",
+        "Intermittent Issue",
+        "Overheating",
+        "Loose Wiring",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+    ],
+    Networking: [
+        "Functional",
+        "Intermittent Connectivity",
+        "No Signal",
+        "Needs Configuration",
+        "Defective Port",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+    ],
+    Safety: [
+        "Functional",
+        "Expired",
+        "Needs Refill",
+        "Defective",
+        "Rusting",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+    ],
+};
 
-// ✅ Condition colors
+// ✅ Condition Colors
 const CONDITION_COLORS = {
     Functional: "bg-green-200 text-green-800",
     Defective: "bg-red-200 text-red-800",
@@ -49,7 +81,15 @@ const CONDITION_COLORS = {
     "Needs Cleaning": "bg-blue-200 text-blue-800",
     "For Replacement": "bg-orange-200 text-orange-800",
     "For Disposal": "bg-gray-200 text-gray-800",
-    Condemn: "bg-black text-white",
+    Condemned: "bg-black text-white",
+    "Minor Damage": "bg-yellow-200 text-yellow-800",
+    "Needs Repair": "bg-red-200 text-red-800",
+    "Intermittent Connectivity": "bg-yellow-200 text-yellow-800",
+    "No Signal": "bg-red-200 text-red-800",
+    "Needs Configuration": "bg-blue-200 text-blue-800",
+    Expired: "bg-red-300 text-red-900",
+    "Needs Refill": "bg-blue-200 text-blue-900",
+    Rusting: "bg-orange-200 text-orange-900",
 };
 
 export default function AddEquipment({ rooms }) {
@@ -57,35 +97,44 @@ export default function AddEquipment({ rooms }) {
     const [type, setType] = useState("");
     const [brand, setBrand] = useState("");
     const [condition, setCondition] = useState("");
+    const [conditionDetails, setConditionDetails] = useState("");
     const [room, setRoom] = useState("");
+    const [quantity, setQuantity] = useState(1);
 
-    // ✅ CLEAR FORM FUNCTION
     const clearForm = () => {
         setName("");
         setType("");
         setBrand("");
         setCondition("");
+        setConditionDetails("");
         setRoom("");
+        setQuantity(1);
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        router.post(
-            "/equipments",
-            {
-                equipment_name: name,
+        // Prepare multiple equipments
+        const equipments = [];
+        for (let i = 1; i <= quantity; i++) {
+            equipments.push({
+                equipment_name: name + (quantity > 1 ? ` #${i}` : ""),
                 type,
                 brand,
                 condition,
+                condition_details: conditionDetails,
                 room_id: room,
-            },
+            });
+        }
+
+        router.post(
+            "/equipments/bulk",
+            { equipments },
             {
                 onSuccess: () => {
-                    clearForm(); // ✅ clear inputs safely
-                    toast.success("Equipment Added", {
-                        description:
-                            "The equipment has been added successfully!",
+                    clearForm();
+                    toast.success("Equipments Added", {
+                        description: `${quantity} equipment(s) added successfully!`,
                         duration: 2000,
                     });
                 },
@@ -103,7 +152,6 @@ export default function AddEquipment({ rooms }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                {/* Header */}
                 <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
                     <SidebarTrigger />
                     <Separator orientation="vertical" className="h-6 mx-3" />
@@ -157,7 +205,7 @@ export default function AddEquipment({ rooms }) {
                                                 {rooms.map((r) => (
                                                     <SelectItem
                                                         key={r.id}
-                                                        value={r.id}
+                                                        value={String(r.id)}
                                                     >
                                                         ROOM {r.room_number}
                                                     </SelectItem>
@@ -165,6 +213,7 @@ export default function AddEquipment({ rooms }) {
                                             </SelectContent>
                                         </Select>
                                     </div>
+
                                     <div>
                                         <Label>Equipment Type</Label>
                                         <Select
@@ -193,7 +242,7 @@ export default function AddEquipment({ rooms }) {
                                 </div>
 
                                 {/* Row 2 */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div>
                                         <Label>Equipment Name</Label>
                                         <Input
@@ -205,6 +254,7 @@ export default function AddEquipment({ rooms }) {
                                             required
                                         />
                                     </div>
+
                                     <div>
                                         <Label>Brand</Label>
                                         <Input
@@ -212,6 +262,21 @@ export default function AddEquipment({ rooms }) {
                                             value={brand}
                                             onChange={(e) =>
                                                 setBrand(e.target.value)
+                                            }
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Label>Quantity</Label>
+                                        <Input
+                                            type="number"
+                                            min="1"
+                                            value={quantity}
+                                            onChange={(e) =>
+                                                setQuantity(
+                                                    Number(e.target.value)
+                                                )
                                             }
                                             required
                                         />
@@ -243,23 +308,37 @@ export default function AddEquipment({ rooms }) {
                                                     }
                                                 />
                                             </SelectTrigger>
+
                                             <SelectContent>
-                                                {EQUIPMENT_CONDITION_OPTIONS.map(
-                                                    (c) => (
-                                                        <SelectItem
-                                                            key={c}
-                                                            value={c}
-                                                        >
-                                                            {c}
-                                                        </SelectItem>
-                                                    )
-                                                )}
+                                                {type &&
+                                                    CONDITION_OPTIONS[type].map(
+                                                        (c) => (
+                                                            <SelectItem
+                                                                key={c}
+                                                                value={c}
+                                                            >
+                                                                {c}
+                                                            </SelectItem>
+                                                        )
+                                                    )}
                                             </SelectContent>
                                         </Select>
                                     </div>
+
+                                    <div>
+                                        <Label>Condition Details</Label>
+                                        <Input
+                                            placeholder="Enter detailed condition..."
+                                            value={conditionDetails}
+                                            onChange={(e) =>
+                                                setConditionDetails(
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
                                 </div>
 
-                                {/* Submit Button */}
                                 <div className="flex justify-center">
                                     <Button
                                         type="submit"

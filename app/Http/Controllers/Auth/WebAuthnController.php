@@ -61,76 +61,76 @@ class WebAuthnController extends Controller
      * Login - Generate challenge for this user
      */
     public function loginOptions(Request $request)
-{
-    $user = User::where('email', $request->email)->first();
-    $challenge = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+    {
+        $user = User::where('email', $request->email)->first();
+        $challenge = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
 
-    if (!$user) {
+        if (!$user) {
+            return response()->json([
+                'challenge' => $challenge,
+                'allowCredentials' => [],
+                'error' => 'User not found or no WebAuthn devices registered for this user.',
+            ]);
+        }
+
+        $creds = WebauthnCredential::where('user_id', $user->id)->get();
+
+        if ($creds->isEmpty()) {
+            return response()->json([
+                'challenge' => $challenge,
+                'allowCredentials' => [],
+                'error' => 'No registered WebAuthn device found for this user. Please register a device first.',
+            ]);
+        }
+
         return response()->json([
             'challenge' => $challenge,
-            'allowCredentials' => [],
-            'error' => 'User not found or no WebAuthn devices registered for this user.',
+            'allowCredentials' => $creds->map(fn($c) => [
+                'id'   => $c->credential_id,
+                'type' => 'public-key',
+            ])->values()->all(),
         ]);
     }
-
-    $creds = WebauthnCredential::where('user_id', $user->id)->get();
-
-    if ($creds->isEmpty()) {
-        return response()->json([
-            'challenge' => $challenge,
-            'allowCredentials' => [],
-            'error' => 'No registered WebAuthn device found for this user. Please register a device first.',
-        ]);
-    }
-
-    return response()->json([
-        'challenge' => $challenge,
-        'allowCredentials' => $creds->map(fn($c) => [
-            'id'   => $c->credential_id,
-            'type' => 'public-key',
-        ])->values()->all(),
-    ]);
-}
 
     /**
      * Login - verify (very simplified)
      * In production you must verify the signature with the stored public key.
      */
-   public function login(Request $request)
-{
-    $user = User::where('email', $request->email)->first();
+    public function login(Request $request)
+    {
+        $user = User::where('email', $request->email)->first();
 
-    if (!$user) {
-        return response()->json(['success' => false, 'message' => 'Invalid user.'], 401);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Invalid user.'], 401);
+        }
+
+        $credential = $request->input('credential');
+        if (!$credential || empty($credential['id']) || empty($credential['rawId'])) {
+            return response()->json(['success' => false, 'message' => 'Invalid credential payload.'], 422);
+        }
+
+        $stored = WebauthnCredential::where('credential_id', $credential['id'])->first();
+
+        if ($stored) {
+            Auth::login($user, true);
+            $request->session()->regenerate();
+
+            switch ($user->role) {
+                case 'admin':
+                    return response()->json(['success' => true, 'redirect' => route('admin.dashboard')]);
+                case 'faculty':
+                    return response()->json(['success' => true, 'redirect' => route('faculty.dashboard')]);
+                case 'technician':
+                    return response()->json(['success' => true, 'redirect' => url('/technician/dashboard')]);
+                case 'guest':
+                    return response()->json(['success' => true, 'redirect' => url('/guest/dashboard')]);
+                default:
+                    return response()->json(['success' => true, 'redirect' => route('dashboard')]);
+            }
+        }
+
+
+        return response()->json(['success' => false, 'message' => 'Credential not recognized or invalid.'], 401);
     }
-
-    $credential = $request->input('credential');
-    if (!$credential || empty($credential['id']) || empty($credential['rawId'])) {
-        return response()->json(['success' => false, 'message' => 'Invalid credential payload.'], 422);
-    }
-
-   $stored = WebauthnCredential::where('credential_id', $credential['id'])->first();
-
-if ($stored) {
-    Auth::login($user, true);
-    $request->session()->regenerate();
-
-    switch ($user->role) {
-        case 'admin':
-            return response()->json(['success' => true, 'redirect' => route('admin.dashboard')]);
-        case 'faculty':
-            return response()->json(['success' => true, 'redirect' => route('faculty.dashboard')]);
-        case 'technician':
-            return response()->json(['success' => true, 'redirect' => url('/technician/dashboard')]);
-        case 'guest':
-            return response()->json(['success' => true, 'redirect' => url('/guest/dashboard')]);
-        default:
-            return response()->json(['success' => true, 'redirect' => route('dashboard')]);
-    }
-}
-
-
-    return response()->json(['success' => false, 'message' => 'Credential not recognized or invalid.'], 401);
-}
 
 }
