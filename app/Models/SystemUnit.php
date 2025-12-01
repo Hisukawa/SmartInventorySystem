@@ -36,6 +36,10 @@ class SystemUnit extends Model
         return $this->belongsTo(Room::class);
     }
 
+  public function peripherals()
+    {
+        return $this->hasMany(Peripheral::class, 'unit_id');
+    }
 
     public static function availableConditions(){
 
