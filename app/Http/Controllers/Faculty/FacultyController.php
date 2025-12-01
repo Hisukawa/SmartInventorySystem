@@ -193,22 +193,19 @@ public function ShowScannedRoom(Request $request, $encodedRoomPath)
     $room     = Room::where('room_path', $roomPath)->firstOrFail();
     $user     = Auth::user();
 
- // ✅ Step 1: Mark any previous active session as logged out
-    RoomStatus::where('room_id', $room->id)
-        ->where('scanned_by', $user->id)
-        ->where('is_active', 1)
-        ->update([
-            'is_active' => 0,
-            'logged_out_at' => now(),
-        ]);
+// Check if there’s already an active log for this faculty in this room
+$existingStatus = RoomStatus::where('room_id', $room->id)
+    ->where('scanned_by', $user->id)
+    ->where('is_active', 1)
+    ->first();
 
-    // ✅ Step 2: Create a new record for this new login
+if (!$existingStatus) {
     RoomStatus::create([
         'room_id'    => $room->id,
         'scanned_by' => $user->id,
         'is_active'  => 1,
     ]);
-
+}
 
 
     $condition = $request->query('condition');

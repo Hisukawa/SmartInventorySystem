@@ -627,13 +627,26 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
 
                     {/* Search + Filter + Add */}
                     <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between mb-4">
-                        <div className="flex gap-2 items-center">
+                        <div className="flex gap-2 items-center flex-1">
+                            <Input
+                                placeholder="Search Unit Code or Room"
+                                value={search}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setSearch(value);
+                                    setCurrentPage(1);
+                                }}
+                                onKeyDown={handleSearchKey}
+                                className="flex-1 min-w-0 sm:max-w-xs w-full border-[hsl(142,34%,51%)]"
+                            />
+
                             <UnitsFilter
                                 filters={filters}
                                 filterOptions={filterOptions}
                                 onApplyFilters={onApplyFilters}
                                 onReset={resetFilters}
                             />
+
                             <Button
                                 className="flex items-center gap-2 bg-[hsl(183,40%,45%)] text-white border-none hover:bg-[hsl(183,40%,38%)]"
                                 onClick={handlePrint}
@@ -641,8 +654,10 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 <Printer className="h-4 w-4" />
                                 Print
                             </Button>
-                            {/* Import Button */}
-                            {/* <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
+                        </div>
+
+                        {/* Import Button */}
+                        {/* <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
                                 <input
                                     type="file"
                                     accept=".csv"
@@ -653,8 +668,8 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 Import
                             </label> */}
 
-                            {/* Export Data */}
-                            {/* <Button
+                        {/* Export Data */}
+                        {/* <Button
                                 className="flex items-center gap-2 bg-[hsl(142,34%,45%)] text-white border-none hover:bg-[hsl(142,34%,38%)]"
                                 onClick={() =>
                                     (window.location.href = route(
@@ -666,21 +681,6 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 Export
                             </Button> */}
 
-                            <Input
-                                placeholder="Search Unit Code or Room"
-                                value={search}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setSearch(value);
-                                    setCurrentPage(1);
-                                }}
-                                onKeyDown={handleSearchKey}
-                                className="flex-1 min-w-0 sm:max-w-xs w-full
-                                border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
-                                focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
-                                placeholder:text-[hsl(142,34%,40%)]"
-                            />
-                        </div>
                         <Button
                             className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
                             onClick={() =>

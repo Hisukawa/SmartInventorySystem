@@ -146,6 +146,7 @@ function PeripheralsFilter({ filters, filterOptions, onApplyFilters }) {
                     )}
 
                     {/* Room Filter */}
+
                     {selectedField === "room" && (
                         <Select
                             value={filters.room_id || "all"}
@@ -154,6 +155,7 @@ function PeripheralsFilter({ filters, filterOptions, onApplyFilters }) {
                                     ...filters,
                                     room_id:
                                         value === "all" ? undefined : value,
+                                    unit_id: undefined, // <-- STEP 2: reset unit filter
                                 })
                             }
                         >
@@ -176,11 +178,11 @@ function PeripheralsFilter({ filters, filterOptions, onApplyFilters }) {
                     {/* Unit Filter */}
                     {selectedField === "unit" && (
                         <Select
-                            value={filters.unit_code || "all"}
+                            value={filters.unit_id || "all"}
                             onValueChange={(value) =>
                                 onApplyFilters({
                                     ...filters,
-                                    unit_code:
+                                    unit_id:
                                         value === "all" ? undefined : value,
                                 })
                             }
@@ -188,11 +190,19 @@ function PeripheralsFilter({ filters, filterOptions, onApplyFilters }) {
                             <SelectTrigger>
                                 <SelectValue placeholder="Select Unit" />
                             </SelectTrigger>
+
                             <SelectContent>
                                 <SelectItem value="all">All</SelectItem>
+
+                                {filterOptions.units.length === 0 && (
+                                    <div className="px-3 py-2 text-sm text-gray-400">
+                                        No units found for this room
+                                    </div>
+                                )}
+
                                 {filterOptions.units.map((u) => (
-                                    <SelectItem key={u} value={u}>
-                                        {u}
+                                    <SelectItem key={u.id} value={u.id}>
+                                        {u.code}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -240,18 +250,28 @@ export default function PeripheralsIndex({
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    // Build filter options
     const filterOptions = useMemo(() => {
         const uniq = (arr) => [...new Set(arr.filter((v) => v))].sort();
+
+        // Filter units based on selected room
+        const filteredUnits = filters.room_id
+            ? existingUnits.filter(
+                  (u) => String(u.room_id) === String(filters.room_id)
+              )
+            : existingUnits; // if no room selected, show all units
+
         return {
             types: uniq(peripherals.map((p) => p.type)),
             conditions: uniq(peripherals.map((p) => p.condition)),
             rooms: Object.fromEntries(
                 existingRooms.map((r) => [String(r.id), r.room_number])
             ),
-            units: uniq(peripherals.map((p) => p.unit_code)),
+            units: filteredUnits.map((u) => ({
+                id: String(u.id),
+                code: u.unit_code,
+            })),
         };
-    }, [peripherals, existingRooms]);
+    }, [peripherals, existingRooms, existingUnits, filters.room_id]);
 
     function onApplyFilters(newFilters) {
         const cleaned = Object.fromEntries(
@@ -588,13 +608,24 @@ export default function PeripheralsIndex({
 
                         {/* Search + Filter + Add */}
                         <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between mb-4">
-                            <div className="flex gap-2 items-center">
+                            <div className="flex gap-2 items-center flex-1">
+                                <Input
+                                    placeholder="Search peripherals..."
+                                    value={searchTerm}
+                                    onChange={(e) =>
+                                        setSearchTerm(e.target.value)
+                                    }
+                                    onKeyDown={handleSearch}
+                                    className="flex-1 min-w-0 sm:max-w-xs w-full border-[hsl(142,34%,51%)]"
+                                />
+
                                 <PeripheralsFilter
                                     filters={filters}
                                     filterOptions={filterOptions}
                                     onApplyFilters={onApplyFilters}
                                     onReset={resetFilters}
                                 />
+
                                 <Button
                                     className="flex items-center gap-2 bg-[hsl(183,40%,45%)] text-white border-none hover:bg-[hsl(183,40%,38%)]"
                                     onClick={handlePrint}
@@ -602,6 +633,7 @@ export default function PeripheralsIndex({
                                     <Printer className="h-4 w-4" />
                                     Print
                                 </Button>
+
                                 {/* Import Button */}
                                 {/* <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
                                     <input
@@ -624,19 +656,6 @@ export default function PeripheralsIndex({
                                     <Download className="h-4 w-4" />
                                     Export
                                 </Button> */}
-
-                                <Input
-                                    placeholder="Search peripherals..."
-                                    value={searchTerm}
-                                    onChange={(e) =>
-                                        setSearchTerm(e.target.value)
-                                    }
-                                    onKeyDown={handleSearch}
-                                    className="flex-1 min-w-0 sm:max-w-xs w-full
-                                        border-[hsl(142,34%,51%)] text-[hsl(142,34%,20%)]
-                                        focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
-                                        placeholder:text-[hsl(142,34%,40%)]"
-                                />
                             </div>
                             <div className="flex items-center space-x-4">
                                 <Link href="/admin/peripherals/create">

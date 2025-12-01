@@ -43,19 +43,23 @@ class SystemUnitController extends Controller
 
 
     // ✅ Apply search filter
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('unit_code', 'LIKE', "%{$search}%")
-                ->orWhereHas('room', function ($q2) use ($search) {
-                    $q2->where('room_number', 'LIKE', "%{$search}%");
-                })
-                ->orWhereHas('mr_to', function ($q3) use ($search) {
-                    $q3->where('name', 'LIKE', "%{$search}%");
-                });
-            });
-        }
+     if ($request->filled('search')) {
+    $search = $request->search;
 
+    // Remove "room" from search if typed
+    $searchNumber = preg_replace('/room\s*/i', '', $search);
+
+    $query->where(function ($q) use ($search, $searchNumber) {
+        $q->where('unit_code', 'LIKE', "%{$search}%")
+          ->orWhereHas('room', function ($q2) use ($search, $searchNumber) {
+              $q2->where('room_number', 'LIKE', "%{$search}%")
+                 ->orWhere('room_number', 'LIKE', "%{$searchNumber}%");
+          })
+          ->orWhereHas('mr_to', function ($q3) use ($search) {
+              $q3->where('name', 'LIKE', "%{$search}%");
+          });
+    });
+}
         // ✅ Fetch results
         $units = $query->get();
         $rooms = Room::select('id', 'room_number')->get();

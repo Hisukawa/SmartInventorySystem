@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { router } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import Notification from "@/Components/AdminComponents/Notification";
+import { Filter as FilterIcon, X, Printer } from "lucide-react";
 import {
     Table,
     TableHeader,
@@ -83,6 +84,7 @@ function EquipmentsFilter({ filters, filterOptions, onApplyFilters }) {
         <Popover>
             <PopoverTrigger asChild>
                 <Button className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]">
+                    <FilterIcon className="h-4 w-4" /> {/* <-- add this */}
                     Filters
                 </Button>
             </PopoverTrigger>
@@ -187,8 +189,9 @@ export default function EquipmentsPage({
     existingRooms,
     filters = {},
 }) {
-    const [search, setSearch] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [activeFilters, setActiveFilters] = useState({});
     const itemsPerPage = 10;
 
     const filterOptions = useMemo(() => {
@@ -202,16 +205,106 @@ export default function EquipmentsPage({
         };
     }, [equipments, existingRooms]);
 
-    // Filter & search
-    const filteredData = equipments.filter((eq) =>
-        eq.equipment_code.toLowerCase().includes(search.toLowerCase())
-    );
+    // Filter + Search
+    const filteredData = equipments.filter((eq) => {
+        const matchesSearch =
+            eq.equipment_code
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+            eq.equipment_name.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesType =
+            !activeFilters.type || eq.type === activeFilters.type;
+        const matchesCondition =
+            !activeFilters.condition ||
+            eq.condition === activeFilters.condition;
+        const matchesRoom =
+            !activeFilters.room || eq.room?.id === parseInt(activeFilters.room);
+
+        return matchesSearch && matchesType && matchesCondition && matchesRoom;
+    });
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
     const paginatedData = filteredData.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
+
+    // Handle Print
+    const handlePrint = () => {
+        if (!filteredData || filteredData.length === 0) {
+            alert("No data available to print.");
+            return;
+        }
+
+        const printWindow = window.open("", "", "width=900,height=700");
+
+        const tableRows = filteredData
+            .map(
+                (eq, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${eq.equipment_code}</td>
+                <td>${eq.equipment_name}</td>
+                <td>${eq.room?.room_number ?? "N/A"}</td>
+                <td>${eq.type}</td>
+                <td>${eq.condition ?? "N/A"}</td>
+            </tr>
+        `
+            )
+            .join("");
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Equipment Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        h2 { text-align: center; margin-bottom: 20px; color: #2e7d32; }
+                        p { text-align: right; font-size: 12px; color: #666; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 13px; }
+                        th { background-color: #2e7d32; color: white; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        @media print { body { -webkit-print-color-adjust: exact; } }
+                    </style>
+                </head>
+                <body>
+                    <h2>Equipment Report</h2>
+                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Equipment Code</th>
+                                <th>Equipment Name</th>
+                                <th>Room</th>
+                                <th>Type</th>
+                                <th>Condition</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+        printWindow.print();
+    };
+
+    // Handle Filters
+    const onApplyFilters = (filters) => {
+        setActiveFilters(filters);
+        setCurrentPage(1);
+    };
+
+    const resetFilters = () => {
+        setActiveFilters({});
+        setCurrentPage(1);
+    };
 
     return (
         <SidebarProvider>
@@ -239,16 +332,34 @@ export default function EquipmentsPage({
                 </header>
 
                 <main className="w-full px-6 py-4">
-                    <div className="flex justify-between items-center mb-4 gap-2">
-                        <Input
-                            placeholder="Search Equipment Code..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            onKeyDown={(e) =>
-                                e.key === "Enter" && setCurrentPage(1)
-                            }
-                            className="text-sm sm:text-base px-2 sm:px-3 py-1 sm:py-2 flex-1 max-w-xs border-[hsl(142,34%,51%)]"
-                        />
+                    {/* Search + Filter + Print */}
+                    <h1 className="text-2xl font-bold mb-5">Equipments</h1>
+                    <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between mb-4">
+                        <div className="flex gap-2 items-center flex-1">
+                            <Input
+                                placeholder="Search Equipment..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="flex-1 min-w-0 sm:max-w-xs w-full border-[hsl(142,34%,51%)]"
+                            />
+
+                            <EquipmentsFilter
+                                filters={activeFilters}
+                                filterOptions={filterOptions}
+                                onApplyFilters={onApplyFilters}
+                                onReset={resetFilters}
+                            />
+                            {/* Print Button with Printer Icon */}
+                            <Button
+                                onClick={handlePrint}
+                                className="flex items-center gap-2 bg-[hsl(183,40%,45%)] text-white border-none hover:bg-[hsl(183,40%,38%)]"
+                            >
+                                <Printer className="h-4 w-4" />
+                                Print
+                            </Button>
+                            {/* Filter Button with Filter Icon */}
+                        </div>
+
                         <Button
                             className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white"
                             onClick={() =>
