@@ -565,6 +565,31 @@ export default function PeripheralsIndex({
     //     }
     // };
 
+    /* ✅ Peripheral Condition Colors */
+    const CONDITION_COLORS = {
+        Working: "bg-green-200 text-green-800",
+        "Not Working": "bg-red-200 text-red-800",
+        "Intermittent Issue": "bg-yellow-200 text-yellow-800",
+        "Needs Cleaning": "bg-blue-200 text-blue-800",
+        "For Replacement": "bg-orange-200 text-orange-800",
+        "For Disposal": "bg-gray-200 text-gray-800",
+        Condemned: "bg-black text-white",
+        "Needs Repair": "bg-red-200 text-red-800",
+        "No Signal": "bg-red-200 text-red-800",
+        "Needs Configuration": "bg-blue-200 text-blue-800",
+        "Under Maintenance": "bg-blue-200 text-blue-900",
+        "To Be Diagnosed": "bg-blue-100 text-blue-800",
+    };
+
+    /* Helper to get condition label & color */
+    function getCondition(condition) {
+        if (!condition)
+            return { label: "N/A", color: "bg-slate-400 text-white" };
+        const colorClass =
+            CONDITION_COLORS[condition] || "bg-slate-400 text-white";
+        return { label: condition, color: colorClass };
+    }
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -734,7 +759,7 @@ export default function PeripheralsIndex({
                                                             <TableCell>
                                                                 {p.condition ? (
                                                                     <span
-                                                                        className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                                                                        className={`px-2 py-1 rounded-full text-xs font-medium ${
                                                                             getCondition(
                                                                                 p.condition
                                                                             )
@@ -779,7 +804,7 @@ export default function PeripheralsIndex({
                                                                     Edit
                                                                 </Button>
                                                                 {/* Delete Button */}
-                                                                <Button
+                                                                {/* <Button
                                                                     size="sm"
                                                                     className="flex items-center gap-2 bg-red-600 text-white border-none hover:bg-red-700"
                                                                     onClick={() => {
@@ -796,7 +821,7 @@ export default function PeripheralsIndex({
                                                                 >
                                                                     <Trash2 className="h-4 w-4" />
                                                                     Delete
-                                                                </Button>
+                                                                </Button> */}
                                                             </TableCell>
                                                         </TableRow>
                                                     )

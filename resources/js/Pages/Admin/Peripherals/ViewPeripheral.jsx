@@ -175,6 +175,20 @@ export default function ViewPeripheral({ peripheral }) {
                                 <span>{peripheral?.type || "N/A"}</span>
                             </div>
 
+                            {/* NEW: Brand */}
+                            <div className="flex items-center gap-2">
+                                <Monitor className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">Brand:</span>
+                                <span>{peripheral?.brand || "N/A"}</span>
+                            </div>
+
+                            {/* NEW: Model */}
+                            <div className="flex items-center gap-2">
+                                <Monitor className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">Model:</span>
+                                <span>{peripheral?.model || "N/A"}</span>
+                            </div>
+
                             <div className="flex items-center gap-2">
                                 <Barcode className="w-5 h-5 text-green-600" />
                                 <span className="font-medium">

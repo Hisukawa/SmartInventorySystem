@@ -35,7 +35,24 @@ import {
     Building2,
     User,
     QrCode,
+    KeyRound,
+    Laptop,
 } from "lucide-react";
+
+// ✅ Condition Colors
+const CONDITION_COLORS = {
+    Working: "bg-green-200 text-green-800",
+    "Not Working": "bg-red-200 text-red-800",
+    "Intermittent Issue": "bg-yellow-200 text-yellow-800",
+    "Needs Cleaning": "bg-blue-200 text-blue-800",
+    "For Replacement": "bg-orange-200 text-orange-800",
+    "For Disposal": "bg-gray-200 text-gray-800",
+    Condemned: "bg-black text-white",
+    "Needs Repair": "bg-red-200 text-red-800",
+    "No Signal": "bg-red-200 text-red-800",
+    "Needs Configuration": "bg-blue-200 text-blue-800",
+    "Under Maintenance": "bg-blue-200 text-blue-900",
+};
 
 export default function ViewUnit({ unit }) {
     const [selectedQR, setSelectedQR] = useState(null);
@@ -44,8 +61,9 @@ export default function ViewUnit({ unit }) {
 
     const unitCode = unit?.unit_code || "N/A";
     const roomNumber = unit?.room?.room_number || "N/A";
+    const brand = unit?.brand || "N/A";
+    const model = unit?.model || "N/A";
 
-    // ✅ Use the REAL unit_path
     const domain = window.location.origin;
     const qrValue = `${domain}/view/${unit.unit_path}`;
 
@@ -73,6 +91,7 @@ export default function ViewUnit({ unit }) {
         const canvas = document.createElement("canvas");
         const svg = document.querySelector("#modal-qr svg");
         if (!svg) return;
+
         const serializer = new XMLSerializer();
         const svgStr = serializer.serializeToString(svg);
         const img = new Image();
@@ -83,22 +102,27 @@ export default function ViewUnit({ unit }) {
 
         img.onload = () => {
             const padding = 20;
-            const textHeight = 40;
+            const textHeight = 50;
             canvas.width = img.width + padding * 2;
             canvas.height = img.height + padding * 2 + textHeight;
+
             const ctx = canvas.getContext("2d");
             ctx.fillStyle = "#fff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
             ctx.drawImage(img, padding, padding);
+
             ctx.fillStyle = "#000";
-            ctx.font = "bold 20px Arial";
+            ctx.font = "bold 18px Arial";
             ctx.textAlign = "center";
             ctx.fillText(
                 `Room ${roomNumber} - ${unitCode}`,
                 canvas.width / 2,
                 img.height + padding + 30
             );
+
             URL.revokeObjectURL(url);
+
             const link = document.createElement("a");
             link.download = `ROOM-${roomNumber}_${unitCode}.png`;
             link.href = canvas.toDataURL("image/png");
@@ -111,6 +135,7 @@ export default function ViewUnit({ unit }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
+                {/* Header */}
                 <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
                     <SidebarTrigger />
                     <Separator orientation="vertical" className="h-6 mx-3" />
@@ -119,14 +144,10 @@ export default function ViewUnit({ unit }) {
                             <BreadcrumbItem>
                                 <BreadcrumbLink href="#">Assets</BreadcrumbLink>
                                 <BreadcrumbSeparator />
-
                                 <BreadcrumbLink href="/admin/system-units">
                                     System Unit Lists
                                 </BreadcrumbLink>
-
                                 <BreadcrumbSeparator />
-
-                                {/* ✅ FIXED — Correct unit_path link */}
                                 <BreadcrumbLink
                                     href={`/system-units/view/${unit.unit_path}`}
                                     className="font-semibold text-foreground"
@@ -198,6 +219,35 @@ export default function ViewUnit({ unit }) {
                             </div>
 
                             <div className="flex items-center gap-2">
+                                <KeyRound className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">
+                                    Serial Number:
+                                </span>
+                                <span>{unit?.serial_number || "N/A"}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Laptop className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">
+                                    Operating System:
+                                </span>
+                                <span>{unit?.operating_system || "N/A"}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Info className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">Brand:</span>
+                                <span>{brand}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Info className="w-5 h-5 text-green-600" />
+                                <span className="font-medium">Model:</span>
+                                <span>{model}</span>
+                            </div>
+
+                            {/* Condition with color coding */}
+                            <div className="flex items-center gap-2">
                                 {unit?.condition === "Functional" ? (
                                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                                 ) : unit?.condition === "Needs Repair" ? (
@@ -207,12 +257,9 @@ export default function ViewUnit({ unit }) {
                                 )}
                                 <span className="font-medium">Condition:</span>
                                 <span
-                                    className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
-                                        unit?.condition === "Functional"
-                                            ? "bg-green-500"
-                                            : unit?.condition === "Needs Repair"
-                                            ? "bg-yellow-500"
-                                            : "bg-gray-500"
+                                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        CONDITION_COLORS[unit?.condition] ||
+                                        "bg-gray-200 text-gray-800"
                                     }`}
                                 >
                                     {unit?.condition || "N/A"}
@@ -238,14 +285,15 @@ export default function ViewUnit({ unit }) {
                             </div>
                         </CardContent>
 
+                        {/* QR Section */}
                         <div className="flex flex-col items-center py-6 bg-white rounded-b-2xl">
-                            {/* QR Code */}
                             <div
                                 className="bg-white p-3 rounded-lg shadow cursor-pointer hover:shadow-lg transition"
                                 onClick={handleQRCodeClick}
                             >
                                 <QRCode value={qrValue} size={128} />
                             </div>
+
                             <span className="mt-2 text-sm text-muted-foreground">
                                 Scan to view public info
                             </span>
@@ -262,6 +310,7 @@ export default function ViewUnit({ unit }) {
                     </div>
                 </main>
 
+                {/* QR Modal */}
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogContent className="flex flex-col items-center">
                         <DialogHeader>

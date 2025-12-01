@@ -22,6 +22,7 @@ import {
     BreadcrumbList,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+
 import {
     Select,
     SelectContent,
@@ -29,17 +30,22 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-// ✅ Overall PC condition options (finalized)
-const CONDITION_OPTIONS = [
-    { label: "Functional", color: "bg-green-500" },
-    { label: "Needs Boot / Pending Check", color: "bg-orange-500" },
-    { label: "Defective", color: "bg-red-500" },
-    { label: "Under Maintenance", color: "bg-yellow-500" },
-    { label: "Needs Upgrade", color: "bg-blue-500" },
-    { label: "For Disposal", color: "bg-gray-500" },
+
+// ✅ Condition Names
+const CONDITION_NAMES = [
+    "Working",
+    "Not Working",
+    "Intermittent Issue",
+    "Needs Cleaning",
+    "For Replacement",
+    "For Disposal",
+    "Condemned",
+    "Needs Repair",
+    "Needs Configuration",
+    "Under Maintenance",
 ];
 
-// ✅ Component condition options (finalized)
+// ✅ Component condition options
 const COMPONENT_CONDITION_OPTIONS = [
     "Working",
     "Needs Boot / Check-up",
@@ -71,14 +77,6 @@ export default function AddUnitPage() {
         motherboard: "",
         os: "",
     });
-
-    const getConditionColor = (value) => {
-        if (!value) return "bg-muted";
-        const match = CONDITION_OPTIONS.find(
-            (opt) => opt.label.toLowerCase() === value.toLowerCase()
-        );
-        return match ? match.color : "bg-muted";
-    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -168,7 +166,7 @@ export default function AddUnitPage() {
                                             onChange={(e) =>
                                                 setTypedRoom(e.target.value)
                                             }
-                                            placeholder="Search or select room"
+                                            placeholder="Type or select room"
                                         />
                                         <datalist id="room-options">
                                             {rooms.map((room) => (
@@ -198,7 +196,7 @@ export default function AddUnitPage() {
                                                     e.target.value
                                                 )
                                             }
-                                            placeholder="e.g. PC-01"
+                                            placeholder="e.g., PC-01"
                                             required
                                         />
                                         {errors.unit_code && (
@@ -224,6 +222,7 @@ export default function AddUnitPage() {
                                                     e.target.value
                                                 )
                                             }
+                                            placeholder="e.g., Intel Core i5"
                                         />
                                     </div>
                                     <div>
@@ -234,6 +233,7 @@ export default function AddUnitPage() {
                                             onChange={(e) =>
                                                 setData("ram", e.target.value)
                                             }
+                                            placeholder="e.g., 8.0 GB"
                                         />
                                     </div>
                                     <div>
@@ -247,6 +247,7 @@ export default function AddUnitPage() {
                                                     e.target.value
                                                 )
                                             }
+                                            placeholder="e.g., 256.0 GB SSD"
                                         />
                                     </div>
                                     <div>
@@ -257,6 +258,7 @@ export default function AddUnitPage() {
                                             onChange={(e) =>
                                                 setData("gpu", e.target.value)
                                             }
+                                            placeholder="e.g., NVIDIA GTX 1650"
                                         />
                                     </div>
                                     <div>
@@ -272,6 +274,7 @@ export default function AddUnitPage() {
                                                     e.target.value
                                                 )
                                             }
+                                            placeholder="e.g., ASUS Prime"
                                         />
                                     </div>
                                     <div>
@@ -282,6 +285,7 @@ export default function AddUnitPage() {
                                             onChange={(e) =>
                                                 setData("os", e.target.value)
                                             }
+                                            placeholder="e.g., Windows 11"
                                         />
                                     </div>
                                 </div>
@@ -301,6 +305,7 @@ export default function AddUnitPage() {
                                                     e.target.value
                                                 )
                                             }
+                                            placeholder="e.g., SN123456"
                                         />
                                     </div>
                                     <div>
@@ -317,16 +322,14 @@ export default function AddUnitPage() {
                                                 <SelectValue placeholder="-- Select Condition --" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {CONDITION_OPTIONS.map(
-                                                    (opt) => (
-                                                        <SelectItem
-                                                            key={opt.label}
-                                                            value={opt.label}
-                                                        >
-                                                            {opt.label}
-                                                        </SelectItem>
-                                                    )
-                                                )}
+                                                {CONDITION_NAMES.map((name) => (
+                                                    <SelectItem
+                                                        key={name}
+                                                        value={name}
+                                                    >
+                                                        {name}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -344,7 +347,7 @@ export default function AddUnitPage() {
                                                     e.target.value
                                                 )
                                             }
-                                            placeholder="e.g. defective RAM, GPU overheating"
+                                            placeholder="e.g., defective RAM, GPU overheating"
                                         />
                                     </div>
                                 </div>

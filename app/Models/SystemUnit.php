@@ -19,6 +19,7 @@ class SystemUnit extends Model
         'gpu',
         'motherboard',
         'serial_number',
+        'operating_system',
         'condition',
         'condition_details',
         'room_id',

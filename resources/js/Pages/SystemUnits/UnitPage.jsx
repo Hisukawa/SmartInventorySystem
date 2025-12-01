@@ -419,11 +419,33 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
         currentPage * itemsPerPage
     );
 
+    // ✅ Condition Colors
+    const CONDITION_COLORS = {
+        Working: "bg-green-200 text-green-800",
+        "Not Working": "bg-red-200 text-red-800",
+        "Intermittent Issue": "bg-yellow-200 text-yellow-800",
+        "Needs Cleaning": "bg-blue-200 text-blue-800",
+        "For Replacement": "bg-orange-200 text-orange-800",
+        "For Disposal": "bg-gray-200 text-gray-800",
+        Condemned: "bg-black text-white",
+        "Needs Repair": "bg-red-200 text-red-800",
+        "No Signal": "bg-red-200 text-red-800",
+        "Needs Configuration": "bg-blue-200 text-blue-800",
+        "Under Maintenance": "bg-blue-200 text-blue-900",
+        "To Be Diagnosed": "bg-blue-100 text-blue-800",
+    };
+
+    // const getCondition = (value) => {
+    //     const match = CONDITION_OPTIONS.find(
+    //         (opt) => opt.label.toLowerCase() === (value || "").toLowerCase()
+    //     );
+    //     return match || { label: value || "Unknown", color: "bg-slate-400" };
+    // };
+
     const getCondition = (value) => {
-        const match = CONDITION_OPTIONS.find(
-            (opt) => opt.label.toLowerCase() === (value || "").toLowerCase()
-        );
-        return match || { label: value || "Unknown", color: "bg-slate-400" };
+        const label = value || "Unknown";
+        const colorClass = CONDITION_COLORS[label] || "bg-slate-400 text-white";
+        return { label, color: colorClass };
     };
 
     const tableRef = useRef(null);
@@ -748,7 +770,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                             <TableCell className="px-5 py-1">
                                                 {unit.condition ? (
                                                     <span
-                                                        className={`px-2 py-1 rounded-full text-xs font-medium text-white ${
+                                                        className={`px-2 py-1 rounded-full text-xs font-medium ${
                                                             getCondition(
                                                                 unit.condition
                                                             ).color
@@ -796,7 +818,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                     </Button>
 
                                                     {/* Delete Button */}
-                                                    <Button
+                                                    {/* <Button
                                                         size="sm"
                                                         className="flex items-center gap-2 bg-red-600 text-white border-none hover:bg-red-700"
                                                         onClick={() => {
@@ -813,7 +835,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                         Delete
-                                                    </Button>
+                                                    </Button> */}
                                                 </div>
                                             </TableCell>
                                         </TableRow>

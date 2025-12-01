@@ -31,12 +31,18 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-const CONDITION_OPTIONS = [
-    { label: "Functional", color: "bg-green-500" },
-    { label: "Defective", color: "bg-red-500" },
-    { label: "Under Maintenance", color: "bg-yellow-500" },
-    { label: "Needs Upgrade", color: "bg-blue-500" },
-    { label: "For Disposal", color: "bg-gray-500" },
+// ✅ Updated Condition Names
+const CONDITION_NAMES = [
+    "Working",
+    "Not Working",
+    "Intermittent Issue",
+    "Needs Cleaning",
+    "For Replacement",
+    "For Disposal",
+    "Condemned",
+    "Needs Repair",
+    "Needs Configuration",
+    "Under Maintenance",
 ];
 
 export default function AddPeripheral({
@@ -284,18 +290,21 @@ export default function AddPeripheral({
                                                 <SelectValue placeholder="-- Select Condition --" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {CONDITION_OPTIONS.map(
-                                                    (opt) => (
-                                                        <SelectItem
-                                                            key={opt.label}
-                                                            value={opt.label}
-                                                        >
-                                                            {opt.label}
-                                                        </SelectItem>
-                                                    )
-                                                )}
+                                                {CONDITION_NAMES.map((cond) => (
+                                                    <SelectItem
+                                                        key={cond}
+                                                        value={cond}
+                                                    >
+                                                        {cond}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
+                                        {errors.condition && (
+                                            <p className="text-sm text-red-500">
+                                                {errors.condition}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="col-span-1 gap-2">

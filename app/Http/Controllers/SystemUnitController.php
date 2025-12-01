@@ -93,6 +93,7 @@ class SystemUnitController extends Controller
                 }),
             ],
             'serial_number' => 'required|string',
+            'operating_system' => 'nullable|string',
             'processor' => 'required|string',
             'ram' => 'required|string',
             'storage' => 'required|string',
@@ -153,6 +154,7 @@ class SystemUnitController extends Controller
             'storage' => 'nullable|string',
             'gpu' => 'nullable|string',
             'motherboard' => 'nullable|string',
+            'operating_system' => 'nullable|string',
             'condition' => 'nullable|string',
              'condition_details' => 'nullable|string|max:1000', // ✅ NEW FIELD
             'room_id' => 'required|exists:rooms,id',

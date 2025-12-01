@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { router } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import Notification from "@/Components/AdminComponents/Notification";
+import EditEquipmentModalPage from "./EditEquipmentPage";
 import { Filter as FilterIcon, X, Printer } from "lucide-react";
 import {
     Table,
@@ -41,8 +42,8 @@ import {
 
 // ✅ Condition Colors
 const CONDITION_COLORS = {
-    Functional: "bg-green-200 text-green-800",
-    Defective: "bg-red-200 text-red-800",
+    Working: "bg-green-200 text-green-800",
+    "Not Working": "bg-red-200 text-red-800",
     "Intermittent Issue": "bg-yellow-200 text-yellow-800",
     "Needs Cleaning": "bg-blue-200 text-blue-800",
     "For Replacement": "bg-orange-200 text-orange-800",
@@ -205,6 +206,10 @@ export default function EquipmentsPage({
         };
     }, [equipments, existingRooms]);
 
+    const [editModal, setEditModal] = useState({
+        open: false,
+        equipmentCode: null,
+    });
     // Filter + Search
     const filteredData = equipments.filter((eq) => {
         const matchesSearch =
@@ -309,6 +314,18 @@ export default function EquipmentsPage({
     return (
         <SidebarProvider>
             <AppSidebar />
+
+            {editModal.open && (
+                <EditEquipmentModalPage
+                    equipment={equipments.find(
+                        (e) => e.equipment_code === editModal.equipmentCode
+                    )}
+                    rooms={existingRooms}
+                    onClose={() =>
+                        setEditModal({ open: false, equipmentCode: null })
+                    }
+                />
+            )}
             <SidebarInset>
                 <header className="sticky top-0 z-20 bg-white border-b px-6 py-3 flex items-center gap-2">
                     <SidebarTrigger />
@@ -433,14 +450,17 @@ export default function EquipmentsPage({
                                                     size="sm"
                                                     className="bg-[hsl(142,34%,51%)] text-white"
                                                     onClick={() =>
-                                                        router.visit(
-                                                            `/equipments/edit/${eq.equipment_code}`
-                                                        )
+                                                        setEditModal({
+                                                            open: true,
+                                                            equipmentCode:
+                                                                eq.equipment_code,
+                                                        })
                                                     }
                                                 >
                                                     Edit
                                                 </Button>
-                                                <Button
+                                                {/* Delete Button */}
+                                                {/* <Button
                                                     size="sm"
                                                     className="bg-red-500 text-white"
                                                     onClick={() => {
@@ -459,7 +479,7 @@ export default function EquipmentsPage({
                                                     }}
                                                 >
                                                     Delete
-                                                </Button>
+                                                </Button> */}
                                             </TableCell>
                                         </TableRow>
                                     ))
