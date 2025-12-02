@@ -43,6 +43,7 @@ export default function ReportFormModal({
         if (form.photo) data.append("photo", form.photo);
 
         router.post(route("reports.store"), data, {
+            forceFormData: true,
             onSuccess: () => {
                 onOpenChange(false);
                 if (onSuccess) onSuccess();
