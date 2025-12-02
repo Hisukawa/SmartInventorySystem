@@ -40,6 +40,7 @@ const CONDITION_OPTIONS = {
         "For Replacement",
         "For Disposal",
         "Condemned",
+        "To Be Diagnosed",
     ],
     Appliances: [
         "Functional",
@@ -50,6 +51,7 @@ const CONDITION_OPTIONS = {
         "For Replacement",
         "For Disposal",
         "Condemned",
+        "To Be Diagnosed",
     ],
     Networking: [
         "Functional",
@@ -60,6 +62,7 @@ const CONDITION_OPTIONS = {
         "For Replacement",
         "For Disposal",
         "Condemned",
+        "To Be Diagnosed",
     ],
     Safety: [
         "Functional",
@@ -70,6 +73,7 @@ const CONDITION_OPTIONS = {
         "For Replacement",
         "For Disposal",
         "Condemned",
+        "To Be Diagnosed",
     ],
 };
 
@@ -90,6 +94,7 @@ const CONDITION_COLORS = {
     Expired: "bg-red-300 text-red-900",
     "Needs Refill": "bg-blue-200 text-blue-900",
     Rusting: "bg-orange-200 text-orange-900",
+    "To Be Diagnosed": "bg-blue-100 text-blue-700",
 };
 
 export default function AddEquipment({ rooms }) {

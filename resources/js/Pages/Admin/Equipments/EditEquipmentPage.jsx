@@ -74,6 +74,7 @@ export default function EditEquipmentModalPage({ equipment, rooms }) {
             "For Replacement",
             "For Disposal",
             "Condemned",
+            "To Be Diagnosed",
         ],
         Appliances: [
             "Working",
@@ -82,6 +83,7 @@ export default function EditEquipmentModalPage({ equipment, rooms }) {
             "For Replacement",
             "For Disposal",
             "Condemned",
+            "To Be Diagnosed",
         ],
         Networking: [
             "Working",
@@ -92,6 +94,7 @@ export default function EditEquipmentModalPage({ equipment, rooms }) {
             "For Replacement",
             "For Disposal",
             "Condemned",
+            "To Be Diagnosed",
         ],
         Safety: [
             "Working",
@@ -102,6 +105,7 @@ export default function EditEquipmentModalPage({ equipment, rooms }) {
             "For Replacement",
             "For Disposal",
             "Condemned",
+            "To Be Diagnosed",
         ],
     };
 

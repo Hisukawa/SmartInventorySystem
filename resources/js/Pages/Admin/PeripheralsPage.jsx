@@ -228,14 +228,14 @@ function PeripheralsFilter({ filters, filterOptions, onApplyFilters }) {
 }
 
 /* ✅ Peripheral Condition Options with Color */
-const PERIPHERAL_CONDITION_OPTIONS = [
-    { label: "Functional", color: "bg-green-500" }, // fully functional
-    { label: "Defective", color: "bg-red-500" }, // broken / not usable
-    { label: "Intermittent Issue", color: "bg-yellow-500" }, // works sometimes / unstable
-    { label: "Needs Cleaning", color: "bg-blue-500" }, // dirty / minor issue
-    { label: "For Replacement", color: "bg-orange-500" }, // usable but needs replacing soon
-    { label: "For Disposal", color: "bg-gray-500" }, // completely unusable
-];
+// const PERIPHERAL_CONDITION_OPTIONS = [
+//     { label: "Functional", color: "bg-green-500" }, // fully functional
+//     { label: "Defective", color: "bg-red-500" }, // broken / not usable
+//     { label: "Intermittent Issue", color: "bg-yellow-500" }, // works sometimes / unstable
+//     { label: "Needs Cleaning", color: "bg-blue-500" }, // dirty / minor issue
+//     { label: "For Replacement", color: "bg-orange-500" }, // usable but needs replacing soon
+//     { label: "For Disposal", color: "bg-gray-500" }, // completely unusable
+// ];
 
 /* ✅ Main Component */
 export default function PeripheralsIndex({
@@ -326,13 +326,13 @@ export default function PeripheralsIndex({
     );
 
     /* Helper to get condition object */
-    function getCondition(condition) {
-        return (
-            PERIPHERAL_CONDITION_OPTIONS.find(
-                (opt) => opt.label.toLowerCase() === condition?.toLowerCase()
-            ) || { label: condition, color: "bg-slate-400" }
-        );
-    }
+    // function getCondition(condition) {
+    //     return (
+    //         PERIPHERAL_CONDITION_OPTIONS.find(
+    //             (opt) => opt.label.toLowerCase() === condition?.toLowerCase()
+    //         ) || { label: condition, color: "bg-slate-400" }
+    //     );
+    // }
 
     //handle for printing
     const handlePrint = () => {
@@ -578,7 +578,7 @@ export default function PeripheralsIndex({
         "No Signal": "bg-red-200 text-red-800",
         "Needs Configuration": "bg-blue-200 text-blue-800",
         "Under Maintenance": "bg-blue-200 text-blue-900",
-        "To Be Diagnosed": "bg-blue-100 text-blue-800",
+        "To Be Diagnosed": "bg-blue-100 text-blue-700",
     };
 
     /* Helper to get condition label & color */

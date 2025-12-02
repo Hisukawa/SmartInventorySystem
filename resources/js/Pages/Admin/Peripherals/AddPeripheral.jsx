@@ -43,6 +43,7 @@ const CONDITION_NAMES = [
     "Needs Repair",
     "Needs Configuration",
     "Under Maintenance",
+    "To Be Diagnosed",
 ];
 
 export default function AddPeripheral({

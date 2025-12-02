@@ -23,7 +23,7 @@ const CONDITION_COLORS = {
     "No Signal": "bg-red-200 text-red-800",
     "Needs Configuration": "bg-blue-200 text-blue-800",
     "Under Maintenance": "bg-blue-200 text-blue-900",
-    "To Be Diagnosed": "bg-blue-100 text-blue-800",
+    "To Be Diagnosed": "bg-blue-100 text-blue-700",
 };
 
 export default function EditUnitModal({ unit, rooms, onClose, onSuccess }) {
