@@ -315,34 +315,32 @@ public function ShowFacultyDashboard($encodedRoomPath)
     // Peripherals
     $peripherals = Peripheral::where('room_id', $room->id)->get();
     $peripheralsCount = $peripherals->count();
-    $peripheralsByType = $peripherals->groupBy('type')->map->count();
-    $peripheralsByCondition = $peripherals->groupBy('condition')->map->count();
 
-    // Group conditions by type for drill-down
-    $peripheralsByTypeCondition = [];
-    foreach ($peripheralsByType->keys() as $type) {
-        $peripheralsByTypeCondition[$type] = $peripherals
-            ->where('type', $type)
-            ->groupBy('condition')
-            ->map->count();
-    }
+    // 🔥 Normalize type (ex: " Mouse " → "mouse")
+    $peripheralsByType = $peripherals
+        ->groupBy(function ($item) {
+            return strtolower(trim($item->type));
+        })
+        ->map
+        ->count();
+
+    $peripheralsByCondition = $peripherals->groupBy('condition')->map->count();
 
     // Equipments
     $equipments = Equipment::where('room_id', $room->id)->get();
     $equipmentsCount = $equipments->count();
-    // Group by equipment_name instead of type
-    $equipmentsByName = $equipments->groupBy('equipment_name')->map->count();
+
+    // 🔥 Normalize equipment_name
+    $equipmentsByName = $equipments
+        ->groupBy(function ($item) {
+            return strtolower(trim($item->equipment_name));
+        })
+        ->map
+        ->count();
+
     $equipmentsByCondition = $equipments->groupBy('condition')->map->count();
 
-    // Group conditions by equipment_name for drill-down
-    $equipmentsByNameCondition = [];
-    foreach ($equipmentsByName->keys() as $name) {
-        $equipmentsByNameCondition[$name] = $equipments
-            ->where('equipment_name', $name)
-            ->groupBy('condition')
-            ->map->count();
-    }
-
+    // Return API
     return Inertia::render('Faculty/FacultyScannedRoomDashboard', [
         'room' => $room,
         'user' => $user,
@@ -355,17 +353,16 @@ public function ShowFacultyDashboard($encodedRoomPath)
                 'total' => $peripheralsCount,
                 'by_type' => $peripheralsByType,
                 'by_condition' => $peripheralsByCondition,
-                'by_type_condition' => $peripheralsByTypeCondition,
             ],
             'equipments' => [
                 'total' => $equipmentsCount,
-                'by_name' => $equipmentsByName, // updated key
+                'by_name' => $equipmentsByName,
                 'by_condition' => $equipmentsByCondition,
-                'by_name_condition' => $equipmentsByNameCondition, // updated key
             ],
         ],
     ]);
 }
+
 
 
 }

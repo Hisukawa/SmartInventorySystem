@@ -454,12 +454,6 @@ export default function GuestRoomView({
                                 {/* Header with Filter + Search */}
                                 <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center p-4 border-b">
                                     <div className="flex gap-2 items-center w-full sm:w-auto">
-                                        <Filter
-                                            filters={filters}
-                                            filterOptions={filterOptions}
-                                            activeSection={activeSection}
-                                            onApplyFilters={applyFilters}
-                                        />
                                         <div className="flex gap-2 items-center">
                                             <Input
                                                 placeholder="Search..."
@@ -510,6 +504,13 @@ export default function GuestRoomView({
                                             >
                                                 Search
                                             </Button>
+
+                                            <Filter
+                                                filters={filters}
+                                                filterOptions={filterOptions}
+                                                activeSection={activeSection}
+                                                onApplyFilters={applyFilters}
+                                            />
                                         </div>
                                     </div>
                                 </div>

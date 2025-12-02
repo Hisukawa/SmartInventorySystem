@@ -90,21 +90,20 @@ class GuestDashboardController extends Controller
     $room     = Room::where('room_path', $roomPath)->firstOrFail();
     $user     = Auth::user();
 
- // ✅ Step 1: Mark any previous active session as logged out
-    RoomStatus::where('room_id', $room->id)
-        ->where('scanned_by', $user->id)
-        ->where('is_active', 1)
-        ->update([
-            'is_active' => 0,
-            'logged_out_at' => now(),
-        ]);
+        // Check if there’s already an active log for this faculty in this room
+        $existingStatus = RoomStatus::where('room_id', $room->id)
+            ->where('scanned_by', $user->id)
+            ->where('is_active', 1)
+            ->first();
 
-    // ✅ Step 2: Create a new record for this new login
-    RoomStatus::create([
-        'room_id'    => $room->id,
-        'scanned_by' => $user->id,
-        'is_active'  => 1,
-    ]);
+        if (!$existingStatus) {
+            RoomStatus::create([
+                'room_id'    => $room->id,
+                'scanned_by' => $user->id,
+                'is_active'  => 1,
+            ]);
+        }
+
 
     $condition = $request->query('condition');
     $unitCode  = $request->query('unit_code');
@@ -263,33 +262,30 @@ public function ShowGuestDashboard($encodedRoomPath)
     // Peripherals
     $peripherals = Peripheral::where('room_id', $room->id)->get();
     $peripheralsCount = $peripherals->count();
-    $peripheralsByType = $peripherals->groupBy('type')->map->count();
-    $peripheralsByCondition = $peripherals->groupBy('condition')->map->count();
 
-    // Group conditions by type for drill-down
-    $peripheralsByTypeCondition = [];
-    foreach ($peripheralsByType->keys() as $type) {
-        $peripheralsByTypeCondition[$type] = $peripherals
-            ->where('type', $type)
-            ->groupBy('condition')
-            ->map->count();
-    }
+    // 🔥 Normalize type keys (e.g., " Mouse " → "mouse")
+    $peripheralsByType = $peripherals
+        ->groupBy(function ($item) {
+            return strtolower(trim($item->type));
+        })
+        ->map
+        ->count();
+
+    $peripheralsByCondition = $peripherals->groupBy('condition')->map->count();
 
     // Equipments
     $equipments = Equipment::where('room_id', $room->id)->get();
     $equipmentsCount = $equipments->count();
-    // Group by equipment_name instead of type
-    $equipmentsByName = $equipments->groupBy('equipment_name')->map->count();
-    $equipmentsByCondition = $equipments->groupBy('condition')->map->count();
 
-    // Group conditions by equipment_name for drill-down
-    $equipmentsByNameCondition = [];
-    foreach ($equipmentsByName->keys() as $name) {
-        $equipmentsByNameCondition[$name] = $equipments
-            ->where('equipment_name', $name)
-            ->groupBy('condition')
-            ->map->count();
-    }
+    // 🔥 Normalize equipment_name keys
+    $equipmentsByName = $equipments
+        ->groupBy(function ($item) {
+            return strtolower(trim($item->equipment_name));
+        })
+        ->map
+        ->count();
+
+    $equipmentsByCondition = $equipments->groupBy('condition')->map->count();
 
     return Inertia::render('Guest/Guest-Scanned-Dashboard', [
         'room' => $room,
@@ -303,17 +299,16 @@ public function ShowGuestDashboard($encodedRoomPath)
                 'total' => $peripheralsCount,
                 'by_type' => $peripheralsByType,
                 'by_condition' => $peripheralsByCondition,
-                'by_type_condition' => $peripheralsByTypeCondition,
             ],
             'equipments' => [
                 'total' => $equipmentsCount,
-                'by_name' => $equipmentsByName, // updated key
+                'by_name' => $equipmentsByName,
                 'by_condition' => $equipmentsByCondition,
-                'by_name_condition' => $equipmentsByNameCondition, // updated key
             ],
         ],
     ]);
 }
+
 
 }
 
