@@ -30,10 +30,19 @@ class TechnicianController extends Controller
         $room     = Room::where('room_path', $roomPath)->firstOrFail();
         $user     = Auth::user();
 
-        RoomStatus::updateOrCreate(
-            ['room_id' => $room->id],
-            ['scanned_by' => $user?->id, 'is_active' => 1]
-        );
+      // Check if there’s already an active log for this faculty in this room
+        $existingStatus = RoomStatus::where('room_id', $room->id)
+            ->where('scanned_by', $user->id)
+            ->where('is_active', 1)
+            ->first();
+
+        if (!$existingStatus) {
+            RoomStatus::create([
+                'room_id'    => $room->id,
+                'scanned_by' => $user->id,
+                'is_active'  => 1,
+            ]);
+        }
 
         $condition = $request->query('condition');
         $unitCode  = $request->query('unit_code');
