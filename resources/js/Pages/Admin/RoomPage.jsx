@@ -443,7 +443,7 @@ export default function RoomPage({ rooms, search }) {
                                                             <div className="flex justify-center items-center">
                                                                 {/* Full buttons on medium+ screens */}
                                                                 <div className="hidden sm:flex flex-wrap justify-center items-center gap-2">
-                                                                    <Button
+                                                                    {/* <Button
                                                                         size="sm"
                                                                         className="inline-flex items-center gap-2 py-1.5 px-3 bg-[hsl(142,34%,65%)] text-white border-none hover:bg-[hsl(142,34%,55%)]"
                                                                         onClick={() =>
@@ -453,7 +453,7 @@ export default function RoomPage({ rooms, search }) {
                                                                     >
                                                                         <Eye className="h-4 w-4" />{" "}
                                                                         View
-                                                                    </Button>
+                                                                    </Button> */}
                                                                     <Button
                                                                         size="sm"
                                                                         className="inline-flex items-center gap-2 py-1.5 px-3 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
@@ -466,7 +466,7 @@ export default function RoomPage({ rooms, search }) {
                                                                         <Edit2 className="h-4 w-4" />{" "}
                                                                         Edit
                                                                     </Button>
-                                                                    <Button
+                                                                    {/* <Button
                                                                         size="sm"
                                                                         variant="destructive"
                                                                         className="inline-flex items-center gap-2 py-1.5 px-3 bg-[hsl(0,72%,51%)] text-white border-none hover:bg-[hsl(0,72%,45%)]"
@@ -478,7 +478,7 @@ export default function RoomPage({ rooms, search }) {
                                                                     >
                                                                         <Trash2 className="h-4 w-4" />{" "}
                                                                         Delete
-                                                                    </Button>
+                                                                    </Button> */}
                                                                 </div>
 
                                                                 {/* Ellipsis menu for small screens */}
@@ -488,7 +488,7 @@ export default function RoomPage({ rooms, search }) {
                                                                             <MoreVertical className="h-4 w-4" />
                                                                         </Menu.Button>
                                                                         <Menu.Items className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg flex flex-col z-50">
-                                                                            <Menu.Item>
+                                                                            {/* <Menu.Item>
                                                                                 {({
                                                                                     active,
                                                                                 }) => (
@@ -506,7 +506,7 @@ export default function RoomPage({ rooms, search }) {
                                                                                         View
                                                                                     </button>
                                                                                 )}
-                                                                            </Menu.Item>
+                                                                            </Menu.Item> */}
                                                                             <Menu.Item>
                                                                                 {({
                                                                                     active,
@@ -527,7 +527,7 @@ export default function RoomPage({ rooms, search }) {
                                                                                     </button>
                                                                                 )}
                                                                             </Menu.Item>
-                                                                            <Menu.Item>
+                                                                            {/* <Menu.Item>
                                                                                 {({
                                                                                     active,
                                                                                 }) => (
@@ -546,7 +546,7 @@ export default function RoomPage({ rooms, search }) {
                                                                                         Delete
                                                                                     </button>
                                                                                 )}
-                                                                            </Menu.Item>
+                                                                            </Menu.Item> */}
                                                                         </Menu.Items>
                                                                     </Menu>
                                                                 </div>
