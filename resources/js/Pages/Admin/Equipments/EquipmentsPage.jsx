@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import Notification from "@/Components/AdminComponents/Notification";
 import EditEquipmentModalPage from "./EditEquipmentPage";
 import { Filter as FilterIcon, X, Printer } from "lucide-react";
+
+import { Menu } from "@headlessui/react";
+import { Eye, Edit2, Trash2, MoreVertical } from "lucide-react";
+
 import {
     Table,
     TableHeader,
@@ -388,42 +392,61 @@ export default function EquipmentsPage({
                         </Button>
                     </div>
 
+                    {/* Table */}
                     <div className="overflow-x-auto rounded-lg border">
-                        <Table>
+                        <Table className="w-full table-auto text-center">
                             <TableHeader>
                                 <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
-                                    <TableHead>#</TableHead>
-                                    <TableHead>Equipment Code</TableHead>
-                                    <TableHead>Equipment Name</TableHead>
-                                    <TableHead>Room</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Condition</TableHead>
-                                    <TableHead className="text-center">
+                                    <TableHead className="px-5 py-1 text-center">
+                                        #
+                                    </TableHead>
+                                    <TableHead className="px-5 py-1 text-center">
+                                        Equipment Code
+                                    </TableHead>
+                                    <TableHead className="px-5 py-1 text-center">
+                                        Equipment Name
+                                    </TableHead>
+                                    <TableHead className="px-5 py-1 text-center">
+                                        Room
+                                    </TableHead>
+                                    <TableHead className="px-5 py-1 text-center">
+                                        Type
+                                    </TableHead>
+                                    <TableHead className="px-5 py-1 text-center">
+                                        Condition
+                                    </TableHead>
+                                    <TableHead className="px-5 py-1 text-center">
                                         Actions
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
+
                             <TableBody>
                                 {paginatedData.length > 0 ? (
                                     paginatedData.map((eq, index) => (
-                                        <TableRow key={eq.id}>
-                                            <TableCell>
+                                        <TableRow
+                                            key={eq.id}
+                                            className="hover:shadow-sm"
+                                        >
+                                            <TableCell className="px-5 py-2 align-middle">
                                                 {(currentPage - 1) *
                                                     itemsPerPage +
                                                     index +
                                                     1}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="px-5 py-2 align-middle">
                                                 {eq.equipment_code}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="px-5 py-2 align-middle">
                                                 {eq.equipment_name}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="px-5 py-2 align-middle">
                                                 {eq.room?.room_number ?? "N/A"}
                                             </TableCell>
-                                            <TableCell>{eq.type}</TableCell>
-                                            <TableCell>
+                                            <TableCell className="px-5 py-2 align-middle">
+                                                {eq.type}
+                                            </TableCell>
+                                            <TableCell className="px-5 py-2 align-middle">
                                                 <span
                                                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                                                         CONDITION_COLORS[
@@ -435,52 +458,137 @@ export default function EquipmentsPage({
                                                     {eq.condition}
                                                 </span>
                                             </TableCell>
-                                            <TableCell className="text-center flex gap-2 justify-center">
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-[hsl(142,34%,51%)] text-white"
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            `/admin/equipments/${eq.equipment_code}`
-                                                        )
-                                                    }
-                                                >
-                                                    View
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    className="bg-[hsl(142,34%,51%)] text-white"
-                                                    onClick={() =>
-                                                        setEditModal({
-                                                            open: true,
-                                                            equipmentCode:
-                                                                eq.equipment_code,
-                                                        })
-                                                    }
-                                                >
-                                                    Edit
-                                                </Button>
-                                                {/* Delete Button */}
-                                                {/* <Button
-                                                    size="sm"
-                                                    className="bg-red-500 text-white"
-                                                    onClick={() => {
-                                                        if (
-                                                            confirm(
-                                                                `Are you sure you want to delete ${eq.equipment_name}?`
+
+                                            {/* Actions */}
+                                            <TableCell className="px-5 py-2 align-middle">
+                                                {/* Desktop Buttons */}
+                                                <div className="hidden sm:flex justify-center items-center gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-[hsl(142,34%,51%)] text-white flex items-center gap-2"
+                                                        onClick={() =>
+                                                            router.visit(
+                                                                `/admin/equipments/${eq.equipment_code}`
                                                             )
-                                                        ) {
-                                                            router.delete(
-                                                                `/equipments/${eq.equipment_code}`,
-                                                                {
-                                                                    preserveScroll: true,
-                                                                }
-                                                            );
                                                         }
-                                                    }}
-                                                >
-                                                    Delete
-                                                </Button> */}
+                                                    >
+                                                        <Eye className="h-4 w-4" />{" "}
+                                                        View
+                                                    </Button>
+
+                                                    <Button
+                                                        size="sm"
+                                                        className="bg-[hsl(142,34%,51%)] text-white flex items-center gap-2"
+                                                        onClick={() =>
+                                                            setEditModal({
+                                                                open: true,
+                                                                equipmentCode:
+                                                                    eq.equipment_code,
+                                                            })
+                                                        }
+                                                    >
+                                                        <Edit2 className="h-4 w-4" />{" "}
+                                                        Edit
+                                                    </Button>
+
+                                                    {/* Optional Delete */}
+                                                    {/* <Button
+                                                        size="sm"
+                                                        className="bg-red-500 text-white flex items-center gap-2"
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                eq.equipment_code
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />{" "}
+                                                        Delete
+                                                    </Button> */}
+                                                </div>
+
+                                                {/* Mobile Dropdown */}
+                                                <div className="sm:hidden flex justify-center">
+                                                    <Menu
+                                                        as="div"
+                                                        className="relative inline-block text-left"
+                                                    >
+                                                        <Menu.Button className="p-2 rounded bg-[hsl(142,34%,51%)] text-white">
+                                                            <MoreVertical className="h-5 w-5" />
+                                                        </Menu.Button>
+                                                        <Menu.Items className="absolute right-0 mt-2 w-28 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
+                                                            <div className="px-1 py-1">
+                                                                <Menu.Item>
+                                                                    {({
+                                                                        active,
+                                                                    }) => (
+                                                                        <button
+                                                                            className={`${
+                                                                                active
+                                                                                    ? "bg-[hsl(142,34%,90%)]"
+                                                                                    : ""
+                                                                            } group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700`}
+                                                                            onClick={() =>
+                                                                                router.visit(
+                                                                                    `/admin/equipments/${eq.equipment_code}`
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Eye className="h-4 w-4 mr-2" />{" "}
+                                                                            View
+                                                                        </button>
+                                                                    )}
+                                                                </Menu.Item>
+                                                                <Menu.Item>
+                                                                    {({
+                                                                        active,
+                                                                    }) => (
+                                                                        <button
+                                                                            className={`${
+                                                                                active
+                                                                                    ? "bg-[hsl(142,34%,90%)]"
+                                                                                    : ""
+                                                                            } group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700`}
+                                                                            onClick={() =>
+                                                                                setEditModal(
+                                                                                    {
+                                                                                        open: true,
+                                                                                        equipmentCode:
+                                                                                            eq.equipment_code,
+                                                                                    }
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Edit2 className="h-4 w-4 mr-2" />{" "}
+                                                                            Edit
+                                                                        </button>
+                                                                    )}
+                                                                </Menu.Item>
+                                                                {/* Optional Delete */}
+                                                                {/* <Menu.Item>
+                                                                    {({
+                                                                        active,
+                                                                    }) => (
+                                                                        <button
+                                                                            className={`${
+                                                                                active
+                                                                                    ? "bg-red-100"
+                                                                                    : ""
+                                                                            } group flex w-full items-center rounded-md px-2 py-2 text-sm text-red-600`}
+                                                                            onClick={() =>
+                                                                                handleDelete(
+                                                                                    eq.equipment_code
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4 mr-2" />{" "}
+                                                                            Delete
+                                                                        </button>
+                                                                    )}
+                                                                </Menu.Item> */}
+                                                            </div>
+                                                        </Menu.Items>
+                                                    </Menu>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))

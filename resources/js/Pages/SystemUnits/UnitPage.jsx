@@ -10,7 +10,8 @@ import Swal from "sweetalert2";
 import { router } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import Notification from "@/Components/AdminComponents/Notification";
-import { Eye, Edit2, Trash2 } from "lucide-react";
+import { Eye, Edit2, Trash2, MoreVertical } from "lucide-react";
+import { Menu } from "@headlessui/react";
 import {
     Table,
     TableHeader,
@@ -719,21 +720,22 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                             ref={tableRef}
                             className="w-full bg-white table-fixed"
                         >
+                            {/* Header */}
                             <TableHeader>
                                 <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)] h-10">
-                                    <TableHead className="px-5 py-1">
+                                    <TableHead className="px-5 py-1 text-center">
                                         #
                                     </TableHead>
-                                    <TableHead className="px-5 py-1">
+                                    <TableHead className="px-5 py-1 text-center">
                                         PC Code
                                     </TableHead>
-                                    <TableHead className="px-5 py-1">
+                                    <TableHead className="px-5 py-1 text-center">
                                         Room
                                     </TableHead>
-                                    <TableHead className="px-5 py-1">
+                                    <TableHead className="px-5 py-1 text-center">
                                         Condition
                                     </TableHead>
-                                    <TableHead className="px-5 py-1">
+                                    <TableHead className="px-5 py-1 text-center">
                                         Action
                                     </TableHead>
                                 </TableRow>
@@ -744,10 +746,10 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                     paginatedUnits.map((unit, index) => (
                                         <TableRow
                                             key={unit.id}
-                                            className="hover:shadow-sm"
+                                            className="hover:shadow-sm text-center"
                                         >
                                             {/* # */}
-                                            <TableCell className="px-5 py-1">
+                                            <TableCell className="px-5 py-2 font-medium align-middle">
                                                 {(currentPage - 1) *
                                                     itemsPerPage +
                                                     index +
@@ -755,19 +757,19 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                             </TableCell>
 
                                             {/* PC Code */}
-                                            <TableCell className="px-5 py-1">
+                                            <TableCell className="px-5 py-2 align-middle">
                                                 {unit.unit_code}
                                             </TableCell>
 
                                             {/* Room */}
-                                            <TableCell className="px-5 py-1">
+                                            <TableCell className="px-5 py-2 align-middle">
                                                 ROOM{" "}
                                                 {unit.room?.room_number ||
                                                     "N/A"}
                                             </TableCell>
 
                                             {/* Condition */}
-                                            <TableCell className="px-5 py-1">
+                                            <TableCell className="px-5 py-2 align-middle">
                                                 {unit.condition ? (
                                                     <span
                                                         className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -788,8 +790,9 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                             </TableCell>
 
                                             {/* Actions */}
-                                            <TableCell>
-                                                <div className="flex gap-2">
+                                            <TableCell className="px-5 py-2 align-middle">
+                                                {/* Desktop buttons */}
+                                                <div className="hidden sm:flex justify-center items-center gap-2">
                                                     <Button
                                                         size="sm"
                                                         className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
@@ -799,7 +802,7 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                             )
                                                         }
                                                     >
-                                                        <Eye className="h-4 w-4" />
+                                                        <Eye className="h-4 w-4" />{" "}
                                                         View
                                                     </Button>
 
@@ -813,29 +816,92 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                                             setShowModal(true);
                                                         }}
                                                     >
-                                                        <Edit2 className="h-4 w-4" />
+                                                        <Edit2 className="h-4 w-4" />{" "}
                                                         Edit
                                                     </Button>
 
-                                                    {/* Delete Button */}
+                                                    {/* Delete (still optional) */}
                                                     {/* <Button
-                                                        size="sm"
-                                                        className="flex items-center gap-2 bg-red-600 text-white border-none hover:bg-red-700"
-                                                        onClick={() => {
-                                                            if (
-                                                                confirm(
-                                                                    `Are you sure you want to delete ${unit.unit_name}?`
-                                                                )
-                                                            ) {
-                                                                router.delete(
-                                                                    `/system-units/${unit.id}`
-                                                                );
-                                                            }
-                                                        }}
+                  size="sm"
+                  className="flex items-center gap-2 bg-red-600 text-white border-none hover:bg-red-700"
+                  onClick={() => handleDelete(unit.id)}
+                >
+                  <Trash2 className="h-4 w-4" /> Delete
+                </Button> */}
+                                                </div>
+
+                                                {/* Mobile dropdown menu */}
+                                                <div className="sm:hidden flex justify-center">
+                                                    <Menu
+                                                        as="div"
+                                                        className="relative inline-block text-left"
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
-                                                        Delete
-                                                    </Button> */}
+                                                        <Menu.Button className="p-2 rounded bg-[hsl(142,34%,51%)] text-white">
+                                                            <MoreVertical className="h-5 w-5" />
+                                                        </Menu.Button>
+                                                        <Menu.Items className="absolute right-0 mt-2 w-28 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
+                                                            <div className="px-1 py-1">
+                                                                <Menu.Item>
+                                                                    {({
+                                                                        active,
+                                                                    }) => (
+                                                                        <button
+                                                                            className={`${
+                                                                                active
+                                                                                    ? "bg-[hsl(142,34%,90%)]"
+                                                                                    : ""
+                                                                            } group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700`}
+                                                                            onClick={() =>
+                                                                                router.visit(
+                                                                                    `/system-units/view/${unit.unit_path}`
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Eye className="h-4 w-4 mr-2" />{" "}
+                                                                            View
+                                                                        </button>
+                                                                    )}
+                                                                </Menu.Item>
+                                                                <Menu.Item>
+                                                                    {({
+                                                                        active,
+                                                                    }) => (
+                                                                        <button
+                                                                            className={`${
+                                                                                active
+                                                                                    ? "bg-[hsl(142,34%,90%)]"
+                                                                                    : ""
+                                                                            } group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700`}
+                                                                            onClick={() => {
+                                                                                setSelectedUnit(
+                                                                                    unit
+                                                                                );
+                                                                                setShowModal(
+                                                                                    true
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            <Edit2 className="h-4 w-4 mr-2" />{" "}
+                                                                            Edit
+                                                                        </button>
+                                                                    )}
+                                                                </Menu.Item>
+                                                                {/* Delete optional */}
+                                                                {/* <Menu.Item>
+                        {({ active }) => (
+                          <button
+                            className={`${
+                              active ? 'bg-red-100' : ''
+                            } group flex w-full items-center rounded-md px-2 py-2 text-sm text-red-600`}
+                            onClick={() => handleDelete(unit.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete
+                          </button>
+                        )}
+                      </Menu.Item> */}
+                                                            </div>
+                                                        </Menu.Items>
+                                                    </Menu>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

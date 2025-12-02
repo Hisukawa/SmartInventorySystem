@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useForm, router, Link } from "@inertiajs/react";
 import { toast } from "sonner";
-import { Edit2, Trash2 } from "lucide-react";
+import { Eye, Edit2, Trash2, MoreVertical } from "lucide-react";
+import { Menu } from "@headlessui/react";
 
 <TableCell className="flex gap-2">
     <Button
@@ -338,196 +339,276 @@ export default function RoomPage({ rooms, search }) {
                                 {/* Add Room Button */}
                                 <Button
                                     onClick={() => setAddRoomModalOpen(true)}
-                                    className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                                    className="bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,91%,18%)] text-white font-medium"
                                 >
                                     Add Room
                                 </Button>
                             </div>
 
                             {/* Table */}
-                            <div>
-                                <div className="rounded-md border transition-all duration-700 ease-in-out">
-                                    {/* Scrollable Table Container */}
-                                    <div className="relative">
-                                        <Table className="min-w-full border-collapse">
-                                            <TableHeader>
-                                                <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] h-10">
-                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
-                                                        #
-                                                    </TableHead>
-                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
-                                                        Room Name
-                                                    </TableHead>
-                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
-                                                        Room Code
-                                                    </TableHead>
-                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
-                                                        QR Code
-                                                    </TableHead>
-                                                    <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20">
-                                                        Actions
-                                                    </TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                        </Table>
+                            <div className="rounded-xl border shadow-sm overflow-hidden transition-all duration-500">
+                                {/* Header */}
+                                <div className="overflow-x-auto">
+                                    <Table className="min-w-full table-auto sm:table-fixed">
+                                        <TableHeader>
+                                            <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] border-b border-[hsl(142,34%,75%)]">
+                                                <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20 py-3 text-center align-middle">
+                                                    #
+                                                </TableHead>
+                                                <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20 py-3 text-center align-middle">
+                                                    Room Name
+                                                </TableHead>
+                                                <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20 py-3 text-center align-middle">
+                                                    Room Code
+                                                </TableHead>
+                                                <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20 py-3 text-center align-middle">
+                                                    QR Code
+                                                </TableHead>
+                                                <TableHead className="font-semibold sticky top-0 bg-[hsl(142,34%,85%)] z-20 py-3 text-center align-middle">
+                                                    Actions
+                                                </TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                    </Table>
+                                </div>
 
-                                        {/* Scrollable tbody container */}
-                                        <div className="max-h-[500px] overflow-y-auto">
-                                            <Table className="min-w-full border-collapse">
-                                                <TableBody>
-                                                    {rooms.data.map(
-                                                        (room, index) => {
-                                                            const qrValue =
-                                                                typeof room.room_path ===
-                                                                "string"
-                                                                    ? `${window.location.origin}/room/${room.room_path}`
-                                                                    : null;
-
-                                                            return (
-                                                                <TableRow
-                                                                    key={
-                                                                        room.id
-                                                                    }
-                                                                >
-                                                                    <TableCell>
-                                                                        {(rooms.current_page -
-                                                                            1) *
-                                                                            rooms.per_page +
-                                                                            index +
-                                                                            1}
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        ROOM{" "}
-                                                                        {
-                                                                            room.room_number
-                                                                        }
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        {
-                                                                            room.room_path
-                                                                        }
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        {qrValue ? (
-                                                                            <div
-                                                                                className="w-16 h-16 bg-white p-1 rounded cursor-pointer m-1"
-                                                                                onClick={(
-                                                                                    e
-                                                                                ) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleQRCodeClick(
-                                                                                        qrValue,
-                                                                                        room.room_number
-                                                                                    );
-                                                                                }}
-                                                                            >
-                                                                                <QRCode
-                                                                                    value={
-                                                                                        qrValue
-                                                                                    }
-                                                                                    size={
-                                                                                        64
-                                                                                    }
-                                                                                />
-                                                                            </div>
-                                                                        ) : (
-                                                                            <span className="text-sm text-gray-500">
-                                                                                No
-                                                                                QR
-                                                                            </span>
-                                                                        )}
-                                                                    </TableCell>
-                                                                    <TableCell className="flex gap-2">
-                                                                        <Button
-                                                                            size="sm"
-                                                                            className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                                                                            onClick={() =>
-                                                                                openEditModal(
-                                                                                    room
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <Edit2 className="h-4 w-4" />
-                                                                            Edit
-                                                                        </Button>
-                                                                        {/* Delete Button */}
-                                                                        {/* <Button
-                                                                            size="sm"
-                                                                            variant="destructive"
-                                                                            className="flex items-center gap-2 bg-[hsl(0,72%,51%)] text-white border-none hover:bg-[hsl(0,72%,45%)]"
-                                                                            onClick={() =>
-                                                                                handleDelete(
-                                                                                    room.id
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <Trash2 className="h-4 w-4" />
-                                                                            Delete
-                                                                        </Button> */}
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            );
-                                                        }
-                                                    )}
-                                                </TableBody>
-                                            </Table>
-                                        </div>
-                                    </div>
-
-                                    {/* Pagination with page info */}
-                                    <div className="mt-2 flex flex-col sm:flex-row justify-between items-center gap-2 p-2">
-                                        {/* Page Info */}
-                                        <span className="text-sm text-muted-foreground m-2">
-                                            Showing{" "}
-                                            {rooms.data.length === 0
-                                                ? 0
-                                                : (rooms.current_page - 1) *
-                                                      rooms.per_page +
-                                                  1}{" "}
-                                            –
-                                            {Math.min(
-                                                rooms.current_page *
-                                                    rooms.per_page,
-                                                rooms.total
-                                            )}{" "}
-                                            of {rooms.total} rooms
-                                        </span>
-
-                                        {/* Pagination Buttons */}
-                                        <div className="flex flex-wrap justify-center items-center gap-2">
-                                            {rooms.links.map((link, index) => {
-                                                const label = link.label
-                                                    .replace("&laquo;", "«")
-                                                    .replace("&raquo;", "»");
+                                {/* Body Scroll */}
+                                <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+                                    <Table className="min-w-full table-auto sm:table-fixed">
+                                        <TableBody>
+                                            {rooms.data.map((room, index) => {
+                                                const qrValue =
+                                                    typeof room.room_path ===
+                                                    "string"
+                                                        ? `${window.location.origin}/room/${room.room_path}`
+                                                        : null;
 
                                                 return (
-                                                    <Button
-                                                        key={index}
-                                                        variant={
-                                                            link.active
-                                                                ? "default"
-                                                                : "ghost"
-                                                        }
-                                                        size="sm"
-                                                        className="min-w-[36px] px-3 py-1"
-                                                        onClick={() =>
-                                                            link.url &&
-                                                            router.visit(
-                                                                link.url,
-                                                                {
-                                                                    preserveState: true, // ✅ keeps React component state
-                                                                    preserveScroll: true, // (optional) keeps scroll position
-                                                                }
-                                                            )
-                                                        }
-                                                        disabled={!link.url}
-                                                        dangerouslySetInnerHTML={{
-                                                            __html: label,
-                                                        }}
-                                                    />
+                                                    <TableRow
+                                                        key={room.id}
+                                                        className="hover:bg-[hsl(142,34%,96%)] transition-all border-b last:border-0"
+                                                    >
+                                                        {/* # */}
+                                                        <TableCell className="py-4 font-medium text-gray-700 text-center align-middle">
+                                                            {(rooms.current_page -
+                                                                1) *
+                                                                rooms.per_page +
+                                                                index +
+                                                                1}
+                                                        </TableCell>
+
+                                                        {/* Room Name */}
+                                                        <TableCell className="py-4 font-medium text-center align-middle">
+                                                            {`ROOM ${room.room_number}`}
+                                                        </TableCell>
+
+                                                        {/* Room Path */}
+                                                        <TableCell className="py-4 text-gray-600 text-center align-middle break-words">
+                                                            {room.room_path}
+                                                        </TableCell>
+
+                                                        {/* QR */}
+                                                        <TableCell className="py-4 text-center align-middle">
+                                                            {qrValue ? (
+                                                                <div
+                                                                    className="inline-block w-16 h-16 bg-white p-1 rounded cursor-pointer shadow-sm hover:shadow transition mx-auto"
+                                                                    onClick={(
+                                                                        e
+                                                                    ) => {
+                                                                        e.stopPropagation();
+                                                                        handleQRCodeClick(
+                                                                            qrValue,
+                                                                            room.room_number
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    <QRCode
+                                                                        value={
+                                                                            qrValue
+                                                                        }
+                                                                        size={
+                                                                            64
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-sm text-gray-500">
+                                                                    No QR
+                                                                </span>
+                                                            )}
+                                                        </TableCell>
+
+                                                        {/* Actions */}
+                                                        <TableCell className="py-4 text-center align-middle">
+                                                            <div className="flex justify-center items-center">
+                                                                {/* Full buttons on medium+ screens */}
+                                                                <div className="hidden sm:flex flex-wrap justify-center items-center gap-2">
+                                                                    <Button
+                                                                        size="sm"
+                                                                        className="inline-flex items-center gap-2 py-1.5 px-3 bg-[hsl(142,34%,65%)] text-white border-none hover:bg-[hsl(142,34%,55%)]"
+                                                                        onClick={() =>
+                                                                            (window.location.href =
+                                                                                "#")
+                                                                        }
+                                                                    >
+                                                                        <Eye className="h-4 w-4" />{" "}
+                                                                        View
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        className="inline-flex items-center gap-2 py-1.5 px-3 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                                                        onClick={() =>
+                                                                            openEditModal(
+                                                                                room
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Edit2 className="h-4 w-4" />{" "}
+                                                                        Edit
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="destructive"
+                                                                        className="inline-flex items-center gap-2 py-1.5 px-3 bg-[hsl(0,72%,51%)] text-white border-none hover:bg-[hsl(0,72%,45%)]"
+                                                                        onClick={() =>
+                                                                            handleDelete(
+                                                                                room.id
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />{" "}
+                                                                        Delete
+                                                                    </Button>
+                                                                </div>
+
+                                                                {/* Ellipsis menu for small screens */}
+                                                                <div className="sm:hidden relative">
+                                                                    <Menu>
+                                                                        <Menu.Button className="py-1.5 px-3 bg-[hsl(142,34%,51%)] text-white rounded inline-flex items-center justify-center">
+                                                                            <MoreVertical className="h-4 w-4" />
+                                                                        </Menu.Button>
+                                                                        <Menu.Items className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg flex flex-col z-50">
+                                                                            <Menu.Item>
+                                                                                {({
+                                                                                    active,
+                                                                                }) => (
+                                                                                    <button
+                                                                                        className={`w-full text-left px-3 py-2 ${
+                                                                                            active
+                                                                                                ? "bg-gray-100"
+                                                                                                : ""
+                                                                                        }`}
+                                                                                        onClick={() =>
+                                                                                            (window.location.href =
+                                                                                                "#")
+                                                                                        }
+                                                                                    >
+                                                                                        View
+                                                                                    </button>
+                                                                                )}
+                                                                            </Menu.Item>
+                                                                            <Menu.Item>
+                                                                                {({
+                                                                                    active,
+                                                                                }) => (
+                                                                                    <button
+                                                                                        className={`w-full text-left px-3 py-2 ${
+                                                                                            active
+                                                                                                ? "bg-gray-100"
+                                                                                                : ""
+                                                                                        }`}
+                                                                                        onClick={() =>
+                                                                                            openEditModal(
+                                                                                                room
+                                                                                            )
+                                                                                        }
+                                                                                    >
+                                                                                        Edit
+                                                                                    </button>
+                                                                                )}
+                                                                            </Menu.Item>
+                                                                            <Menu.Item>
+                                                                                {({
+                                                                                    active,
+                                                                                }) => (
+                                                                                    <button
+                                                                                        className={`w-full text-left px-3 py-2 text-red-600 ${
+                                                                                            active
+                                                                                                ? "bg-gray-100"
+                                                                                                : ""
+                                                                                        }`}
+                                                                                        onClick={() =>
+                                                                                            handleDelete(
+                                                                                                room.id
+                                                                                            )
+                                                                                        }
+                                                                                    >
+                                                                                        Delete
+                                                                                    </button>
+                                                                                )}
+                                                                            </Menu.Item>
+                                                                        </Menu.Items>
+                                                                    </Menu>
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
                                                 );
                                             })}
-                                        </div>
+                                        </TableBody>
+                                    </Table>
+                                </div>
+
+                                {/* Pagination */}
+                                <div className="mt-3 px-3 py-2 flex flex-col sm:flex-row justify-between items-center gap-3 border-t">
+                                    <span className="text-sm text-gray-600 text-center sm:text-left">
+                                        Showing{" "}
+                                        {rooms.data.length === 0
+                                            ? 0
+                                            : (rooms.current_page - 1) *
+                                                  rooms.per_page +
+                                              1}{" "}
+                                        –{" "}
+                                        {Math.min(
+                                            rooms.current_page * rooms.per_page,
+                                            rooms.total
+                                        )}{" "}
+                                        of {rooms.total} rooms
+                                    </span>
+
+                                    <div className="flex flex-wrap justify-center gap-2">
+                                        {rooms.links.map((link, index) => {
+                                            const label = link.label
+                                                .replace("&laquo;", "«")
+                                                .replace("&raquo;", "»");
+                                            return (
+                                                <Button
+                                                    key={index}
+                                                    variant={
+                                                        link.active
+                                                            ? "default"
+                                                            : "outline"
+                                                    }
+                                                    size="sm"
+                                                    className={`min-w-[36px] px-3 py-1 ${
+                                                        link.active
+                                                            ? "bg-[hsl(142,34%,45%)] text-white hover:bg-[hsl(142,91%,18%)]"
+                                                            : "border-[hsl(142,34%,75%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,90%)]"
+                                                    }`}
+                                                    onClick={() =>
+                                                        link.url &&
+                                                        router.visit(link.url, {
+                                                            preserveState: true,
+                                                            preserveScroll: true,
+                                                        })
+                                                    }
+                                                    disabled={!link.url}
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: label,
+                                                    }}
+                                                />
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -542,7 +623,7 @@ export default function RoomPage({ rooms, search }) {
                             }`}
                         >
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold">
+                                <h2 className="text-lg font-semibold ">
                                     Add Room
                                 </h2>
                                 {/* <Button
