@@ -7,10 +7,14 @@ import { Input } from "@/components/ui/input";
 import Notification from "@/Components/AdminComponents/Notification";
 import EditEquipmentModalPage from "./EditEquipmentPage";
 import { Filter as FilterIcon, X, Printer } from "lucide-react";
-
+import QRCode from "react-qr-code";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { Menu } from "@headlessui/react";
 import { Eye, Edit2, Trash2, MoreVertical } from "lucide-react";
-
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactDOMServer from "react-dom/server.browser";
 import {
     Table,
     TableHeader,
@@ -195,6 +199,97 @@ export default function EquipmentsPage({
     existingRooms,
     filters = {},
 }) {
+    const [downloadPanelOpen, setDownloadPanelOpen] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [selectedEquipments, setSelectedEquipments] = useState([]);
+    const [selectAll, setSelectAll] = useState(false);
+    const handleRoomChange = (roomId) => {
+        setSelectedRoom(roomId);
+        setSelectedEquipments([]);
+        setSelectAll(false);
+    };
+
+    // Select or deselect all equipments in room
+    const toggleSelectAll = () => {
+        if (selectAll) {
+            setSelectedEquipments([]);
+        } else if (selectedRoom) {
+            const roomEquipments = equipments
+                .filter((e) => e.room_id === selectedRoom)
+                .map((e) => e.id);
+            setSelectedEquipments(roomEquipments);
+        }
+        setSelectAll(!selectAll);
+    };
+
+    // Toggle single equipment selection
+    const toggleEquipment = (id) => {
+        setSelectedEquipments((prev) =>
+            prev.includes(id) ? prev.filter((eid) => eid !== id) : [...prev, id]
+        );
+    };
+
+    // Download QR codes for selected equipments
+    const downloadSelectedEquipmentQR = async () => {
+        if (selectedEquipments.length === 0) {
+            alert("Select at least one equipment.");
+            return;
+        }
+
+        const selected = equipments.filter((e) =>
+            selectedEquipments.includes(e.id)
+        );
+        const zip = new JSZip();
+
+        for (const e of selected) {
+            const qrValue = `${window.location.origin}/equipment/${e.equipment_code}`;
+            const svgString = ReactDOMServer.renderToString(
+                <QRCode value={qrValue} size={256} />
+            );
+
+            const blob = new Blob([svgString], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+
+            await new Promise((resolve) => {
+                img.onload = () => {
+                    const padding = 20;
+                    const textHeight = 50;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.width + padding * 2;
+                    canvas.height = img.height + padding * 2 + textHeight;
+                    const ctx = canvas.getContext("2d");
+
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.drawImage(img, padding, padding);
+
+                    ctx.fillStyle = "#000";
+                    ctx.font = "bold 18px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText(
+                        `Room ${e.room?.room_number} - ${e.equipment_code}`,
+                        canvas.width / 2,
+                        img.height + padding + 30
+                    );
+
+                    canvas.toBlob((canvasBlob) => {
+                        zip.file(`${e.equipment_code}.png`, canvasBlob);
+                        resolve();
+                    }, "image/png");
+                };
+                img.src = url;
+            });
+
+            URL.revokeObjectURL(url);
+        }
+
+        zip.generateAsync({ type: "blob" }).then((content) => {
+            saveAs(content, "Equipment_QR_Codes.zip");
+        });
+    };
+
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [activeFilters, setActiveFilters] = useState({});
@@ -379,6 +474,14 @@ export default function EquipmentsPage({
                                 <Printer className="h-4 w-4" />
                                 Print
                             </Button>
+
+                            <Button
+                                className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)]"
+                                onClick={() => setDownloadPanelOpen(true)}
+                            >
+                                Download QR Codes
+                            </Button>
+
                             {/* Filter Button with Filter Icon */}
                         </div>
 
@@ -681,6 +784,114 @@ export default function EquipmentsPage({
                             </div>
                         </div>
                     </div>
+
+                    <div
+                        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-xl transform transition-transform duration-300 z-50 flex flex-col
+${downloadPanelOpen ? "translate-x-0" : "translate-x-full"}`}
+                    >
+                        {/* Header */}
+                        <div className="flex justify-between items-center p-4 border-b">
+                            <h2 className="text-lg font-semibold">
+                                Download Equipment QR Codes by Room
+                            </h2>
+                            <Button
+                                variant="ghost"
+                                onClick={() => setDownloadPanelOpen(false)}
+                            >
+                                ✕
+                            </Button>
+                        </div>
+
+                        {/* Room Select */}
+                        <div className="p-4 border-b">
+                            <label className="block mb-2 font-medium text-sm text-gray-700">
+                                Select Room
+                            </label>
+                            <Select
+                                value={selectedRoom || ""}
+                                onValueChange={(value) =>
+                                    handleRoomChange(Number(value))
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="-- Select Room --" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {existingRooms.map((room) => (
+                                        <SelectItem
+                                            key={room.id}
+                                            value={room.id.toString()}
+                                        >
+                                            {room.room_number}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Select All Equipments */}
+                        {selectedRoom && (
+                            <div className="flex items-center gap-2 p-4 border-b">
+                                <Checkbox
+                                    checked={selectAll}
+                                    onCheckedChange={toggleSelectAll}
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    Select All Equipments in Room
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Equipments List */}
+                        {selectedRoom && (
+                            <ScrollArea className="flex-1 overflow-y-auto p-4 space-y-2">
+                                {equipments
+                                    .filter((e) => e.room_id === selectedRoom)
+                                    .map((e) => (
+                                        <div
+                                            key={e.id}
+                                            className="flex items-center gap-2 p-2 border rounded-md hover:bg-gray-50 transition"
+                                        >
+                                            <Checkbox
+                                                checked={selectedEquipments.includes(
+                                                    e.id
+                                                )}
+                                                onCheckedChange={() =>
+                                                    toggleEquipment(e.id)
+                                                }
+                                            />
+                                            <span className="text-sm text-gray-800">
+                                                {e.equipment_code}
+                                            </span>
+                                        </div>
+                                    ))}
+                            </ScrollArea>
+                        )}
+
+                        {/* Footer Buttons */}
+                        <div className="p-4 border-t flex justify-end gap-2">
+                            <Button
+                                variant="secondary"
+                                onClick={() => setDownloadPanelOpen(false)}
+                            >
+                                Close
+                            </Button>
+                            <Button
+                                className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)]"
+                                onClick={downloadSelectedEquipmentQR}
+                            >
+                                Download Selected
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Overlay */}
+                    {downloadPanelOpen && (
+                        <div
+                            className="fixed inset-0 bg-black/40 z-40"
+                            onClick={() => setDownloadPanelOpen(false)}
+                        />
+                    )}
                 </main>
             </SidebarInset>
         </SidebarProvider>

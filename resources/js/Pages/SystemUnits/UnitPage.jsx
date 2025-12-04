@@ -48,6 +48,12 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
+import ReactDOMServer from "react-dom/server.browser";
+
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 //filter icon
 import {
     Filter as FilterIcon,
@@ -345,7 +351,99 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedUnit, setSelectedUnit] = useState(null);
     const itemsPerPage = 10;
+    const [downloadPanelOpen, setDownloadPanelOpen] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [selectedUnits, setSelectedUnits] = useState([]);
+    const [selectAll, setSelectAll] = useState(false);
 
+    // Filter units by selected room
+    const handleRoomChange = (roomId) => {
+        setSelectedRoom(roomId);
+        setSelectedUnits([]);
+        setSelectAll(false);
+    };
+
+    // Select or deselect all units in room
+    const toggleSelectAll = () => {
+        if (selectAll) {
+            setSelectedUnits([]);
+        } else if (selectedRoom) {
+            const roomUnits = units
+                .filter((u) => u.room_id === selectedRoom)
+                .map((u) => u.id);
+            setSelectedUnits(roomUnits);
+        }
+        setSelectAll(!selectAll);
+    };
+
+    // Toggle single unit selection
+    const toggleUnit = (id) => {
+        setSelectedUnits((prev) =>
+            prev.includes(id) ? prev.filter((uid) => uid !== id) : [...prev, id]
+        );
+    };
+
+    // Download QR codes for selected units
+    const downloadSelectedUnitQR = async () => {
+        if (selectedUnits.length === 0) {
+            alert("Select at least one unit.");
+            return;
+        }
+
+        const selected = units.filter((u) => selectedUnits.includes(u.id));
+        const zip = new JSZip();
+
+        for (const u of selected) {
+            const qrValue = `${window.location.origin}/view/${u.unit_path}`;
+            const svgString = ReactDOMServer.renderToString(
+                <QRCode value={qrValue} size={256} />
+            );
+
+            const blob = new Blob([svgString], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+
+            await new Promise((resolve) => {
+                img.onload = () => {
+                    const padding = 20;
+                    const textHeight = 50;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.width + padding * 2;
+                    canvas.height = img.height + padding * 2 + textHeight;
+                    const ctx = canvas.getContext("2d");
+
+                    // White background
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw QR code
+                    ctx.drawImage(img, padding, padding);
+
+                    // Draw text below QR
+                    ctx.fillStyle = "#000";
+                    ctx.font = "bold 18px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText(
+                        `Room ${u.room?.room_number} - ${u.unit_code}`,
+                        canvas.width / 2,
+                        img.height + padding + 30
+                    );
+
+                    canvas.toBlob((canvasBlob) => {
+                        zip.file(`${u.unit_code}.png`, canvasBlob);
+                        resolve();
+                    }, "image/png");
+                };
+                img.src = url;
+            });
+
+            URL.revokeObjectURL(url);
+        }
+
+        zip.generateAsync({ type: "blob" }).then((content) => {
+            saveAs(content, "Unit_QR_Codes.zip");
+        });
+    };
     const { delete: destroy } = useInertiaForm();
 
     const handleUpdateSuccess = () => {
@@ -677,6 +775,13 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                                 <Printer className="h-4 w-4" />
                                 Print
                             </Button>
+
+                            <Button
+                                className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)]"
+                                onClick={() => setDownloadPanelOpen(true)}
+                            >
+                                Download QR Codes
+                            </Button>
                         </div>
 
                         {/* Import Button */}
@@ -1001,6 +1106,114 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                             </Button>
                         </div>
                     </div>
+                    {/* Download Panel */}
+                    <div
+                        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-xl transform transition-transform duration-300 z-50 flex flex-col
+    ${downloadPanelOpen ? "translate-x-0" : "translate-x-full"}`}
+                    >
+                        {/* Header */}
+                        <div className="flex justify-between items-center p-4 border-b">
+                            <h2 className="text-lg font-semibold">
+                                Download Unit QR Codes by Room
+                            </h2>
+                            <Button
+                                variant="ghost"
+                                onClick={() => setDownloadPanelOpen(false)}
+                            >
+                                ✕
+                            </Button>
+                        </div>
+
+                        {/* Room Select */}
+                        <div className="p-4 border-b">
+                            <label className="block mb-2 font-medium text-sm text-gray-700">
+                                Select Room
+                            </label>
+                            <Select
+                                value={selectedRoom || ""}
+                                onValueChange={(value) =>
+                                    handleRoomChange(Number(value))
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="-- Select Room --" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {rooms.map((room) => (
+                                        <SelectItem
+                                            key={room.id}
+                                            value={room.id.toString()}
+                                        >
+                                            {room.room_number}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Select All Units */}
+                        {selectedRoom && (
+                            <div className="flex items-center gap-2 p-4 border-b">
+                                <Checkbox
+                                    checked={selectAll}
+                                    onCheckedChange={toggleSelectAll}
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    Select All Units in Room
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Units List */}
+                        {selectedRoom && (
+                            <ScrollArea className="flex-1 overflow-y-auto p-4 space-y-2">
+                                {units
+                                    .filter((u) => u.room_id === selectedRoom)
+                                    .map((u) => (
+                                        <div
+                                            key={u.id}
+                                            className="flex items-center gap-2 p-2 border rounded-md hover:bg-gray-50 transition"
+                                        >
+                                            <Checkbox
+                                                checked={selectedUnits.includes(
+                                                    u.id
+                                                )}
+                                                onCheckedChange={() =>
+                                                    toggleUnit(u.id)
+                                                }
+                                            />
+                                            <span className="text-sm text-gray-800">
+                                                {u.unit_code}
+                                            </span>
+                                        </div>
+                                    ))}
+                            </ScrollArea>
+                        )}
+
+                        {/* Footer Buttons */}
+                        <div className="p-4 border-t flex justify-end gap-2">
+                            <Button
+                                variant="secondary"
+                                onClick={() => setDownloadPanelOpen(false)}
+                            >
+                                Close
+                            </Button>
+                            <Button
+                                className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)]"
+                                onClick={downloadSelectedUnitQR}
+                            >
+                                Download Selected
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Overlay */}
+                    {downloadPanelOpen && (
+                        <div
+                            className="fixed inset-0 bg-black/40 z-40"
+                            onClick={() => setDownloadPanelOpen(false)}
+                        />
+                    )}
 
                     {/* Edit Modal */}
                     {selectedUnit && (
