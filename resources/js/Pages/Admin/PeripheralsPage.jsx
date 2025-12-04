@@ -301,49 +301,65 @@ export default function PeripheralsIndex({
             selectedPeripherals.includes(p.id)
         );
 
-        for (const p of selected) {
+        // Canvas setup
+        const qrSize = 128;
+        const padding = 20;
+        const textHeight = 10;
+        const columns = 6; // how many QR codes per row
+        const rows = Math.ceil(selected.length / columns);
+
+        const canvasWidth = columns * (qrSize + padding) + padding;
+        const canvasHeight = rows * (qrSize + textHeight + padding) + padding;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        const ctx = canvas.getContext("2d");
+
+        // Background
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#000";
+        ctx.font = `bold ${textHeight}px Arial`;
+
+        for (let i = 0; i < selected.length; i++) {
+            const p = selected[i];
             const qrValue = `${window.location.origin}/peripherals/${p.peripheral_code}`;
-            const svgString = ReactDOMServer.renderToString(
-                <QRCode value={qrValue} size={256} />
+            const qrSVGString = ReactDOMServer.renderToStaticMarkup(
+                <QRCode value={qrValue} size={qrSize} />
             );
 
-            const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
-            const url = URL.createObjectURL(svgBlob);
-            const img = new Image();
+            const blob = new Blob([qrSVGString], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
 
             await new Promise((resolve) => {
+                const img = new Image();
                 img.onload = () => {
-                    const canvas = document.createElement("canvas");
-                    canvas.width = img.width + 40;
-                    canvas.height = img.height + 80;
+                    const row = Math.floor(i / columns);
+                    const col = i % columns;
+                    const x = padding + col * (qrSize + padding);
+                    const y = padding + row * (qrSize + textHeight + padding);
 
-                    const ctx = canvas.getContext("2d");
-                    ctx.fillStyle = "#FFF";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 20, 20);
-
-                    ctx.fillStyle = "#000";
-                    ctx.font = "bold 18px Arial";
-                    ctx.textAlign = "center";
+                    ctx.drawImage(img, x, y, qrSize, qrSize);
                     ctx.fillText(
-                        `${p.room?.room_number} - ${p.peripheral_code}`,
-                        canvas.width / 2,
-                        canvas.height - 20
+                        `${p.type} - ${p.peripheral_code}`,
+                        x + qrSize / 2,
+                        y + qrSize + 18
                     );
 
-                    const link = document.createElement("a");
-                    link.download = `${p.peripheral_code}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-
+                    URL.revokeObjectURL(url);
                     resolve();
                 };
-
                 img.src = url;
             });
-
-            URL.revokeObjectURL(url);
         }
+
+        // Download final image
+        const link = document.createElement("a");
+        link.download = `Peripherals_Room_${selectedRoom}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
     };
 
     const [searchTerm, setSearchTerm] = useState(search || "");
