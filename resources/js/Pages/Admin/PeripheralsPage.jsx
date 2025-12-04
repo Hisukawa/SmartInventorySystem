@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import {
     Table,
@@ -260,37 +261,48 @@ export default function PeripheralsIndex({
     filters = {},
 }) {
     const [downloadPanelOpen, setDownloadPanelOpen] = useState(false);
-    const [selectedList, setSelectedList] = useState([]);
-    const [selectAllList, setSelectAllList] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [selectedPeripherals, setSelectedPeripherals] = useState([]);
+    const [selectAll, setSelectAll] = useState(false);
 
-    const toggleSelectAllList = () => {
-        if (selectAllList) {
-            setSelectedList([]);
-        } else {
-            setSelectedList(peripherals.map((p) => p.id));
+    const handleRoomChange = (roomId) => {
+        setSelectedRoom(roomId);
+        const roomPeripherals = peripherals
+            .filter((p) => p.room_id === roomId)
+            .map((p) => p.id);
+        setSelectedPeripherals([]);
+        setSelectAll(false);
+    };
+    const toggleSelectAll = () => {
+        if (selectAll) {
+            setSelectedPeripherals([]);
+        } else if (selectedRoom) {
+            const roomPeripherals = peripherals
+                .filter((p) => p.room_id === selectedRoom)
+                .map((p) => p.id);
+            setSelectedPeripherals(roomPeripherals);
         }
-        setSelectAllList(!selectAllList);
+        setSelectAll(!selectAll);
     };
 
-    const toggleSelectItem = (id) => {
-        setSelectedList((prev) =>
+    const togglePeripheral = (id) => {
+        setSelectedPeripherals((prev) =>
             prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
         );
     };
 
     const downloadSelectedQR = async () => {
-        if (selectedList.length === 0) {
-            alert("Please select at least one peripheral.");
+        if (selectedPeripherals.length === 0) {
+            alert("Select at least one peripheral.");
             return;
         }
 
-        const selectedPeripherals = peripherals.filter((p) =>
-            selectedList.includes(p.id)
+        const selected = peripherals.filter((p) =>
+            selectedPeripherals.includes(p.id)
         );
 
-        for (const p of selectedPeripherals) {
+        for (const p of selected) {
             const qrValue = `${window.location.origin}/peripherals/${p.peripheral_code}`;
-
             const svgString = ReactDOMServer.renderToString(
                 <QRCode value={qrValue} size={256} />
             );
@@ -747,7 +759,6 @@ export default function PeripheralsIndex({
                                     <Printer className="h-4 w-4" />
                                     Print
                                 </Button>
-
                                 <Button
                                     className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white"
                                     onClick={() => setDownloadPanelOpen(true)}
@@ -1090,18 +1101,15 @@ export default function PeripheralsIndex({
                         </div>
                     </div>
 
-                    {/* Slide-over panel */}
+                    {/* Slide-over */}
                     <div
-                        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-xl transform transition-transform duration-300 z-50 ${
-                            downloadPanelOpen
-                                ? "translate-x-0"
-                                : "translate-x-full"
-                        } flex flex-col`}
+                        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-xl transform transition-transform duration-300 z-50 flex flex-col
+  ${downloadPanelOpen ? "translate-x-0" : "translate-x-full"}`}
                     >
                         {/* Header */}
                         <div className="flex justify-between items-center p-4 border-b">
                             <h2 className="text-lg font-semibold">
-                                Select Peripherals to Download
+                                Download QR Codes by Room
                             </h2>
                             <Button
                                 variant="ghost"
@@ -1111,37 +1119,71 @@ export default function PeripheralsIndex({
                             </Button>
                         </div>
 
-                        {/* Select All */}
-                        <div className="flex items-center gap-2 p-4 border-b">
-                            <Checkbox
-                                checked={selectAllList}
-                                onCheckedChange={toggleSelectAllList}
-                            />
-                            <span className="text-sm font-medium">
-                                Select All
-                            </span>
+                        {/* Room Select */}
+                        <div className="p-4 border-b">
+                            <label className="block mb-2 font-medium text-sm text-gray-700">
+                                Select Room
+                            </label>
+                            <Select
+                                value={selectedRoom || ""}
+                                onValueChange={(value) =>
+                                    handleRoomChange(Number(value))
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="-- Select Room --" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {existingRooms.map((room) => (
+                                        <SelectItem
+                                            key={room.id}
+                                            value={room.id.toString()}
+                                        >
+                                            {room.room_number}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
+                        {/* Select All */}
+                        {selectedRoom && (
+                            <div className="flex items-center gap-2 p-4 border-b">
+                                <Checkbox
+                                    checked={selectAll}
+                                    onCheckedChange={toggleSelectAll}
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    Select All Peripherals in Room
+                                </span>
+                            </div>
+                        )}
+
                         {/* Peripherals List */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                            {peripherals.map((p) => (
-                                <div
-                                    key={p.id}
-                                    className="flex items-center gap-2 p-2 border rounded-md"
-                                >
-                                    <Checkbox
-                                        checked={selectedList.includes(p.id)}
-                                        onCheckedChange={() =>
-                                            toggleSelectItem(p.id)
-                                        }
-                                    />
-                                    <span className="text-sm">
-                                        {p.room?.room_number} —{" "}
-                                        {p.peripheral_code}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
+                        {selectedRoom && (
+                            <ScrollArea className="flex-1 overflow-y-auto p-4 space-y-2">
+                                {peripherals
+                                    .filter((p) => p.room_id === selectedRoom)
+                                    .map((p) => (
+                                        <div
+                                            key={p.id}
+                                            className="flex items-center gap-2 p-2 border rounded-md hover:bg-gray-50 transition"
+                                        >
+                                            <Checkbox
+                                                checked={selectedPeripherals.includes(
+                                                    p.id
+                                                )}
+                                                onCheckedChange={() =>
+                                                    togglePeripheral(p.id)
+                                                }
+                                            />
+                                            <span className="text-sm text-gray-800">
+                                                {p.type} - {p.peripheral_code}
+                                            </span>
+                                        </div>
+                                    ))}
+                            </ScrollArea>
+                        )}
 
                         {/* Footer Buttons */}
                         <div className="p-4 border-t flex justify-end gap-2">
@@ -1152,7 +1194,7 @@ export default function PeripheralsIndex({
                                 Close
                             </Button>
                             <Button
-                                className="bg-[hsl(142,34%,51%)] text-white"
+                                className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)]"
                                 onClick={downloadSelectedQR}
                             >
                                 Download Selected
