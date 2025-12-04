@@ -225,6 +225,7 @@ if (!$existingStatus) {
             'name' => $e->equipment_code,
             'condition' => $e->condition ?? 'Good',
             'type' => $e->type,
+            'equipment_name' => $e->equipment_name,
             'room_path' => $room->room_path,
             'room_number' => $e->room?->room_number,
         ]);

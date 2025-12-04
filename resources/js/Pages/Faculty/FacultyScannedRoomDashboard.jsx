@@ -4,6 +4,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Monitor, Mouse, Keyboard, Boxes, Menu } from "lucide-react";
 
 import {
+    LineChart,
+    Line,
+    Area,
     PieChart,
     Pie,
     Cell,
@@ -118,14 +121,16 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                     {/* Total Cards Section */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         {/* Total Computers */}
-                        <Card
-                            onClick={() => console.log("Computers clicked")}
-                            className="w-full flex flex-col p-4 rounded-2xl shadow-lg active:scale-[0.97] transition cursor-pointer bg-white"
-                        >
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg font-semibold">
-                                    Total Computers
-                                </CardTitle>
+                        <Card className="w-full flex flex-col p-4 rounded-2xl shadow-lg hover:shadow-xl active:scale-[0.97] transition cursor-pointer bg-white">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex flex-col">
+                                    <CardTitle className="text-lg font-semibold">
+                                        Computers
+                                    </CardTitle>
+                                    <p className="text-gray-500 text-sm">
+                                        Total units
+                                    </p>
+                                </div>
                                 <Monitor className="w-10 h-10 text-[hsl(142,34%,45%)]" />
                             </div>
                             <CardContent className="flex-1 flex items-center justify-center">
@@ -136,14 +141,13 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                         </Card>
 
                         {/* Total Mouse */}
-                        <Card
-                            onClick={() => console.log("Mouse clicked")}
-                            className="w-full flex flex-col p-4 rounded-2xl shadow-lg active:scale-[0.97] transition cursor-pointer bg-white"
-                        >
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg font-semibold">
-                                    Total Mouse
-                                </CardTitle>
+                        <Card className="w-full flex flex-col p-4 rounded-2xl shadow-lg hover:shadow-xl active:scale-[0.97] transition cursor-pointer bg-white">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex flex-col">
+                                    <CardTitle className="text-lg font-semibold">
+                                        Mouse
+                                    </CardTitle>
+                                </div>
                                 <Mouse className="w-10 h-10 text-[hsl(142,34%,45%)]" />
                             </div>
                             <CardContent className="flex-1 flex items-center justify-center">
@@ -154,14 +158,13 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                         </Card>
 
                         {/* Total Keyboards */}
-                        <Card
-                            onClick={() => console.log("Keyboard clicked")}
-                            className="w-full flex flex-col p-4 rounded-2xl shadow-lg active:scale-[0.97] transition cursor-pointer bg-white"
-                        >
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg font-semibold">
-                                    Total Keyboards
-                                </CardTitle>
+                        <Card className="w-full flex flex-col p-4 rounded-2xl shadow-lg hover:shadow-xl active:scale-[0.97] transition cursor-pointer bg-white">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex flex-col">
+                                    <CardTitle className="text-lg font-semibold">
+                                        Keyboards
+                                    </CardTitle>
+                                </div>
                                 <Keyboard className="w-10 h-10 text-[hsl(142,34%,45%)]" />
                             </div>
                             <CardContent className="flex-1 flex items-center justify-center">
@@ -171,23 +174,85 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                             </CardContent>
                         </Card>
 
-                        {/* Total Equipments */}
-                        <Card
-                            onClick={() => console.log("Equipments clicked")}
-                            className="w-full flex flex-col p-4 rounded-2xl shadow-lg active:scale-[0.97] transition cursor-pointer bg-white"
-                        >
-                            <div className="flex items-center justify-between">
+                        {/* Total Equipment */}
+                        <Card className="w-full p-4 rounded-2xl shadow-lg hover:shadow-xl transition bg-white">
+                            <div className="flex items-center justify-between mb-3">
                                 <CardTitle className="text-lg font-semibold">
-                                    Total Equipments
+                                    Total Equipment
                                 </CardTitle>
-                                <Boxes className="w-10 h-10 text-[hsl(142,34%,45%)]" />
+                                <Boxes className="w-8 h-8 text-[hsl(142,34%,45%)]" />
                             </div>
-                            <CardContent className="flex-1 flex items-center justify-center">
-                                <p className="text-3xl font-bold">
-                                    {stats.equipments.total || 0}
-                                </p>
-                            </CardContent>
+                            <p className="text-2xl font-bold mb-2">
+                                {stats.equipments.total || 0}
+                            </p>
                         </Card>
+                    </div>
+                    {/* Equipment Count Chart (Best for category counts) */}
+                    <div
+                        className="
+    w-full 
+    mt-6 
+    bg-white 
+    p-4 
+    rounded-2xl 
+    shadow-md 
+    max-w-2xl   /* Limits width on web */
+    mx-auto     /* Centers chart */
+"
+                    >
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart
+                                data={Object.entries(stats.equipments.by_name)
+                                    .sort((a, b) => b[1] - a[1])
+                                    .slice(0, 5)
+                                    .map(([name, count]) => ({ name, count }))}
+                                layout="vertical"
+                                margin={{
+                                    top: 10,
+                                    right: 20,
+                                    left: 0,
+                                    bottom: 10,
+                                }}
+                            >
+                                <defs>
+                                    <linearGradient
+                                        id="greenGrad"
+                                        x1="0"
+                                        y1="0"
+                                        x2="1"
+                                        y2="0"
+                                    >
+                                        <stop
+                                            offset="0%"
+                                            stopColor="#4CAF50"
+                                            stopOpacity={0.9}
+                                        />
+                                        <stop
+                                            offset="100%"
+                                            stopColor="#A5D6A7"
+                                            stopOpacity={0.7}
+                                        />
+                                    </linearGradient>
+                                </defs>
+
+                                <XAxis type="number" hide />
+                                <YAxis
+                                    type="category"
+                                    dataKey="name"
+                                    width={120}
+                                    tick={{ fontSize: 12 }}
+                                />
+
+                                <Tooltip formatter={(v) => [v, "Units"]} />
+
+                                <Bar
+                                    dataKey="count"
+                                    radius={[8, 8, 8, 8]}
+                                    fill="url(#greenGrad)"
+                                    barSize={20}
+                                />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
             </div>
