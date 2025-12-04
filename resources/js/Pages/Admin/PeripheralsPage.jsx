@@ -7,6 +7,19 @@ import Swal from "sweetalert2";
 import Notification from "@/Components/AdminComponents/Notification";
 import { Eye, Edit2, Trash2, MoreVertical } from "lucide-react";
 import { Menu } from "@headlessui/react";
+import QRCode from "react-qr-code";
+
+import ReactDOMServer from "react-dom/server.browser";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+
+import { Checkbox } from "@/components/ui/checkbox";
+
 import {
     Table,
     TableBody,
@@ -246,6 +259,81 @@ export default function PeripheralsIndex({
     existingUnits,
     filters = {},
 }) {
+    const [downloadPanelOpen, setDownloadPanelOpen] = useState(false);
+    const [selectedList, setSelectedList] = useState([]);
+    const [selectAllList, setSelectAllList] = useState(false);
+
+    const toggleSelectAllList = () => {
+        if (selectAllList) {
+            setSelectedList([]);
+        } else {
+            setSelectedList(peripherals.map((p) => p.id));
+        }
+        setSelectAllList(!selectAllList);
+    };
+
+    const toggleSelectItem = (id) => {
+        setSelectedList((prev) =>
+            prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
+        );
+    };
+
+    const downloadSelectedQR = async () => {
+        if (selectedList.length === 0) {
+            alert("Please select at least one peripheral.");
+            return;
+        }
+
+        const selectedPeripherals = peripherals.filter((p) =>
+            selectedList.includes(p.id)
+        );
+
+        for (const p of selectedPeripherals) {
+            const qrValue = `${window.location.origin}/peripherals/${p.peripheral_code}`;
+
+            const svgString = ReactDOMServer.renderToString(
+                <QRCode value={qrValue} size={256} />
+            );
+
+            const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+
+            await new Promise((resolve) => {
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.width + 40;
+                    canvas.height = img.height + 80;
+
+                    const ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#FFF";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 20, 20);
+
+                    ctx.fillStyle = "#000";
+                    ctx.font = "bold 18px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText(
+                        `${p.room?.room_number} - ${p.peripheral_code}`,
+                        canvas.width / 2,
+                        canvas.height - 20
+                    );
+
+                    const link = document.createElement("a");
+                    link.download = `${p.peripheral_code}.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+
+                    resolve();
+                };
+
+                img.src = url;
+            });
+
+            URL.revokeObjectURL(url);
+        }
+    };
+
     const [searchTerm, setSearchTerm] = useState(search || "");
     const [editPeripheral, setEditPeripheral] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -660,6 +748,14 @@ export default function PeripheralsIndex({
                                     Print
                                 </Button>
 
+                                <Button
+                                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white"
+                                    onClick={() => setDownloadPanelOpen(true)}
+                                >
+                                    <Download className="h-4 w-4" />
+                                    Download QR Codes
+                                </Button>
+
                                 {/* Import Button */}
                                 {/* <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
                                     <input
@@ -993,6 +1089,84 @@ export default function PeripheralsIndex({
                             </div>
                         </div>
                     </div>
+
+                    {/* Slide-over panel */}
+                    <div
+                        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-xl transform transition-transform duration-300 z-50 ${
+                            downloadPanelOpen
+                                ? "translate-x-0"
+                                : "translate-x-full"
+                        } flex flex-col`}
+                    >
+                        {/* Header */}
+                        <div className="flex justify-between items-center p-4 border-b">
+                            <h2 className="text-lg font-semibold">
+                                Select Peripherals to Download
+                            </h2>
+                            <Button
+                                variant="ghost"
+                                onClick={() => setDownloadPanelOpen(false)}
+                            >
+                                ✕
+                            </Button>
+                        </div>
+
+                        {/* Select All */}
+                        <div className="flex items-center gap-2 p-4 border-b">
+                            <Checkbox
+                                checked={selectAllList}
+                                onCheckedChange={toggleSelectAllList}
+                            />
+                            <span className="text-sm font-medium">
+                                Select All
+                            </span>
+                        </div>
+
+                        {/* Peripherals List */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                            {peripherals.map((p) => (
+                                <div
+                                    key={p.id}
+                                    className="flex items-center gap-2 p-2 border rounded-md"
+                                >
+                                    <Checkbox
+                                        checked={selectedList.includes(p.id)}
+                                        onCheckedChange={() =>
+                                            toggleSelectItem(p.id)
+                                        }
+                                    />
+                                    <span className="text-sm">
+                                        {p.room?.room_number} —{" "}
+                                        {p.peripheral_code}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Footer Buttons */}
+                        <div className="p-4 border-t flex justify-end gap-2">
+                            <Button
+                                variant="secondary"
+                                onClick={() => setDownloadPanelOpen(false)}
+                            >
+                                Close
+                            </Button>
+                            <Button
+                                className="bg-[hsl(142,34%,51%)] text-white"
+                                onClick={downloadSelectedQR}
+                            >
+                                Download Selected
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Overlay */}
+                    {downloadPanelOpen && (
+                        <div
+                            className="fixed inset-0 bg-black/40 z-40"
+                            onClick={() => setDownloadPanelOpen(false)}
+                        />
+                    )}
                 </main>
 
                 {editPeripheral && (
