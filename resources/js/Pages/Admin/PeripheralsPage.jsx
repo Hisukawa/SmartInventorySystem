@@ -7,20 +7,12 @@ import Swal from "sweetalert2";
 import Notification from "@/Components/AdminComponents/Notification";
 import { Eye, Edit2, Trash2, MoreVertical } from "lucide-react";
 import { Menu } from "@headlessui/react";
-import QRCode from "react-qr-code";
-
-import ReactDOMServer from "react-dom/server.browser";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog";
-
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import QRCode from "react-qr-code";
+import ReactDOMServer from "react-dom/server.browser";
 import {
     Table,
     TableBody,
@@ -273,6 +265,7 @@ export default function PeripheralsIndex({
         setSelectedPeripherals([]);
         setSelectAll(false);
     };
+
     const toggleSelectAll = () => {
         if (selectAll) {
             setSelectedPeripherals([]);
@@ -301,67 +294,61 @@ export default function PeripheralsIndex({
             selectedPeripherals.includes(p.id)
         );
 
-        // Canvas setup
-        const qrSize = 128;
-        const padding = 20;
-        const textHeight = 10;
-        const columns = 6; // how many QR codes per row
-        const rows = Math.ceil(selected.length / columns);
+        const zip = new JSZip();
 
-        const canvasWidth = columns * (qrSize + padding) + padding;
-        const canvasHeight = rows * (qrSize + textHeight + padding) + padding;
-
-        const canvas = document.createElement("canvas");
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-        const ctx = canvas.getContext("2d");
-
-        // Background
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.textAlign = "center";
-        ctx.fillStyle = "#000";
-        ctx.font = `bold ${textHeight}px Arial`;
-
-        for (let i = 0; i < selected.length; i++) {
-            const p = selected[i];
+        for (const p of selected) {
             const qrValue = `${window.location.origin}/peripherals/${p.peripheral_code}`;
-            const qrSVGString = ReactDOMServer.renderToStaticMarkup(
-                <QRCode value={qrValue} size={qrSize} />
+            const svgString = ReactDOMServer.renderToString(
+                <QRCode value={qrValue} size={256} />
             );
 
-            const blob = new Blob([qrSVGString], { type: "image/svg+xml" });
+            const blob = new Blob([svgString], { type: "image/svg+xml" });
             const url = URL.createObjectURL(blob);
+            const img = new Image();
 
             await new Promise((resolve) => {
-                const img = new Image();
                 img.onload = () => {
-                    const row = Math.floor(i / columns);
-                    const col = i % columns;
-                    const x = padding + col * (qrSize + padding);
-                    const y = padding + row * (qrSize + textHeight + padding);
+                    const padding = 20;
+                    const textHeight = 50;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.width + padding * 2;
+                    canvas.height = img.height + padding * 2 + textHeight;
+                    const ctx = canvas.getContext("2d");
 
-                    ctx.drawImage(img, x, y, qrSize, qrSize);
+                    // White background
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw QR code
+                    ctx.drawImage(img, padding, padding);
+
+                    // Draw text below QR
+                    ctx.fillStyle = "#000";
+                    ctx.font = "bold 18px Arial";
+                    ctx.textAlign = "center";
                     ctx.fillText(
-                        `${p.type} - ${p.peripheral_code}`,
-                        x + qrSize / 2,
-                        y + qrSize + 18
+                        `Room ${p.room?.room_number} - ${p.peripheral_code}`,
+                        canvas.width / 2,
+                        img.height + padding + 30
                     );
 
-                    URL.revokeObjectURL(url);
-                    resolve();
+                    // Convert canvas to blob and add to zip
+                    canvas.toBlob((canvasBlob) => {
+                        zip.file(`${p.peripheral_code}.png`, canvasBlob);
+                        resolve();
+                    }, "image/png");
                 };
                 img.src = url;
             });
+
+            URL.revokeObjectURL(url);
         }
 
-        // Download final image
-        const link = document.createElement("a");
-        link.download = `Peripherals_Room_${selectedRoom}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+        // Generate and download ZIP
+        zip.generateAsync({ type: "blob" }).then((content) => {
+            saveAs(content, "QR_Codes.zip");
+        });
     };
-
     const [searchTerm, setSearchTerm] = useState(search || "");
     const [editPeripheral, setEditPeripheral] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
