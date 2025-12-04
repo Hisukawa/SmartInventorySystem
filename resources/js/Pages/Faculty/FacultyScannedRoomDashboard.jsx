@@ -244,7 +244,7 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                                     tick={{ fontSize: 12 }}
                                 />
 
-                                <Tooltip formatter={(v) => [v, "Units"]} />
+                                <Tooltip formatter={(v) => [v, "Count"]} />
 
                                 <Bar
                                     dataKey="count"
