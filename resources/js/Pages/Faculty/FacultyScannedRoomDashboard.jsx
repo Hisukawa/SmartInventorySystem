@@ -128,7 +128,7 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                                         Total Computers
                                     </CardTitle>
                                 </div>
-                                <Monitor className="w-10 h-10 text-[hsl(142,34%,45%)]" />
+                                <Monitor className="w-8 h-8 text-[hsl(142,34%,45%)]" />
                             </div>
                             <CardContent className="flex-1 flex items-center justify-center">
                                 <p className="text-3xl font-bold">
@@ -145,7 +145,7 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                                         Total Mouse
                                     </CardTitle>
                                 </div>
-                                <Mouse className="w-10 h-10 text-[hsl(142,34%,45%)]" />
+                                <Mouse className="w-8 h-8 text-[hsl(142,34%,45%)]" />
                             </div>
                             <CardContent className="flex-1 flex items-center justify-center">
                                 <p className="text-3xl font-bold">
@@ -159,10 +159,10 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex flex-col">
                                     <CardTitle className="text-lg font-semibold">
-                                        Keyboards
+                                        Total Keyboards
                                     </CardTitle>
                                 </div>
-                                <Keyboard className="w-10 h-10 text-[hsl(142,34%,45%)]" />
+                                <Keyboard className="w-8 h-8 text-[hsl(142,34%,45%)]" />
                             </div>
                             <CardContent className="flex-1 flex items-center justify-center">
                                 <p className="text-3xl font-bold">
@@ -173,15 +173,19 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
 
                         {/* Total Equipment */}
                         <Card className="w-full p-4 rounded-2xl shadow-lg hover:shadow-xl transition bg-white">
-                            <div className="flex items-center justify-between mb-3">
-                                <CardTitle className="text-lg font-semibold">
-                                    Total Equipment
-                                </CardTitle>
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex flex-col">
+                                    <CardTitle className="text-lg font-semibold">
+                                        Total Equipments
+                                    </CardTitle>
+                                </div>
                                 <Boxes className="w-8 h-8 text-[hsl(142,34%,45%)]" />
                             </div>
-                            <p className="text-2xl font-bold mb-2">
-                                {stats.equipments.total || 0}
-                            </p>
+                            <CardContent className="flex-1 flex items-center justify-center">
+                                <p className="text-3xl font-bold mb-2">
+                                    {stats.equipments.total || 0}
+                                </p>
+                            </CardContent>
                         </Card>
                     </div>
                     {/* Equipment Count Chart (Best for category counts) */}
