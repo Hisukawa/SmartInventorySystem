@@ -521,7 +521,7 @@ export default function FacultyRoomView({
                                             <TableHead className="w-20 text-center text-gray-600">
                                                 No
                                             </TableHead>
-                                            <TableHead className="text-gray-600  whitespace-nowrap">
+                                            <TableHead className="text-gray-600 whitespace-nowrap">
                                                 {activeSection ===
                                                 "system-units"
                                                     ? "Pc Code"
@@ -530,10 +530,17 @@ export default function FacultyRoomView({
                                                     ? "Peripheral Code"
                                                     : "Equipment Code"}
                                             </TableHead>
-                                            {activeSection !==
-                                                "system-units" && (
+
+                                            {activeSection ===
+                                                "peripherals" && (
                                                 <TableHead className="text-gray-600">
                                                     Type
+                                                </TableHead>
+                                            )}
+
+                                            {activeSection === "equipments" && (
+                                                <TableHead className="text-gray-600">
+                                                    Equipment Name
                                                 </TableHead>
                                             )}
                                             <TableHead className="text-gray-600">
@@ -567,7 +574,10 @@ export default function FacultyRoomView({
                                                             {activeSection !==
                                                                 "system-units" && (
                                                                 <TableCell className="text-gray-700">
-                                                                    {item.type}
+                                                                    {activeSection ===
+                                                                    "equipments"
+                                                                        ? item.equipment_name
+                                                                        : item.type}
                                                                 </TableCell>
                                                             )}
                                                             <TableCell>
