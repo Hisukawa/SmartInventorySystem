@@ -1,5 +1,3 @@
-// resources/js/Components/AdminComponents/TopNavBar.jsx
-
 import React, { useState } from "react";
 import {
     Cpu,
@@ -13,11 +11,7 @@ import {
 
 const data = {
     navMain: [
-        {
-            title: "Room History",
-            url: "/admin/room-histories",
-            icon: History,
-        },
+        { title: "Room History", url: "/admin/room-histories", icon: History },
         {
             title: "System Unit History",
             url: "/admin/system-unit-histories",
@@ -33,11 +27,7 @@ const data = {
             url: "/admin/equipment-history",
             icon: HardDrive,
         },
-        {
-            title: "Users History",
-            url: "/admin/user-histories",
-            icon: Users,
-        },
+        { title: "Users History", url: "/admin/user-histories", icon: Users },
     ],
 };
 
@@ -45,24 +35,43 @@ export default function TopNavBar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const currentPath = window.location.pathname;
 
+    // Get active navigation title
+    const activeNav = data.navMain.find((item) => item.url === currentPath);
+
     return (
         <nav className="w-full bg-white shadow-sm border-b flex items-center justify-between px-4 py-3 relative">
-            {/* Desktop Menu - Scrollable on small screens */}
-            <div className="flex-1 flex justify-center overflow-x-auto scrollbar-hide">
-                <ul className="flex items-center gap-4 sm:gap-6 md:gap-8 min-w-max">
+            {/* Left: Mobile Menu Button */}
+            <div className="flex items-center gap-2">
+                <button
+                    className="md:hidden p-2 rounded hover:bg-gray-100"
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                >
+                    {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+                </button>
+
+                {/* Show active page title on mobile */}
+                <span className="md:hidden font-semibold text-gray-800 text-sm">
+                    {activeNav ? activeNav.title : ""}
+                </span>
+            </div>
+
+            {/* Center: Desktop Scrollable Navigation */}
+            <div className="flex-1 flex justify-center overflow-x-auto scrollbar-hide hidden md:flex">
+                <ul className="flex items-center gap-6 min-w-max">
                     {data.navMain.map((item, index) => {
                         const isActive = currentPath === item.url;
                         return (
-                            <li key={index} className="flex-shrink-0">
+                            <li key={index}>
                                 <a
                                     href={item.url}
-                                    className={`flex items-center gap-2 text-xs sm:text-sm md:text-base font-medium px-2 sm:px-3 py-1 sm:py-2 rounded-md transition-colors ${
-                                        isActive
-                                            ? "bg-gray-200 text-black"
-                                            : "text-gray-700 hover:bg-gray-100 hover:text-black"
-                                    }`}
+                                    className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md transition
+                                        ${
+                                            isActive
+                                                ? "bg-gray-200 text-black"
+                                                : "text-gray-700 hover:bg-gray-100 hover:text-black"
+                                        }`}
                                 >
-                                    <item.icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                                    <item.icon className="h-5 w-5" />
                                     {item.title}
                                 </a>
                             </li>
@@ -71,32 +80,54 @@ export default function TopNavBar() {
                 </ul>
             </div>
 
-            {/* Mobile Dropdown */}
+            {/* Right spacer (desktop) */}
+            <div className="md:hidden w-6" />
+
+            {/* Mobile Menu Panel */}
             {mobileOpen && (
-                <div className="absolute top-14 left-0 w-full bg-white border-b shadow-md md:hidden max-h-[70vh] overflow-y-auto">
-                    <ul className="flex flex-col items-start p-4 gap-2">
-                        {data.navMain.map((item, index) => {
-                            const isActive = currentPath === item.url;
-                            return (
-                                <li key={index} className="w-full">
-                                    <a
-                                        href={item.url}
-                                        className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md w-full ${
-                                            isActive
-                                                ? "bg-gray-200 text-black"
-                                                : "text-gray-700 hover:bg-gray-100 hover:text-black"
-                                        }`}
-                                        onClick={() => setMobileOpen(false)}
-                                    >
-                                        <item.icon className="h-4 w-4" />
-                                        {item.title}
-                                    </a>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
+                <>
+                    <div
+                        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
+                        onClick={() => setMobileOpen(false)}
+                    ></div>
+
+                    <div className="absolute top-14 left-0 w-full bg-white border-b shadow-lg z-50 md:hidden animate-slide-down">
+                        <ul className="flex flex-col p-4 gap-2">
+                            {data.navMain.map((item, index) => {
+                                const isActive = currentPath === item.url;
+                                return (
+                                    <li key={index}>
+                                        <a
+                                            href={item.url}
+                                            onClick={() => setMobileOpen(false)}
+                                            className={`flex items-center gap-3 text-base px-3 py-3 rounded-md w-full transition
+                                                ${
+                                                    isActive
+                                                        ? "bg-gray-200 text-black"
+                                                        : "text-gray-700 hover:bg-gray-100 hover:text-black"
+                                                }`}
+                                        >
+                                            <item.icon className="h-5 w-5" />
+                                            {item.title}
+                                        </a>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                </>
             )}
         </nav>
     );
 }
+
+/* Tailwind animation (add in globals.css) */
+/*
+@keyframes slide-down {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-down {
+    animation: slide-down 0.2s ease-out;
+}
+*/

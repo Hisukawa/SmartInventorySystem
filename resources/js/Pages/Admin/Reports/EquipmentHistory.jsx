@@ -1,3 +1,5 @@
+// resources/js/Pages/Equipments/EquipmentHistoryIndex.jsx
+
 import React, { useState } from "react";
 import { Head, usePage } from "@inertiajs/react";
 import axios from "axios";
@@ -23,6 +25,20 @@ export default function EquipmentHistoryIndex() {
     const { histories: initialHistories } = usePage().props;
     const [histories, setHistories] = useState(initialHistories || []);
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
+
+    const indexOfLast = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirst = indexOfLast - ITEMS_PER_PAGE;
+    const currentData = histories.slice(indexOfFirst, indexOfLast);
+
+    const totalPages = Math.ceil(histories.length / ITEMS_PER_PAGE);
+
+    const goToPage = (page) => {
+        if (page >= 1 && page <= totalPages) setCurrentPage(page);
+    };
+
     const handleDelete = async (id) => {
         Swal.fire({
             title: "Are you sure?",
@@ -36,7 +52,13 @@ export default function EquipmentHistoryIndex() {
             if (result.isConfirmed) {
                 try {
                     await axios.delete(`/equipment-history/${id}`);
-                    setHistories(histories.filter((h) => h.id !== id));
+                    const updated = histories.filter((h) => h.id !== id);
+                    setHistories(updated);
+
+                    if (updated.length <= indexOfFirst && currentPage > 1) {
+                        setCurrentPage(currentPage - 1);
+                    }
+
                     Swal.fire({
                         title: "Deleted!",
                         text: "History has been deleted.",
@@ -56,7 +78,7 @@ export default function EquipmentHistoryIndex() {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="sticky top-0 z-20 bg-white border-b px-6 py-3">
+                <header className="sticky top-0 z-20 bg-white border-b px-4 md:px-6 py-3">
                     <div className="flex items-center gap-2">
                         <SidebarTrigger />
                         <Separator
@@ -81,10 +103,14 @@ export default function EquipmentHistoryIndex() {
                     </div>
                 </header>
 
-                <div className="p-6 max-w-7xl mx-auto">
-                    <TopNavBar />
+                <div className="p-4 md:p-6 max-w-7xl mx-auto w-full">
+                    {/* Sticky TopNavBar */}
+                    <div className="sticky top-[64px] z-20 bg-white shadow-sm">
+                        <TopNavBar />
+                    </div>
+
                     <Head title="Equipment History" />
-                    <h1 className="text-2xl text-center font-bold mt-5 mb-4">
+                    <h1 className="text-xl md:text-2xl text-center font-bold mt-5 mb-4">
                         Equipment History
                     </h1>
 
@@ -93,92 +119,180 @@ export default function EquipmentHistoryIndex() {
                             No equipment history found.
                         </p>
                     ) : (
-                        <div className="overflow-x-auto bg-white shadow rounded-lg">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            #
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            User Name
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            Equipment Name
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            Action
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            Component
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            Old Value
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            New Value
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            Room Number
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            Date & Time
-                                        </th>
-                                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                            Manage
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {histories.map((h, index) => (
-                                        <tr key={h.id}>
-                                            <td className="px-4 py-2">
-                                                {index + 1}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {h.user?.name || "N/A"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {h.equipment_name}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {h.action}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {h.component}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {h.old_value || "-"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {h.new_value || "-"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                Room{" "}
-                                                {h.room?.room_number || "N/A"}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {new Date(
-                                                    h.created_at
-                                                ).toLocaleString()}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {h.action !== "Deleted" && (
-                                                    <button
-                                                        className="px-2 py-1 text-white bg-red-500 rounded hover:bg-red-600"
-                                                        onClick={() =>
-                                                            handleDelete(h.id)
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                )}
-                                            </td>
+                        <>
+                            {/* Table */}
+                            <div className="overflow-x-auto bg-white shadow rounded-lg">
+                                <table className="min-w-full table-auto text-center">
+                                    <thead>
+                                        <tr className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
+                                            <th className="px-5 py-1">#</th>
+                                            <th className="px-5 py-1">
+                                                User Name
+                                            </th>
+                                            <th className="px-5 py-1">
+                                                Equipment Name
+                                            </th>
+                                            <th className="px-5 py-1">
+                                                Action
+                                            </th>
+                                            <th className="px-5 py-1">
+                                                Component
+                                            </th>
+                                            <th className="px-5 py-1">
+                                                Old Value
+                                            </th>
+                                            <th className="px-5 py-1">
+                                                New Value
+                                            </th>
+                                            <th className="px-5 py-1">
+                                                Room Number
+                                            </th>
+                                            <th className="px-5 py-1">
+                                                Date & Time
+                                            </th>
+                                            <th className="px-5 py-1">
+                                                Manage
+                                            </th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {currentData.map((h, index) => (
+                                            <tr
+                                                key={h.id}
+                                                className="hover:shadow-sm transition-all duration-150"
+                                            >
+                                                <td className="px-5 py-2 align-middle">
+                                                    {(currentPage - 1) *
+                                                        ITEMS_PER_PAGE +
+                                                        index +
+                                                        1}
+                                                </td>
+                                                <td className="px-5 py-2 align-middle">
+                                                    {h.user?.name || "N/A"}
+                                                </td>
+                                                <td className="px-5 py-2 align-middle">
+                                                    {h.equipment_name}
+                                                </td>
+                                                <td className="px-5 py-2 align-middle">
+                                                    {h.action}
+                                                </td>
+                                                <td className="px-5 py-2 align-middle">
+                                                    {h.component || "-"}
+                                                </td>
+                                                <td className="px-5 py-2 align-middle">
+                                                    {h.old_value || "-"}
+                                                </td>
+                                                <td className="px-5 py-2 align-middle">
+                                                    {h.new_value || "-"}
+                                                </td>
+                                                <td className="px-5 py-2 align-middle">
+                                                    Room{" "}
+                                                    {h.room?.room_number ||
+                                                        "N/A"}
+                                                </td>
+                                                <td className="px-5 py-2 align-middle">
+                                                    {new Date(
+                                                        h.created_at
+                                                    ).toLocaleString()}
+                                                </td>
+                                                <td className="px-5 py-2 align-middle">
+                                                    {h.action !== "Deleted" && (
+                                                        <button
+                                                            className="px-2 py-1 text-red-600 text-sm hover:underline"
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    h.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Pagination */}
+                            <div className="flex justify-between items-center p-4 mt-2">
+                                <span className="text-sm text-muted-foreground">
+                                    Showing{" "}
+                                    {histories.length === 0
+                                        ? 0
+                                        : (currentPage - 1) * ITEMS_PER_PAGE +
+                                          1}{" "}
+                                    –{" "}
+                                    {Math.min(
+                                        currentPage * ITEMS_PER_PAGE,
+                                        histories.length
+                                    )}{" "}
+                                    of {histories.length} histories
+                                </span>
+
+                                <div className="flex gap-2 flex-wrap">
+                                    <button
+                                        className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                                        disabled={currentPage === 1}
+                                        onClick={() =>
+                                            goToPage(currentPage - 1)
+                                        }
+                                    >
+                                        Previous
+                                    </button>
+
+                                    {Array.from(
+                                        { length: totalPages },
+                                        (_, idx) => idx + 1
+                                    )
+                                        .filter((page) => {
+                                            if (
+                                                page === 1 ||
+                                                page === totalPages
+                                            )
+                                                return true;
+                                            return (
+                                                page >= currentPage - 2 &&
+                                                page <= currentPage + 2
+                                            );
+                                        })
+                                        .map((page, idx, arr) => (
+                                            <React.Fragment key={page}>
+                                                {idx > 0 &&
+                                                    arr[idx] - arr[idx - 1] >
+                                                        1 && (
+                                                        <span className="px-2">
+                                                            ...
+                                                        </span>
+                                                    )}
+                                                <button
+                                                    className={`px-3 py-1 border rounded text-sm ${
+                                                        currentPage === page
+                                                            ? "bg-black text-white"
+                                                            : "hover:bg-gray-200"
+                                                    }`}
+                                                    onClick={() =>
+                                                        goToPage(page)
+                                                    }
+                                                >
+                                                    {page}
+                                                </button>
+                                            </React.Fragment>
+                                        ))}
+
+                                    <button
+                                        className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() =>
+                                            goToPage(currentPage + 1)
+                                        }
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </>
                     )}
                 </div>
             </SidebarInset>
