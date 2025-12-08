@@ -25,7 +25,7 @@ export default function ReportFormModal({
         return () => (document.body.style.overflow = "");
     }, [open]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const typeMap = {
@@ -40,9 +40,15 @@ export default function ReportFormModal({
         data.append("room_id", room.id);
         data.append("condition", form.condition);
         data.append("remarks", form.remarks);
-        if (form.photo) data.append("photo", form.photo);
 
-        // ✅ Close modal and show toast immediately
+        if (form.photo) {
+            // Optional: compress image for faster upload
+            const compressedPhoto = await compressImage(form.photo, 2048, 0.8); // max ~2MB
+
+            data.append("photo", compressedPhoto);
+        }
+
+        // ✅ Show toast immediately and close modal
         onOpenChange(false);
         if (onSuccess) onSuccess();
 
@@ -52,13 +58,60 @@ export default function ReportFormModal({
                 headers: { "Content-Type": "multipart/form-data" },
             })
             .then(() => {
-                // Upload succeeded, nothing more to do (toast already shown)
+                console.log("Report uploaded successfully");
             })
             .catch((error) => {
                 console.error(error.response?.data || error);
-                // Optional: show error toast if upload fails
                 toast.error("Report upload failed. Please try again.");
             });
+    };
+
+    // Helper function to compress images
+    // Helper function to compress images
+    const compressImage = (file, maxSize = 2048, quality = 0.8) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const reader = new FileReader();
+
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                img.src = e.target.result;
+            };
+
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                let width = img.width;
+                let height = img.height;
+
+                // Resize proportionally
+                if (width > height) {
+                    if (width > maxSize) {
+                        height *= maxSize / width;
+                        width = maxSize;
+                    }
+                } else {
+                    if (height > maxSize) {
+                        width *= maxSize / height;
+                        height = maxSize;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob(
+                    (blob) =>
+                        resolve(
+                            new File([blob], file.name, { type: file.type })
+                        ),
+                    file.type,
+                    quality
+                );
+            };
+        });
     };
 
     return (
