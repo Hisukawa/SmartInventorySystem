@@ -25,7 +25,7 @@ export default function ReportFormModal({
         return () => (document.body.style.overflow = "");
     }, [open]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const typeMap = {
@@ -42,13 +42,22 @@ export default function ReportFormModal({
         data.append("remarks", form.remarks);
         if (form.photo) data.append("photo", form.photo);
 
-        router.post(route("reports.store"), data, {
-            forceFormData: true,
-            onSuccess: () => {
-                onOpenChange(false);
-                if (onSuccess) onSuccess();
-            },
-        });
+        try {
+            // Use the same route helper as your Inertia code
+            await axios.post(route("reports.store"), data, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            // Close modal and call onSuccess if provided
+            onOpenChange(false);
+            if (onSuccess) onSuccess();
+
+            // Your existing toast alert handles success
+        } catch (error) {
+            console.error(error.response?.data || error);
+
+            // Your existing toast alert handles errors
+        }
     };
 
     return (
