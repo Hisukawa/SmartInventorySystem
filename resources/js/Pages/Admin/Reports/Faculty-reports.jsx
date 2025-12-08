@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import Swal from "sweetalert2";
 import Notification from "@/Components/AdminComponents/Notification";
 import { Eye, Edit2, Trash2, CheckCircle2, Check } from "lucide-react";
-
+import { Printer, Upload, Download } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
@@ -357,6 +357,107 @@ export default function FacultyReportsIndex({
         }
     }
 
+    // Handle printing reports table
+    const handlePrint = () => {
+        if (!reportsData || reportsData.length === 0) {
+            alert("No reports available to print.");
+            return;
+        }
+
+        const printWindow = window.open("", "", "width=900,height=700");
+
+        // Generate table rows
+        const tableRows = reportsData
+            .map(
+                (r) => `
+        <tr>
+            <td>${r.id}</td>
+            <td>${r.room?.room_number ?? "N/A"}</td>
+            <td>${r.user?.name ?? "N/A"}</td>
+            <td>${r.reportable_type ?? "N/A"}</td>
+            <td>${r.condition ?? "N/A"}</td>
+            <td>${r.remarks ?? "N/A"}</td>
+            <td>${
+                r.created_at ? new Date(r.created_at).toLocaleString() : "N/A"
+            }</td>
+            <td>${r.resolved ? "Resolved" : "Pending"}</td>
+        </tr>
+    `
+            )
+            .join("");
+
+        // Print layout
+        printWindow.document.write(`
+        <html>
+            <head>
+                <title>Faculty Reports</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                    }
+                    h2 {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        color: #2e7d32;
+                    }
+                    p {
+                        text-align: right;
+                        font-size: 12px;
+                        color: #666;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 10px;
+                    }
+                    th, td {
+                        border: 1px solid #ccc;
+                        padding: 8px;
+                        text-align: left;
+                        font-size: 13px;
+                    }
+                    th {
+                        background-color: #2e7d32;
+                        color: white;
+                    }
+                    tr:nth-child(even) {
+                        background-color: #f9f9f9;
+                    }
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h2>Faculty Reports</h2>
+                <p>Generated on: ${new Date().toLocaleString()}</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Room</th>
+                            <th>Faculty</th>
+                            <th>Report Type</th>
+                            <th>Condition</th>
+                            <th>Details</th>
+                            <th>Date Created</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            </body>
+        </html>
+    `);
+
+        printWindow.document.close();
+        printWindow.print();
+    };
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -401,12 +502,6 @@ export default function FacultyReportsIndex({
 
                         {/* Filters + Search */}
                         <div className="flex flex-col sm:flex-row gap-2 mb-4">
-                            <Filter
-                                filters={filters}
-                                filterOptions={filterOptions}
-                                onApplyFilters={onApplyFilters}
-                                onResetFilters={resetFilters}
-                            />
                             <Input
                                 placeholder="Search reports..."
                                 value={search}
@@ -417,6 +512,19 @@ export default function FacultyReportsIndex({
              focus:border-[hsl(142,34%,45%)] focus:ring-[hsl(142,34%,45%)]
              placeholder:text-[hsl(142,34%,40%)]"
                             />
+                            <Filter
+                                filters={filters}
+                                filterOptions={filterOptions}
+                                onApplyFilters={onApplyFilters}
+                                onResetFilters={resetFilters}
+                            />
+                            <Button
+                                className="flex items-center gap-2 bg-[hsl(183,40%,45%)] text-white border-none hover:bg-[hsl(183,40%,38%)]"
+                                onClick={handlePrint}
+                            >
+                                <Printer className="h-4 w-4" />
+                                Print
+                            </Button>
                         </div>
 
                         {/* Reports Table */}

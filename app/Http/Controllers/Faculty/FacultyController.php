@@ -230,35 +230,39 @@ if (!$existingStatus) {
             'room_number' => $e->room?->room_number,
         ]);
 
-    // System Units
-    $systemUnits = SystemUnit::where('room_id', $room->id)
-        ->when($condition, fn($q) => $q->where('condition', $condition))
-        ->when($unitCode, fn($q) => $q->where('unit_code', $unitCode))
-        ->when($search, fn($q) => $q->where('unit_code', 'like', "%$search%"))
-        ->get()
-        ->map(fn($s) => [
-            'id' => $s->id,
-            'name' => $s->unit_code,
-            'condition' => $s->condition ?? 'Good',
-            'room_path' => $room->room_path,
-        ]);
+// System Units
+$systemUnits = SystemUnit::where('room_id', $room->id)
+    ->when($condition, fn($q) => $q->where('condition', $condition))
+    ->when($unitCode, fn($q) => $q->where('unit_code', $unitCode))
+    ->when($search, fn($q) => $q->where('unit_code', 'like', "%$search%"))
+    ->orderBy('unit_code') // <-- sort alphabetically by code name
+    ->get()
+    ->map(fn($s) => [
+        'id' => $s->id,
+        'name' => $s->unit_code,
+        'condition' => $s->condition ?? 'Good',
+        'room_path' => $room->room_path,
+    ]);
 
-    // Peripherals
-    $peripherals = Peripheral::with('unit')
-        ->where('room_id', $room->id)
-        ->when($condition, fn($q) => $q->where('condition', $condition))
-       ->when($type, fn($q) => $q->where('type', $type))
-->when($unitCode, fn($q) => $q->whereHas('unit', fn($sub) => $sub->where('unit_code', $unitCode)))
-        ->when($search, fn($q) => $q->where('peripheral_code', 'like', "%$search%"))
-        ->get()
-        ->map(fn($p) => [
-            'id' => $p->id,
-            'name' => $p->peripheral_code,
-            'condition' => $p->condition ?? 'Good',
-            'type' => $p->type,
-            'room_path' => $room->room_path,
-            'unit_code' => $p->unit?->unit_code,
-        ]);
+// Peripherals
+$peripherals = Peripheral::with('unit')
+    ->where('room_id', $room->id)
+    ->when($condition, fn($q) => $q->where('condition', $condition))
+    ->when($type, fn($q) => $q->where('type', $type))
+    ->when($unitCode, fn($q) => $q->whereHas('unit', fn($sub) => $sub->where('unit_code', $unitCode)))
+    ->when($search, fn($q) => $q->where('peripheral_code', 'like', "%$search%"))
+    ->get()
+    ->sortBy(fn($p) => $p->unit?->unit_code) // <-- sort by related unit code
+    ->values() // reset the keys after sorting
+    ->map(fn($p) => [
+        'id' => $p->id,
+        'name' => $p->peripheral_code,
+        'condition' => $p->condition ?? 'Good',
+        'type' => $p->type,
+        'room_path' => $room->room_path,
+        'unit_code' => $p->unit?->unit_code,
+    ]);
+
 
     // Filter options
     $conditionOptions = collect()
