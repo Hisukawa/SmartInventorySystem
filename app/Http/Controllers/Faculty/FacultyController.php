@@ -276,6 +276,7 @@ $peripherals = Peripheral::with('unit')
     $unitCodeOptions = SystemUnit::where('room_id', $room->id)
         ->select('unit_code')
         ->distinct()
+        ->orderBy('unit_code') // <-- order by unit_code
         ->pluck('unit_code');
 
     // NEW: Type options

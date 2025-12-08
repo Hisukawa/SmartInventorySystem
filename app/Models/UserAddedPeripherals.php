@@ -18,6 +18,7 @@ class UserAddedPeripherals extends Model
         'model',
         'serial_number',
         'condition',
+        'condition_details',
         'room_id',
         'unit_id',
         'added_by',

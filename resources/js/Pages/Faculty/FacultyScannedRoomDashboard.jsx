@@ -51,6 +51,18 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
               stats.equipments.by_name_condition?.[selectedEquipmentName]
           )
         : prepareChartData(stats.equipments.by_condition);
+    const [equipmentExpanded, setEquipmentExpanded] = useState(false);
+
+    // Convert equipment object to array
+    const equipmentList = stats.equipments.by_name
+        ? Object.entries(stats.equipments.by_name).map(([name, count]) => ({
+              name,
+              count,
+          }))
+        : [];
+
+    // Total equipment count
+    const totalEquipment = stats.equipments.total || 0;
 
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -117,8 +129,6 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                     <h1 className="text-2xl md:text-3xl font-bold">
                         {room.room_name} Dashboard
                     </h1>
-
-                    {/* Total Cards Section */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         {/* Total Computers */}
                         <Card className="w-full flex flex-col p-4 rounded-2xl shadow-lg hover:shadow-xl active:scale-[0.97] transition cursor-pointer bg-white">
@@ -130,7 +140,7 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                                 </div>
                                 <Monitor className="w-8 h-8 text-[hsl(142,34%,45%)]" />
                             </div>
-                            <CardContent className="flex-1 flex items-center justify-center">
+                            <CardContent className="flex-1 flex flex-col items-center justify-center">
                                 <p className="text-3xl font-bold">
                                     {stats.computers.total || 0}
                                 </p>
@@ -147,7 +157,7 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                                 </div>
                                 <Mouse className="w-8 h-8 text-[hsl(142,34%,45%)]" />
                             </div>
-                            <CardContent className="flex-1 flex items-center justify-center">
+                            <CardContent className="flex-1 flex flex-col items-center justify-center">
                                 <p className="text-3xl font-bold">
                                     {stats.peripherals.by_type?.mouse || 0}
                                 </p>
@@ -164,96 +174,58 @@ export default function FacultyDashboard({ room, stats, user, activeSection }) {
                                 </div>
                                 <Keyboard className="w-8 h-8 text-[hsl(142,34%,45%)]" />
                             </div>
-                            <CardContent className="flex-1 flex items-center justify-center">
+                            <CardContent className="flex-1 flex flex-col items-center justify-center">
                                 <p className="text-3xl font-bold">
                                     {stats.peripherals.by_type?.keyboard || 0}
                                 </p>
                             </CardContent>
                         </Card>
 
-                        {/* Total Equipment */}
-                        <Card className="w-full p-4 rounded-2xl shadow-lg hover:shadow-xl transition bg-white">
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex flex-col">
-                                    <CardTitle className="text-lg font-semibold">
-                                        Total Equipments
-                                    </CardTitle>
-                                </div>
-                                <Boxes className="w-8 h-8 text-[hsl(142,34%,45%)]" />
-                            </div>
-                            <CardContent className="flex-1 flex items-center justify-center">
-                                <p className="text-3xl font-bold mb-2">
-                                    {stats.equipments.total || 0}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    {/* Equipment Count Chart (Best for category counts) */}
-                    <div
-                        className="
-    w-full 
-    mt-6 
-    bg-white 
-    p-4 
-    rounded-2xl 
-    shadow-md 
-    max-w-2xl   /* Limits width on web */
-    mx-auto     /* Centers chart */
-"
-                    >
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart
-                                data={Object.entries(stats.equipments.by_name)
-                                    .sort((a, b) => b[1] - a[1])
-                                    .slice(0, 5)
-                                    .map(([name, count]) => ({ name, count }))}
-                                layout="vertical"
-                                margin={{
-                                    top: 10,
-                                    right: 20,
-                                    left: 0,
-                                    bottom: 10,
-                                }}
+                        {/* Total Equipment (Expandable) */}
+                        <Card className="w-full flex flex-col p-4 rounded-2xl shadow-lg hover:shadow-xl transition cursor-pointer bg-white">
+                            <div
+                                className="flex flex-col flex-1"
+                                onClick={() =>
+                                    setEquipmentExpanded(!equipmentExpanded)
+                                }
                             >
-                                <defs>
-                                    <linearGradient
-                                        id="greenGrad"
-                                        x1="0"
-                                        y1="0"
-                                        x2="1"
-                                        y2="0"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stopColor="#4CAF50"
-                                            stopOpacity={0.9}
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stopColor="#A5D6A7"
-                                            stopOpacity={0.7}
-                                        />
-                                    </linearGradient>
-                                </defs>
+                                <div className="flex items-center justify-between mb-2 cursor-pointer">
+                                    <div className="flex flex-col">
+                                        <CardTitle className="text-lg font-semibold">
+                                            Total Equipments
+                                        </CardTitle>
+                                    </div>
+                                    <Boxes className="w-8 h-8 text-[hsl(142,34%,45%)]" />
+                                </div>
 
-                                <XAxis type="number" hide />
-                                <YAxis
-                                    type="category"
-                                    dataKey="name"
-                                    width={120}
-                                    tick={{ fontSize: 12 }}
-                                />
+                                {/* Centered count like other cards */}
+                                <CardContent className="flex-1 flex items-center justify-center">
+                                    <p className="text-3xl font-bold">
+                                        {totalEquipment}
+                                    </p>
+                                </CardContent>
 
-                                <Tooltip formatter={(v) => [v, "Count"]} />
+                                {/* Tap to see details */}
+                                <span className="text-xs text-gray-500 mt-1 text-center">
+                                    Tap to see details
+                                </span>
+                            </div>
 
-                                <Bar
-                                    dataKey="count"
-                                    radius={[8, 8, 8, 8]}
-                                    fill="url(#greenGrad)"
-                                    barSize={20}
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
+                            {/* Expanded list */}
+                            {equipmentExpanded && (
+                                <CardContent className="flex flex-col mt-2 space-y-1 max-h-40 overflow-y-auto">
+                                    {equipmentList.map((item) => (
+                                        <div
+                                            key={item.name}
+                                            className="flex justify-between text-sm border-b border-gray-200 pb-1"
+                                        >
+                                            <span>{item.name}</span>
+                                            <span>{item.count}</span>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            )}
+                        </Card>
                     </div>
                 </div>
             </div>

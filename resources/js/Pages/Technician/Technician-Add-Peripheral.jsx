@@ -6,7 +6,14 @@ import { Input } from "@/components/ui/input"; // Replace with proper Select com
 import TechnicianRoomSidebar from "@/Components/TechnicianComponent/techician-scanned-sidebar";
 import { Menu } from "lucide-react";
 import Swal from "sweetalert2";
-
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 export default function TechnicianAddPeripherals({
     room,
     user,
@@ -17,13 +24,26 @@ export default function TechnicianAddPeripherals({
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { flash } = usePage().props;
-
+    const CONDITION_NAMES = [
+        "Working",
+        "Not Working",
+        "Intermittent Issue",
+        "Needs Cleaning",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+        "Needs Repair",
+        "Needs Configuration",
+        "Under Maintenance",
+        "To Be Diagnosed",
+    ];
     const { data, setData, post, processing, errors } = useForm({
         type: "",
         brand: "",
         model: "",
         serial_number: "",
         condition: "",
+        condition_details: "", // ✅ added here
         room_id: room.id,
         unit_id: "",
     });
@@ -44,6 +64,7 @@ export default function TechnicianAddPeripherals({
                     model: "",
                     serial_number: "",
                     condition: "",
+                    condition_details: "", // ✅ reset here
                     room_id: room.id,
                     unit_id: "",
                 });
@@ -121,93 +142,10 @@ export default function TechnicianAddPeripherals({
                                 onSubmit={handleSubmit}
                                 className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                             >
-                                {/* Type */}
-                                <div className="sm:col-span-2">
+                                {/* Unit Selection (Unit Code first) */}
+                                <div className="w-full">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Type
-                                    </label>
-                                    <Input
-                                        placeholder="e.g. Keyboard"
-                                        value={data.type}
-                                        onChange={(e) =>
-                                            setData("type", e.target.value)
-                                        }
-                                    />
-                                    {errors.type && (
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {errors.type}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Brand */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Brand
-                                    </label>
-                                    <Input
-                                        placeholder="e.g. Logitech"
-                                        value={data.brand}
-                                        onChange={(e) =>
-                                            setData("brand", e.target.value)
-                                        }
-                                    />
-                                </div>
-
-                                {/* Model */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Model
-                                    </label>
-                                    <Input
-                                        placeholder="e.g. K120"
-                                        value={data.model}
-                                        onChange={(e) =>
-                                            setData("model", e.target.value)
-                                        }
-                                    />
-                                </div>
-
-                                {/* Serial Number */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Serial Number
-                                    </label>
-                                    <Input
-                                        placeholder="Optional"
-                                        value={data.serial_number}
-                                        onChange={(e) =>
-                                            setData(
-                                                "serial_number",
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                </div>
-
-                                {/* Condition */}
-                                <div className="sm:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Condition
-                                    </label>
-                                    <Input
-                                        placeholder="Good, Fair, Needs Repair"
-                                        value={data.condition}
-                                        onChange={(e) =>
-                                            setData("condition", e.target.value)
-                                        }
-                                    />
-                                    {errors.condition && (
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {errors.condition}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Unit Selection */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Unit
+                                        Unit Code
                                     </label>
                                     <select
                                         value={data.unit_id}
@@ -229,6 +167,140 @@ export default function TechnicianAddPeripherals({
                                     {errors.unit_id && (
                                         <p className="text-red-500 text-sm mt-1">
                                             {errors.unit_id}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Type */}
+                                <div className="w-full">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Type
+                                    </label>
+                                    <Input
+                                        placeholder="e.g. Keyboard"
+                                        value={data.type}
+                                        onChange={(e) =>
+                                            setData("type", e.target.value)
+                                        }
+                                        className="w-full"
+                                    />
+                                    {errors.type && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.type}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Brand */}
+                                <div className="w-full">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Brand
+                                    </label>
+                                    <Input
+                                        placeholder="e.g. Logitech"
+                                        value={data.brand}
+                                        onChange={(e) =>
+                                            setData("brand", e.target.value)
+                                        }
+                                        className="w-full"
+                                    />
+                                    {errors.brand && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.brand}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Model */}
+                                <div className="w-full">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Model
+                                    </label>
+                                    <Input
+                                        placeholder="e.g. K120"
+                                        value={data.model}
+                                        onChange={(e) =>
+                                            setData("model", e.target.value)
+                                        }
+                                        className="w-full"
+                                    />
+                                    {errors.model && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.model}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Serial Number */}
+                                <div className="w-full">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Serial Number
+                                    </label>
+                                    <Input
+                                        placeholder=""
+                                        value={data.serial_number}
+                                        onChange={(e) =>
+                                            setData(
+                                                "serial_number",
+                                                e.target.value
+                                            )
+                                        }
+                                        className="w-full"
+                                    />
+                                    {errors.serial_number && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.serial_number}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Condition */}
+                                <div className="w-full">
+                                    <Label>Condition</Label>
+                                    <Select
+                                        value={data.condition}
+                                        onValueChange={(val) =>
+                                            setData("condition", val)
+                                        }
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="-- Select Condition --" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {CONDITION_NAMES.map((cond) => (
+                                                <SelectItem
+                                                    key={cond}
+                                                    value={cond}
+                                                >
+                                                    {cond}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.condition && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.condition}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Condition Details (last) */}
+                                <div className="sm:col-span-2 w-full">
+                                    <Label>Condition Details</Label>
+                                    <Input
+                                        placeholder="Enter details about the condition (e.g., minor scratches, not detecting input, etc.)"
+                                        value={data.condition_details || ""}
+                                        onChange={(e) =>
+                                            setData(
+                                                "condition_details",
+                                                e.target.value
+                                            )
+                                        }
+                                        className="w-full"
+                                    />
+                                    {errors.condition_details && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.condition_details}
                                         </p>
                                     )}
                                 </div>

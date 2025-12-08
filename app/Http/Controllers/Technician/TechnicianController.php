@@ -253,80 +253,94 @@ public function TechnicianshowRoomEquipments(Room $room, Equipment $equipment)
 
 
         //Adding Unit 
-    public function TechnicianCreateComputer(Request $request)
-    {
-        $roomId = $request->query('room'); // Get room from URL ?room=3
-        $room = Room::find($roomId);
+  public function TechnicianCreateComputer(Request $request)
+{
+    $roomId = $request->query('room'); 
+    $room = Room::findOrFail($roomId);
 
-        if (!$room) {
-            abort(404, "Room not found");
-        }
+    $faculties = User::where('role', 'faculty')->get(); // or however you filter faculties
 
-        return Inertia::render('Technician/Technician-Add-Pc', [
-            'room' => $room,
-            'roomPath' => $room->room_path,
-            'room_id' => $room->id,
-            'user' => Auth::user(),
+    return Inertia::render('Technician/Technician-Add-Pc', [
+        'room' => $room,
+        'user' => Auth::user(),
+        'faculties' => $faculties, // <-- pass faculties to frontend
+    ]);
+}
+
+   public function TechnicianStoreComputer(Request $request)
+{
+    $validated = $request->validate([
+        'unit_code'         => [
+            'required',
+            'string',
+            Rule::unique('system_units')->where(fn($query) => $query->where('room_id', $request->room_id)),
+        ],
+        'processor'         => 'nullable|string',
+        'ram'               => 'nullable|string',
+        'storage'           => 'nullable|string',
+        'gpu'               => 'nullable|string',
+        'motherboard'       => 'nullable|string',
+        'condition'         => 'required|string',
+        'condition_details' => 'nullable|string',
+        'serial_number'     => 'nullable|string',
+        'operating_system'  => 'nullable|string',
+        'room_id'           => 'required|exists:rooms,id',
+        'mr_id'             => 'required|exists:users,id',
+    ]);
+
+    $unitCode = $validated['unit_code'];
+    $unitPath = "isu-ilagan/ict-department/system-unit-{$unitCode}";
+
+    // Check if SystemUnit exists
+    $existingUnit = SystemUnit::where('room_id', $validated['room_id'])
+        ->where('unit_code', $unitCode)
+        ->first();
+
+    if ($existingUnit) {
+        return back()->withErrors([
+            'unit_code' => 'Unit code already exists in this room.',
         ]);
     }
 
-    public function TechnicianStoreComputer(Request $request)
-    {
-        $validated = $request->validate([
-            'unit_code'   => [
-                'required',
-                'string',
-                Rule::unique('system_units')->where(function ($query) use ($request) {
-                    return $query->where('room_id', $request->room_id);
-                }),
-            ],
-            'processor'   => 'nullable|string',
-            'ram'         => 'nullable|string',
-            'storage'     => 'nullable|string',
-            'gpu'         => 'nullable|string',
-            'motherboard' => 'nullable|string',
-            'condition'   => 'required|string',
-            'room_id'     => 'required|exists:rooms,id',
-        ]);
+    try {
+        // Prepare data array for reuse
+        $unitData = [
+            'unit_code'         => $unitCode,
+            'processor'         => $validated['processor'] ?? null,
+            'ram'               => $validated['ram'] ?? null,
+            'storage'           => $validated['storage'] ?? null,
+            'gpu'               => $validated['gpu'] ?? null,
+            'motherboard'       => $validated['motherboard'] ?? null,
+            'condition'         => $validated['condition'],
+            'condition_details' => $validated['condition_details'] ?? null,
+            'serial_number'     => $validated['serial_number'] ?? null,
+            'operating_system'  => $validated['operating_system'] ?? null,
+            'room_id'           => $validated['room_id'],
+            'mr_id'             => $validated['mr_id'],
+        ];
 
-        $unitCode = $validated['unit_code'];
-        $unitPath = "isu-ilagan/ict-department/system-unit-{$unitCode}";
+        // Save to UserAddedUnits
+        UserAddedUnits::create(array_merge($unitData, ['added_by' => Auth::id()]));
 
-        try {
-            // Save to UserAddedUnits
-            UserAddedUnits::create([
-                'unit_code'   => $unitCode,
-                'processor'   => $validated['processor'] ?? null,
-                'ram'         => $validated['ram'] ?? null,
-                'storage'     => $validated['storage'] ?? null,
-                'gpu'         => $validated['gpu'] ?? null,
-                'motherboard' => $validated['motherboard'] ?? null,
-                'condition'   => $validated['condition'],
-                'room_id'     => $validated['room_id'],
-                'added_by'    => Auth::id(),
-            ]);
-
-            // Save to SystemUnit
-            SystemUnit::create([
-                'unit_code'   => $unitCode,
-                'unit_path'   => $unitPath,
-                'processor'   => $validated['processor'] ?? null,
-                'ram'         => $validated['ram'] ?? null,
-                'storage'     => $validated['storage'] ?? null,
-                'gpu'         => $validated['gpu'] ?? null,
-                'motherboard' => $validated['motherboard'] ?? null,
-                'condition'   => $validated['condition'],
-                'room_id'     => $validated['room_id'],
-            ]);
+        // Save to SystemUnit (with unit_path)
+        SystemUnit::create(array_merge($unitData, ['unit_path' => $unitPath]));
 
         return redirect()->back()->with('success', 'System Unit added successfully!');
+    } catch (\Exception $e) {
+        // Log full error for debugging
+        \Log::error('TechnicianStoreComputer error: ' . $e->getMessage(), [
+            'trace' => $e->getTraceAsString(),
+            'request' => $request->all()
+        ]);
 
-        } catch (\Illuminate\Database\QueryException $e) {
-            return back()->withErrors([
-                'unit_code' => 'Unit code already exists in this room or unexpected error.',
-            ]);
-        }
+        return back()->withErrors([
+            'unit_code' => 'Unexpected error occurred while adding the system unit: ' . $e->getMessage(),
+        ]);
     }
+}
+
+
+
     public function TechnicianEditUnits($unit)
     {
         $systemUnit = SystemUnit::findOrFail($unit);
@@ -375,11 +389,12 @@ public function TechnicianCreatePeripherals(Request $request)
         'room_id' => $room->id,
         'user' => Auth::user(),
         'existingRooms' => Room::all(),
-        'existingUnits' => SystemUnit::all(),
+        'existingUnits' => SystemUnit::where('room_id', $roomId)->get(), // <-- filter by room
         'existingBrands' => Peripheral::distinct()->pluck('brand'),
         'existingModels' => Peripheral::distinct()->pluck('model'),
     ]);
 }
+
 
 
 
@@ -427,6 +442,7 @@ public function TechnicianCreatePeripherals(Request $request)
             'model'         => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
             'condition'     => 'required|string|max:255',
+            'condition_details' => 'nullable|string|max:1000', // ✅ added here
             'room_id'       => 'required|exists:rooms,id',
             'unit_id'       => 'required|exists:system_units,id',
         ]);
@@ -461,6 +477,7 @@ public function TechnicianCreatePeripherals(Request $request)
                 'model'           => $validated['model'] ?? null,
                 'serial_number'   => $validated['serial_number'] ?? null,
                 'condition'       => $validated['condition'],
+                    'condition_details'  => $validated['condition_details'] ?? null, // ✅ added here
                 'room_id'         => $room->id,
                 'unit_id'         => $validated['unit_id'],
                 'added_by'        => Auth::id(),
@@ -474,6 +491,7 @@ public function TechnicianCreatePeripherals(Request $request)
                 'model'           => $validated['model'] ?? null,
                 'serial_number'   => $validated['serial_number'] ?? null,
                 'condition'       => $validated['condition'],
+                  'condition_details'  => $validated['condition_details'] ?? null, // ✅ added here
                 'room_id'         => $room->id,
                 'unit_id'         => $validated['unit_id'],
                 'qr_code_path'    => $qrCodePath,
