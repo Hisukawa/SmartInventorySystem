@@ -42,28 +42,23 @@ export default function ReportFormModal({
         data.append("remarks", form.remarks);
 
         if (form.photo) {
-            // Optional: compress image for faster upload
-            const compressedPhoto = await compressImage(form.photo, 2048, 0.8); // max ~2MB
-
+            // Optional: compress image for faster upload (~2MB max)
+            const compressedPhoto = await compressImage(form.photo, 2048, 0.8);
             data.append("photo", compressedPhoto);
         }
 
-        // ✅ Show toast immediately and close modal
-        onOpenChange(false);
-        if (onSuccess) onSuccess();
-
-        // ✅ Upload in background
-        axios
-            .post(route("reports.store"), data, {
+        try {
+            await axios.post(route("reports.store"), data, {
                 headers: { "Content-Type": "multipart/form-data" },
-            })
-            .then(() => {
-                console.log("Report uploaded successfully");
-            })
-            .catch((error) => {
-                console.error(error.response?.data || error);
-                toast.error("Report upload failed. Please try again.");
             });
+
+            // ✅ Only after successful upload
+            onOpenChange(false); // close modal
+            if (onSuccess) onSuccess(); // call parent success handler (toast is in main page)
+        } catch (error) {
+            console.error("Upload error:", error.response?.data || error);
+            toast.error("Report upload failed. Please try again."); // optional error toast
+        }
     };
 
     // Helper function to compress images
