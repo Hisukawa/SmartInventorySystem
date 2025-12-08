@@ -5,13 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
 class UserAddedUnits extends Model
 {
     use HasFactory;
 
     protected $table = 'user_added_units';
-
     protected $fillable = [
         'unit_code',
         'processor',
@@ -20,9 +18,14 @@ class UserAddedUnits extends Model
         'gpu',
         'motherboard',
         'condition',
+        'condition_details', // added
+        'serial_number',  
+        'operating_system', // <-- new   // added
         'room_id',
         'added_by',
+        'mr_id',             // added
     ];
+
 
     // Relationship to the room
     public function room()

@@ -7,9 +7,23 @@ import TechnicianRoomSidebar from "@/Components/TechnicianComponent/techician-sc
 import { Menu, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
 
-export default function TechnicianAddPc({ room, user }) {
+export default function TechnicianAddPc({ room, user, faculties }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { flash } = usePage().props;
+
+    const CONDITION_NAMES = [
+        "Working",
+        "Not Working",
+        "Intermittent Issue",
+        "Needs Cleaning",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+        "Needs Repair",
+        "Needs Configuration",
+        "Under Maintenance",
+        "To Be Diagnosed",
+    ];
 
     const { data, setData, post, processing, errors } = useForm({
         unit_code: "",
@@ -19,6 +33,10 @@ export default function TechnicianAddPc({ room, user }) {
         gpu: "",
         motherboard: "",
         condition: "",
+        condition_details: "", // <-- added
+        serial_number: "", // <-- added
+        operating_system: "", // <-- new field
+        mr_id: "", // <-- added
         room_id: room.id,
     });
 
@@ -32,6 +50,7 @@ export default function TechnicianAddPc({ room, user }) {
                     text: "System Unit added successfully!",
                     confirmButtonColor: "hsl(142,34%,51%)",
                 });
+                // Reset the form including new fields
                 setData({
                     unit_code: "",
                     processor: "",
@@ -40,6 +59,10 @@ export default function TechnicianAddPc({ room, user }) {
                     gpu: "",
                     motherboard: "",
                     condition: "",
+                    condition_details: "",
+                    serial_number: "",
+                    operating_system: "", // <-- reset
+                    mr_id: "",
                     room_id: room.id,
                 });
             },
@@ -120,7 +143,7 @@ export default function TechnicianAddPc({ room, user }) {
                                 className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                             >
                                 {/* Unit Code */}
-                                <div className="sm:col-span-2">
+                                <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Unit Code
                                     </label>
@@ -211,18 +234,104 @@ export default function TechnicianAddPc({ room, user }) {
                                     />
                                 </div>
 
-                                {/* Condition */}
-                                <div className="sm:col-span-2">
+                                {/* Material Responsible */}
+                                <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Condition
+                                        Material Responsible
+                                    </label>
+                                    <select
+                                        value={data.mr_id || ""}
+                                        onChange={(e) =>
+                                            setData("mr_id", e.target.value)
+                                        }
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring focus:ring-green-300 focus:border-green-500"
+                                        required
+                                    >
+                                        <option value="">
+                                            -- Select Faculty --
+                                        </option>
+                                        {faculties.map((faculty) => (
+                                            <option
+                                                key={faculty.id}
+                                                value={faculty.id}
+                                            >
+                                                {faculty.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {errors.mr_id && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.mr_id}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Serial Number */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Serial Number
                                     </label>
                                     <Input
-                                        placeholder="Good, Fair, Needs Repair"
+                                        placeholder="Enter Serial Number"
+                                        value={data.serial_number}
+                                        onChange={(e) =>
+                                            setData(
+                                                "serial_number",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                    {errors.serial_number && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.serial_number}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Operating System */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Operating System
+                                    </label>
+                                    <Input
+                                        placeholder="e.g., Windows 11, Ubuntu 22.04"
+                                        value={data.operating_system || ""}
+                                        onChange={(e) =>
+                                            setData(
+                                                "operating_system",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                    {errors.operating_system && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.operating_system}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Overall Condition */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Overall Condition
+                                    </label>
+                                    <select
                                         value={data.condition}
                                         onChange={(e) =>
                                             setData("condition", e.target.value)
                                         }
-                                    />
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring focus:ring-green-300 focus:border-green-500"
+                                        required
+                                    >
+                                        <option value="">
+                                            -- Select Condition --
+                                        </option>
+                                        {CONDITION_NAMES.map((name) => (
+                                            <option key={name} value={name}>
+                                                {name}
+                                            </option>
+                                        ))}
+                                    </select>
                                     {errors.condition && (
                                         <p className="text-red-500 text-sm mt-1">
                                             {errors.condition}
@@ -230,7 +339,28 @@ export default function TechnicianAddPc({ room, user }) {
                                     )}
                                 </div>
 
-                                {/* Submit Button */}
+                                {/* Condition Details (spanning two columns) */}
+                                <div className="sm:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Condition Details
+                                    </label>
+                                    <Input
+                                        placeholder="e.g., defective RAM, GPU overheating"
+                                        value={data.condition_details || ""}
+                                        onChange={(e) =>
+                                            setData(
+                                                "condition_details",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                    {errors.condition_details && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.condition_details}
+                                        </p>
+                                    )}
+                                </div>
+
                                 {/* Submit Button */}
                                 <div className="sm:col-span-2 flex justify-end mt-2 gap-2">
                                     <Button
