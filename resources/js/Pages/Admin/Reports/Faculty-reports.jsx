@@ -458,6 +458,56 @@ export default function FacultyReportsIndex({
         printWindow.print();
     };
 
+    // Condition options per item type
+    const CONDITION_OPTIONS = {
+        system_unit: [
+            "Working",
+            "Not Working",
+            "Intermittent Issue",
+            "Needs Cleaning",
+            "For Replacement",
+            "For Disposal",
+            "Condemned",
+            "Needs Repair",
+            "No Signal",
+            "Needs Configuration",
+            "Under Maintenance",
+            "To Be Diagnosed",
+        ],
+        peripheral: [
+            "Working",
+            "Not Working",
+            "Intermittent Issue",
+            "Needs Cleaning",
+            "For Replacement",
+            "For Disposal",
+            "Condemned",
+            "Needs Repair",
+            "No Signal",
+            "Needs Configuration",
+            "Under Maintenance",
+            "To Be Diagnosed",
+        ],
+        equipment: [
+            "Working",
+            "Not Working",
+            "Intermittent Issue",
+            "Needs Cleaning",
+            "For Replacement",
+            "For Disposal",
+            "Condemned",
+            "Minor Damage",
+            "Needs Repair",
+            "Intermittent Connectivity",
+            "No Signal",
+            "Needs Configuration",
+            "Expired",
+            "Needs Refill",
+            "Rusting",
+            "To Be Diagnosed",
+        ],
+    };
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -584,7 +634,10 @@ export default function FacultyReportsIndex({
                                                             : r.reportable_type ===
                                                               "equipment"
                                                             ? r.reportable
-                                                                  ?.equipment_type
+                                                                  ?.type ||
+                                                              r.reportable
+                                                                  ?.equipment_type ||
+                                                              "N/A"
                                                             : "N/A"}
                                                     </TableCell>
                                                     <TableCell>
@@ -755,29 +808,99 @@ export default function FacultyReportsIndex({
 
                 {/* Resolve Modal */}
                 <Dialog open={resolveOpen} onOpenChange={setResolveOpen}>
-                    <DialogContent className="max-w-md w-full">
-                        <DialogHeader>
-                            <DialogTitle>
+                    <DialogContent className="max-w-md w-full rounded-2xl border border-[hsl(142,34%,85%)] shadow-xl bg-white/90 backdrop-blur-lg">
+                        {/* Modal Header */}
+                        <DialogHeader className="pb-2">
+                            <DialogTitle className="text-[hsl(142,34%,25%)] text-xl font-semibold">
                                 Resolve Report #{selectedReport?.id}
                             </DialogTitle>
+
+                            {/* Dynamic Header Info */}
+                            <div className="text-sm text-[hsl(142,34%,30%)] mt-1 flex flex-col gap-0.5">
+                                {/* Code / Identifier */}
+                                <span>
+                                    {selectedReport?.reportable_type ===
+                                        "system_unit" && (
+                                        <>
+                                            Unit Code:{" "}
+                                            <span className="font-medium text-[hsl(142,34%,45%)]">
+                                                {selectedReport?.reportable
+                                                    ?.unit_code || "N/A"}
+                                            </span>
+                                        </>
+                                    )}
+                                    {selectedReport?.reportable_type ===
+                                        "equipment" && (
+                                        <>
+                                            Equipment Code:{" "}
+                                            <span className="font-medium text-[hsl(142,34%,45%)]">
+                                                {selectedReport?.reportable
+                                                    ?.equipment_code || "N/A"}
+                                            </span>
+                                        </>
+                                    )}
+                                    {selectedReport?.reportable_type ===
+                                        "peripheral" && (
+                                        <>
+                                            Peripheral Code:{" "}
+                                            <span className="font-medium text-[hsl(142,34%,45%)]">
+                                                {selectedReport?.reportable
+                                                    ?.peripheral_code || "N/A"}
+                                            </span>
+                                        </>
+                                    )}
+                                </span>
+
+                                {/* Type */}
+                                <span>
+                                    Type:{" "}
+                                    <span className="font-medium text-[hsl(142,34%,45%)]">
+                                        {selectedReport?.reportable_type ===
+                                        "system_unit"
+                                            ? "System Unit"
+                                            : selectedReport?.reportable_type ===
+                                              "equipment"
+                                            ? selectedReport?.reportable
+                                                  ?.equipment_type ||
+                                              "Equipment"
+                                            : selectedReport?.reportable_type ===
+                                              "peripheral"
+                                            ? selectedReport?.reportable
+                                                  ?.type || "Peripheral"
+                                            : "N/A"}
+                                    </span>
+                                </span>
+
+                                {/* Room */}
+                                {selectedReport?.room && (
+                                    <span>
+                                        Room:{" "}
+                                        <span className="font-medium text-[hsl(142,34%,45%)]">
+                                            {selectedReport.room.room_number}
+                                        </span>
+                                    </span>
+                                )}
+                            </div>
                         </DialogHeader>
 
-                        <div className="flex flex-col gap-4 mt-2">
-                            {/* Existing Remarks Display (if any) */}
+                        <div className="flex flex-col gap-5 mt-3">
+                            {/* Existing Remarks */}
                             {selectedReport?.remarks && (
-                                <div>
-                                    <Label className="text-gray-600">
+                                <div className="flex flex-col gap-1">
+                                    <Label className="text-gray-700 font-medium">
                                         Remarks
                                     </Label>
-                                    <div className="border rounded-md p-2 text-sm bg-gray-50">
+                                    <div className="border border-[hsl(142,34%,80%)] rounded-lg p-3 text-sm bg-[hsl(142,34%,96%)]">
                                         {selectedReport.remarks}
                                     </div>
                                 </div>
                             )}
 
                             {/* Condition Select */}
-                            <div>
-                                <Label>Condition</Label>
+                            <div className="flex flex-col gap-1">
+                                <Label className="text-gray-700 font-medium">
+                                    Set Condition
+                                </Label>
                                 <Select
                                     value={
                                         updatedCondition ||
@@ -785,29 +908,35 @@ export default function FacultyReportsIndex({
                                     }
                                     onValueChange={setUpdatedCondition}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="rounded-lg border-[hsl(142,34%,75%)] focus:ring-[hsl(142,34%,45%)]">
                                         <SelectValue placeholder="Select Condition" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Functional">
-                                            Functional
-                                        </SelectItem>
-                                        <SelectItem value="Needs Repair">
-                                            Needs Repair
-                                        </SelectItem>
-                                        <SelectItem value="Replaced">
-                                            Replaced
-                                        </SelectItem>
-                                        <SelectItem value="Not Repairable">
-                                            Not Repairable
-                                        </SelectItem>
+                                        {(() => {
+                                            const type =
+                                                selectedReport?.reportable_type;
+                                            const options =
+                                                CONDITION_OPTIONS[type] || [];
+
+                                            return options.map((cond) => (
+                                                <SelectItem
+                                                    key={cond}
+                                                    value={cond}
+                                                    className="cursor-pointer"
+                                                >
+                                                    {cond}
+                                                </SelectItem>
+                                            ));
+                                        })()}
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             {/* Resolution Details */}
-                            <div>
-                                <Label>Resolution Details</Label>
+                            <div className="flex flex-col gap-1">
+                                <Label className="text-gray-700 font-medium">
+                                    Resolution Details
+                                </Label>
                                 <Input
                                     type="text"
                                     placeholder="Describe how you fixed it..."
@@ -815,24 +944,27 @@ export default function FacultyReportsIndex({
                                     onChange={(e) =>
                                         setResolveRemarks(e.target.value)
                                     }
+                                    className="rounded-lg border-[hsl(142,34%,75%)] focus:ring-[hsl(142,34%,45%)]"
                                 />
                             </div>
 
-                            {/* Action Buttons */}
-                            <div className="flex justify-end gap-2 mt-2">
+                            {/* Buttons */}
+                            <div className="flex justify-end gap-3 pt-2">
                                 <Button
                                     variant="outline"
                                     onClick={() => setResolveOpen(false)}
                                     disabled={isResolving}
+                                    className="rounded-lg border-[hsl(142,34%,60%)] text-[hsl(142,34%,30%)] hover:bg-[hsl(142,34%,90%)]"
                                 >
                                     Cancel
                                 </Button>
+
                                 <Button
                                     onClick={() =>
                                         handleResolveSubmit(selectedReport)
                                     }
-                                    variant="secondary"
                                     disabled={isResolving}
+                                    className="rounded-lg bg-[hsl(142,34%,45%)] text-white hover:bg-[hsl(142,34%,40%)]"
                                 >
                                     {isResolving ? "Saving..." : "Save"}
                                 </Button>
