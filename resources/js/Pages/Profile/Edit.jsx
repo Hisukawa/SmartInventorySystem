@@ -198,7 +198,7 @@ export default function Edit({ user, mustVerifyEmail, status }) {
                                               }`}
                                     </span>
                                 </button>
-                                <button
+                                {/* <button
                                     onClick={() => setDeleteDialogOpen(true)}
                                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
                                 >
@@ -206,7 +206,7 @@ export default function Edit({ user, mustVerifyEmail, status }) {
                                     <span className="text-sm sm:text-xs">
                                         Delete Face
                                     </span>
-                                </button>
+                                </button> */}
                             </div>
 
                             {/* Forms */}
