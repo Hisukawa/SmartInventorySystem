@@ -17,7 +17,14 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 // Equipment Types
 const TYPE_OPTIONS = ["Hardware", "Furniture"];
 
@@ -74,43 +81,44 @@ export default function AddEquipment({ existingRooms }) {
             : type === "Furniture"
             ? FURNITURE_CONDITION_OPTIONS
             : [];
-const handleSubmit = (e) => {
-    e.preventDefault();
+    const handleSubmit = (e) => {
+        e.preventDefault();
 
-    router.post(
-        "/technician/equipments",
-        {
-            equipment_name: name, // send equipment name
-            type,
-            brand,
-            condition,
-            room_id: room,
-        },
-        {
-            onSuccess: () => {
-                Swal.fire({
-                    icon: "success",
-                    title: "Added!",
-                    text: "Equipment has been added successfully.",
-                    timer: 2000,
-                    showConfirmButton: false,
-                });
+        router.post(
+            "/technician/equipments",
+            {
+                equipment_name: name, // send equipment name
+                type,
+                brand,
+                condition,
+                room_id: room,
             },
-            onError: (errors) => {
-                Swal.fire({
-                    icon: "error",
-                    title: "Oops...",
-                    text: errors?.equipment_name 
-                        || errors?.type 
-                        || errors?.brand 
-                        || errors?.condition 
-                        || errors?.room_id 
-                        || "Something went wrong!",
-                });
-            },
-        }
-    );
-};
+            {
+                onSuccess: () => {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Added!",
+                        text: "Equipment has been added successfully.",
+                        timer: 2000,
+                        showConfirmButton: false,
+                    });
+                },
+                onError: (errors) => {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text:
+                            errors?.equipment_name ||
+                            errors?.type ||
+                            errors?.brand ||
+                            errors?.condition ||
+                            errors?.room_id ||
+                            "Something went wrong!",
+                    });
+                },
+            }
+        );
+    };
 
     return (
         <SidebarProvider>
@@ -240,16 +248,16 @@ const handleSubmit = (e) => {
                                 >
                                     <option value="">Select room</option>
                                     {existingRooms.map((r) => (
-                                    <option key={r.id} value={r.id}>
-                                        {r.room_number}
-                                    </option>
-                                ))}
+                                        <option key={r.id} value={r.id}>
+                                            {r.room_number}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
                             <Button
                                 type="submit"
-                               className="text-sm sm:text-base px-3 py-1 sm:py-2 bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
+                                className="text-sm sm:text-base px-3 py-1 sm:py-2 bg-[hsl(142,31%,51%)] hover:bg-[hsl(142,31%,45%)] text-white font-medium"
                             >
                                 Add Equipment
                             </Button>

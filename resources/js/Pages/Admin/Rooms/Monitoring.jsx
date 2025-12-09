@@ -105,7 +105,20 @@ export default function AdminDashboard({ children }) {
     useEffect(() => {
         fetchLogs();
     }, [currentLogPage, search, facultyId, roomId, logDate]);
+    const [currentTime, setCurrentTime] = useState(new Date());
 
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000); // update every second
+
+        return () => clearInterval(timer); // cleanup on unmount
+    }, []);
+
+    const hours = currentTime.getHours() % 12 || 12;
+    const minutes = String(currentTime.getMinutes()).padStart(2, "0"); // always 2 digits
+    const seconds = String(currentTime.getSeconds()).padStart(2, "0"); // always 2 digits
+    const ampm = currentTime.getHours() >= 12 ? "PM" : "AM";
     return (
         <SidebarProvider>
             <Head>
@@ -145,6 +158,19 @@ export default function AdminDashboard({ children }) {
                         <h1 className="text-2xl font-bold mb-4">
                             Room Monitoring
                         </h1>
+
+                        {/* Current Date and Time */}
+                        <div className="mb-6">
+                            <span className="text-gray-800 text-3xl md:text-4xl font-bold">
+                                {currentTime.toLocaleDateString("en-PH", {
+                                    weekday: "long",
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                })}{" "}
+                                at {hours}:{minutes}:{seconds} {ampm}
+                            </span>
+                        </div>
 
                         {/* Room Cards */}
                         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-8">
