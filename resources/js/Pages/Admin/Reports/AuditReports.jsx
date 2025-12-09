@@ -29,6 +29,7 @@ import {
     BreadcrumbLink,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { ChevronRight } from "lucide-react";
 
 export default function AuditReportsIndex({ auditReports }) {
     const [open, setOpen] = useState(false);
@@ -37,6 +38,41 @@ export default function AuditReportsIndex({ auditReports }) {
     const handleViewDetails = (audit) => {
         setSelectedAudit(audit);
         setOpen(true);
+    };
+
+    // Condition badge color mapping
+    const getConditionBadge = (condition) => {
+        const normalized = condition?.toLowerCase() || "";
+        switch (normalized) {
+            case "working":
+                return "bg-green-100 text-green-800";
+            case "repaired":
+            case "needs repair":
+            case "intermittent issue":
+            case "minor damage":
+            case "intermittent connectivity":
+            case "no signal":
+            case "needs configuration":
+            case "to be diagnosed":
+            case "not working":
+                return "bg-red-100 text-red-800";
+            case "for replacement":
+            case "for disposal":
+            case "condemned":
+                return "bg-orange-100 text-orange-800";
+            case "needs cleaning":
+            case "under maintenance":
+                return "bg-blue-100 text-blue-800";
+            case "expired":
+            case "needs refill":
+            case "rusting":
+            case "needs maintenance":
+                return "bg-yellow-100 text-yellow-800";
+            // case "replaced":
+            //     return "bg-black/60 text-yellow-800";
+            default:
+                return "bg-gray-100 text-gray-800";
+        }
     };
 
     return (
@@ -83,62 +119,62 @@ export default function AuditReportsIndex({ auditReports }) {
                                 <TableHeader>
                                     <TableRow className="bg-[hsl(142,34%,85%)] text-[hsl(142,34%,25%)] hover:bg-[hsl(142,34%,80%)]">
                                         <TableHead>#</TableHead>
-                                        <TableHead>Report ID</TableHead>
                                         <TableHead>Resolved By</TableHead>
                                         <TableHead>Old Condition</TableHead>
                                         <TableHead>New Condition</TableHead>
-                                        <TableHead>Details</TableHead>
                                         <TableHead>Date Resolved</TableHead>
-                                        <TableHead>Actions</TableHead>
+                                        <TableHead></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {auditReports.length > 0 ? (
                                         auditReports.map((audit, index) => (
-                                            <TableRow key={audit.id}>
+                                            <TableRow
+                                                key={audit.id}
+                                                className="cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+                                                onClick={() =>
+                                                    handleViewDetails(audit)
+                                                }
+                                            >
                                                 <TableCell>
                                                     {index + 1}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {audit.report_id}
                                                 </TableCell>
                                                 <TableCell>
                                                     {audit.resolver?.name ||
                                                         "N/A"}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {audit.old_condition}
+                                                    <span
+                                                        className={`px-2 py-1 rounded-full text-sm font-semibold ${getConditionBadge(
+                                                            audit.old_condition
+                                                        )}`}
+                                                    >
+                                                        {audit.old_condition}
+                                                    </span>
                                                 </TableCell>
                                                 <TableCell>
-                                                    {audit.new_condition}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {audit.details || "-"}
+                                                    <span
+                                                        className={`px-2 py-1 rounded-full text-sm font-semibold ${getConditionBadge(
+                                                            audit.new_condition
+                                                        )}`}
+                                                    >
+                                                        {audit.new_condition}
+                                                    </span>
                                                 </TableCell>
                                                 <TableCell>
                                                     {new Date(
                                                         audit.created_at
                                                     ).toLocaleString()}
                                                 </TableCell>
-                                                <TableCell>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() =>
-                                                            handleViewDetails(
-                                                                audit
-                                                            )
-                                                        }
-                                                    >
-                                                        View
-                                                    </Button>
+                                                <TableCell className="text-gray-400">
+                                                    <ChevronRight size={18} />
                                                 </TableCell>
                                             </TableRow>
                                         ))
                                     ) : (
                                         <TableRow>
                                             <TableCell
-                                                colSpan="8"
+                                                colSpan="6"
                                                 className="text-center"
                                             >
                                                 No audit reports found.
@@ -152,42 +188,91 @@ export default function AuditReportsIndex({ auditReports }) {
 
                     {/* Modal for viewing audit details */}
                     <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogContent className="max-w-md w-full">
-                            <DialogHeader>
-                                <DialogTitle>Audit Report Details</DialogTitle>
-                            </DialogHeader>
+                        <DialogContent className="max-w-lg w-full">
                             {selectedAudit && (
-                                <div className="flex flex-col gap-2">
-                                    <p>
-                                        <strong>Report ID:</strong>{" "}
-                                        {selectedAudit.report_id}
-                                    </p>
-                                    <p>
-                                        <strong>Resolved By:</strong>{" "}
-                                        {selectedAudit.resolver?.name || "N/A"}
-                                    </p>
-                                    <p>
-                                        <strong>Old Condition:</strong>{" "}
-                                        {selectedAudit.old_condition}
-                                    </p>
-                                    <p>
-                                        <strong>New Condition:</strong>{" "}
-                                        {selectedAudit.new_condition}
-                                    </p>
-                                    <p>
-                                        <strong>Details:</strong>{" "}
-                                        {selectedAudit.details || "-"}
-                                    </p>
-                                    <p>
-                                        <strong>Date Resolved:</strong>{" "}
-                                        {new Date(
-                                            selectedAudit.created_at
-                                        ).toLocaleString()}
-                                    </p>
-                                    <div className="flex justify-end mt-4">
-                                        <Button onClick={() => setOpen(false)}>
-                                            Close
-                                        </Button>
+                                <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+                                    {/* Header with color bar */}
+                                    <div className="bg-[hsl(142,34%,25%)] p-4">
+                                        <DialogTitle className="text-white text-lg font-bold">
+                                            Audit Report Details
+                                        </DialogTitle>
+                                        {/* No DialogClose or X button here */}
+                                    </div>
+                                    <div className="p-6 space-y-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-gray-500 font-semibold">
+                                                    Report ID:
+                                                </p>
+                                                <p className="text-gray-800 font-medium">
+                                                    {selectedAudit.report_id}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-500 font-semibold">
+                                                    Resolved By:
+                                                </p>
+                                                <p className="text-gray-800 font-medium">
+                                                    {selectedAudit.resolver
+                                                        ?.name || "N/A"}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-500 font-semibold">
+                                                    Old Condition:
+                                                </p>
+                                                <span
+                                                    className={`px-2 py-1 rounded-full text-sm font-semibold ${getConditionBadge(
+                                                        selectedAudit.old_condition
+                                                    )}`}
+                                                >
+                                                    {
+                                                        selectedAudit.old_condition
+                                                    }
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-500 font-semibold">
+                                                    New Condition:
+                                                </p>
+                                                <span
+                                                    className={`px-2 py-1 rounded-full text-sm font-semibold ${getConditionBadge(
+                                                        selectedAudit.new_condition
+                                                    )}`}
+                                                >
+                                                    {
+                                                        selectedAudit.new_condition
+                                                    }
+                                                </span>
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <p className="text-gray-500 font-semibold">
+                                                    Details:
+                                                </p>
+                                                <p className="text-gray-800">
+                                                    {selectedAudit.details ||
+                                                        "-"}
+                                                </p>
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <p className="text-gray-500 font-semibold">
+                                                    Date Resolved:
+                                                </p>
+                                                <p className="text-gray-800">
+                                                    {new Date(
+                                                        selectedAudit.created_at
+                                                    ).toLocaleString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end mt-4">
+                                            <Button
+                                                onClick={() => setOpen(false)}
+                                                className="bg-[hsl(142,34%,25%)] text-white hover:bg-[hsl(142,34%,20%)]"
+                                            >
+                                                Close
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
