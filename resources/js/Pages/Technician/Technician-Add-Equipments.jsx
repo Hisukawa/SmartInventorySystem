@@ -6,6 +6,84 @@ import { Input } from "@/components/ui/input";
 import TechnicianRoomSidebar from "@/Components/TechnicianComponent/techician-scanned-sidebar";
 import { Menu } from "lucide-react";
 import Swal from "sweetalert2";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+// ✅ Equipment Types
+const TYPE_OPTIONS = ["Furniture", "Appliances", "Networking", "Safety"];
+
+// ✅ Condition Lists per Type
+const CONDITION_OPTIONS = {
+    Furniture: [
+        "Functional",
+        "Minor Damage",
+        "Needs Repair",
+        "Needs Cleaning",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+        "To Be Diagnosed",
+    ],
+    Appliances: [
+        "Functional",
+        "Defective",
+        "Intermittent Issue",
+        "Overheating",
+        "Loose Wiring",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+        "To Be Diagnosed",
+    ],
+    Networking: [
+        "Functional",
+        "Intermittent Connectivity",
+        "No Signal",
+        "Needs Configuration",
+        "Defective Port",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+        "To Be Diagnosed",
+    ],
+    Safety: [
+        "Functional",
+        "Expired",
+        "Needs Refill",
+        "Defective",
+        "Rusting",
+        "For Replacement",
+        "For Disposal",
+        "Condemned",
+        "To Be Diagnosed",
+    ],
+};
+
+// ✅ Condition Colors
+const CONDITION_COLORS = {
+    Functional: "bg-green-200 text-green-800",
+    Defective: "bg-red-200 text-red-800",
+    "Intermittent Issue": "bg-yellow-200 text-yellow-800",
+    "Needs Cleaning": "bg-blue-200 text-blue-800",
+    "For Replacement": "bg-orange-200 text-orange-800",
+    "For Disposal": "bg-gray-200 text-gray-800",
+    Condemned: "bg-black text-white",
+    "Minor Damage": "bg-yellow-200 text-yellow-800",
+    "Needs Repair": "bg-red-200 text-red-800",
+    "Intermittent Connectivity": "bg-yellow-200 text-yellow-800",
+    "No Signal": "bg-red-200 text-red-800",
+    "Needs Configuration": "bg-blue-200 text-blue-800",
+    Expired: "bg-red-300 text-red-900",
+    "Needs Refill": "bg-blue-200 text-blue-900",
+    Rusting: "bg-orange-200 text-orange-900",
+    "To Be Diagnosed": "bg-blue-100 text-blue-700",
+};
 
 export default function TechnicianAddEquipment({ room, user }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,9 +93,14 @@ export default function TechnicianAddEquipment({ room, user }) {
         equipment_name: "",
         type: "",
         brand: "",
-        condition: "Working",
+        quantity: 1,
+        condition: "",
+        condition_details: "",
         room_id: room?.id || "",
     });
+
+    // Dynamically get condition options based on selected type
+    const availableConditions = data.type ? CONDITION_OPTIONS[data.type] : [];
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -33,7 +116,9 @@ export default function TechnicianAddEquipment({ room, user }) {
                     equipment_name: "",
                     type: "",
                     brand: "",
-                    condition: "Working",
+                    quantity: 1,
+                    condition: "",
+                    condition_details: "",
                     room_id: room?.id || "",
                 });
             },
@@ -47,9 +132,7 @@ export default function TechnicianAddEquipment({ room, user }) {
                 title: "Success!",
                 text: flash.success,
                 confirmButtonColor: "hsl(142,34%,51%)",
-            }).then(() => {
-                router.reload({ only: [] });
-            });
+            }).then(() => router.reload({ only: [] }));
         }
     }, [flash]);
 
@@ -112,13 +195,39 @@ export default function TechnicianAddEquipment({ room, user }) {
                                 onSubmit={handleSubmit}
                                 className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                             >
+                                {/* Type */}
+                                <div>
+                                    <Label>Type</Label>
+                                    <Select
+                                        value={data.type}
+                                        onValueChange={(val) => {
+                                            setData("type", val);
+                                            setData("condition", "");
+                                        }}
+                                        required
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="-- Select Type --" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {TYPE_OPTIONS.map((t) => (
+                                                <SelectItem key={t} value={t}>
+                                                    {t}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.type && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.type}
+                                        </p>
+                                    )}
+                                </div>
                                 {/* Equipment Name */}
                                 <div className="sm:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Equipment Name
-                                    </label>
+                                    <Label>Equipment Name</Label>
                                     <Input
-                                        placeholder="e.g. Projector"
+                                        placeholder=""
                                         value={data.equipment_name}
                                         onChange={(e) =>
                                             setData(
@@ -126,6 +235,7 @@ export default function TechnicianAddEquipment({ room, user }) {
                                                 e.target.value
                                             )
                                         }
+                                        required
                                     />
                                     {errors.equipment_name && (
                                         <p className="text-red-500 text-sm mt-1">
@@ -134,54 +244,104 @@ export default function TechnicianAddEquipment({ room, user }) {
                                     )}
                                 </div>
 
-                                {/* Type */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Type
-                                    </label>
-                                    <Input
-                                        placeholder="e.g. Peripheral"
-                                        value={data.type}
-                                        onChange={(e) =>
-                                            setData("type", e.target.value)
-                                        }
-                                    />
-                                    {errors.type && (
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {errors.type}
-                                        </p>
-                                    )}
-                                </div>
-
                                 {/* Brand */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Brand
-                                    </label>
+                                    <Label>Brand</Label>
                                     <Input
-                                        placeholder="e.g. Logitech"
+                                        placeholder=""
                                         value={data.brand}
                                         onChange={(e) =>
                                             setData("brand", e.target.value)
                                         }
+                                        required
                                     />
+                                    {errors.brand && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.brand}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Quantity */}
+                                <div>
+                                    <Label>Quantity</Label>
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        placeholder="e.g. 5"
+                                        value={data.quantity}
+                                        onChange={(e) =>
+                                            setData(
+                                                "quantity",
+                                                Number(e.target.value)
+                                            )
+                                        }
+                                        required
+                                    />
+                                    {errors.quantity && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.quantity}
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* Condition */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Condition
-                                    </label>
-                                    <Input
-                                        placeholder="Working / Defective"
+                                    <Label>Condition</Label>
+                                    <Select
                                         value={data.condition}
-                                        onChange={(e) =>
-                                            setData("condition", e.target.value)
+                                        onValueChange={(val) =>
+                                            setData("condition", val)
                                         }
-                                    />
+                                        disabled={!data.type}
+                                        required
+                                    >
+                                        <SelectTrigger
+                                            className={
+                                                CONDITION_COLORS[
+                                                    data.condition
+                                                ] || ""
+                                            }
+                                        >
+                                            <SelectValue
+                                                placeholder={
+                                                    data.type
+                                                        ? "-- Select Condition --"
+                                                        : "Select a type first"
+                                                }
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {availableConditions.map((c) => (
+                                                <SelectItem key={c} value={c}>
+                                                    {c}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     {errors.condition && (
                                         <p className="text-red-500 text-sm mt-1">
                                             {errors.condition}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Condition Details */}
+                                <div className="sm:col-span-2">
+                                    <Label>Condition Details</Label>
+                                    <Input
+                                        placeholder="e.g. Minor scratches, needs cable replacement"
+                                        value={data.condition_details}
+                                        onChange={(e) =>
+                                            setData(
+                                                "condition_details",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                    {errors.condition_details && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.condition_details}
                                         </p>
                                     )}
                                 </div>

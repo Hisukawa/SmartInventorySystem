@@ -1084,6 +1084,8 @@ public function TechnicianCreatePeripherals(Request $request)
             'type'           => 'required|string|max:255',
             'brand'          => 'nullable|string|max:255',
             'condition'      => 'required|string|max:255',
+            'condition_details'  => 'nullable|string|max:500', // <-- new
+            'quantity'           => 'required|integer|min:1',   // <-- ne
             'room_id'        => 'nullable|exists:rooms,id',
         ]);
 
@@ -1114,6 +1116,8 @@ public function TechnicianCreatePeripherals(Request $request)
                 'type'           => $validated['type'],
                 'brand'          => $validated['brand'] ?? null,
                 'condition'      => $validated['condition'],
+                'condition_details' => $validated['condition_details'] ?? null,
+                'quantity'          => $validated['quantity'],
                 'room_id'        => $validated['room_id'] ?? null,
                 'added_by'       => Auth::id(), // fallback if no auth
                 'qr_code'        => $qrCodePath,
@@ -1126,6 +1130,8 @@ public function TechnicianCreatePeripherals(Request $request)
                 'type'           => $validated['type'],
                 'brand'          => $validated['brand'] ?? null,
                 'condition'      => $validated['condition'],
+                'condition_details' => $validated['condition_details'] ?? null,
+                'quantity'          => $validated['quantity'],
                 'room_id'        => $validated['room_id'] ?? null,
                 'qr_code'        => $qrCodePath,
             ]);

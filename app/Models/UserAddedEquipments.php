@@ -14,6 +14,8 @@ class UserAddedEquipments extends Model
         'type',
         'brand',
         'condition',
+        'condition_details', // <-- new
+        'quantity',         
         'room_id',
         'qr_code',
         'added_by',
