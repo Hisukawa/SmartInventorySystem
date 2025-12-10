@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('face_recognition_enabled')->default(true);
+            $table->boolean('face_recognition_enabled')->default(false);
         });
     }
 

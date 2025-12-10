@@ -4,12 +4,14 @@ import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
 import { Transition } from "@headlessui/react";
 import { useForm } from "@inertiajs/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner"; // ✅ Import Sonner
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"; // ✅ Eye icons
 
 export default function UpdatePasswordForm({ className = "" }) {
     const passwordInput = useRef();
     const currentPasswordInput = useRef();
+    const confirmPasswordInput = useRef();
 
     const {
         data,
@@ -25,6 +27,11 @@ export default function UpdatePasswordForm({ className = "" }) {
         password_confirmation: "",
     });
 
+    // State for showing passwords
+    const [showCurrent, setShowCurrent] = useState(false);
+    const [showNew, setShowNew] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+
     const updatePassword = (e) => {
         e.preventDefault();
 
@@ -32,7 +39,7 @@ export default function UpdatePasswordForm({ className = "" }) {
             preserveScroll: true,
             onSuccess: () => {
                 reset();
-                toast.success("Password updated successfully!"); // ✅ Show success toast
+                toast.success("Password updated successfully!");
             },
             onError: (errors) => {
                 if (errors.password) {
@@ -45,10 +52,44 @@ export default function UpdatePasswordForm({ className = "" }) {
                     currentPasswordInput.current.focus();
                 }
 
-                toast.error("Failed to update password."); // ✅ Show error toast
+                toast.error("Failed to update password.");
             },
         });
     };
+
+    const inputWithToggle = (
+        ref,
+        value,
+        onChange,
+        type,
+        show,
+        setShow,
+        placeholder,
+        autoComplete
+    ) => (
+        <div className="relative">
+            <TextInput
+                ref={ref}
+                value={value}
+                onChange={onChange}
+                type={show ? "text" : type}
+                placeholder={placeholder}
+                className="mt-1 block w-full pr-10"
+                autoComplete={autoComplete}
+            />
+            <button
+                type="button"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setShow(!show)}
+            >
+                {show ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                ) : (
+                    <EyeIcon className="w-5 h-5" />
+                )}
+            </button>
+        </div>
+    );
 
     return (
         <section className={className}>
@@ -64,23 +105,23 @@ export default function UpdatePasswordForm({ className = "" }) {
             </header>
 
             <form onSubmit={updatePassword} className="mt-6 space-y-6">
+                {/* Current Password */}
                 <div>
                     <InputLabel
                         htmlFor="current_password"
                         value="Current Password"
                     />
 
-                    <TextInput
-                        id="current_password"
-                        ref={currentPasswordInput}
-                        value={data.current_password}
-                        onChange={(e) =>
-                            setData("current_password", e.target.value)
-                        }
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                    />
+                    {inputWithToggle(
+                        currentPasswordInput,
+                        data.current_password,
+                        (e) => setData("current_password", e.target.value),
+                        "password",
+                        showCurrent,
+                        setShowCurrent,
+                        "Enter current password",
+                        "current-password"
+                    )}
 
                     <InputError
                         message={errors.current_password}
@@ -88,38 +129,41 @@ export default function UpdatePasswordForm({ className = "" }) {
                     />
                 </div>
 
+                {/* New Password */}
                 <div>
                     <InputLabel htmlFor="password" value="New Password" />
 
-                    <TextInput
-                        id="password"
-                        ref={passwordInput}
-                        value={data.password}
-                        onChange={(e) => setData("password", e.target.value)}
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                    />
+                    {inputWithToggle(
+                        passwordInput,
+                        data.password,
+                        (e) => setData("password", e.target.value),
+                        "password",
+                        showNew,
+                        setShowNew,
+                        "Enter new password",
+                        "new-password"
+                    )}
 
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
+                {/* Confirm Password */}
                 <div>
                     <InputLabel
                         htmlFor="password_confirmation"
                         value="Confirm Password"
                     />
 
-                    <TextInput
-                        id="password_confirmation"
-                        value={data.password_confirmation}
-                        onChange={(e) =>
-                            setData("password_confirmation", e.target.value)
-                        }
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                    />
+                    {inputWithToggle(
+                        confirmPasswordInput,
+                        data.password_confirmation,
+                        (e) => setData("password_confirmation", e.target.value),
+                        "password",
+                        showConfirm,
+                        setShowConfirm,
+                        "Confirm new password",
+                        "new-password"
+                    )}
 
                     <InputError
                         message={errors.password_confirmation}
@@ -129,16 +173,6 @@ export default function UpdatePasswordForm({ className = "" }) {
 
                 <div className="flex items-center gap-4">
                     <PrimaryButton disabled={processing}>Save</PrimaryButton>
-
-                    {/* <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm text-gray-600">Saved.</p>
-                    </Transition> */}
                 </div>
             </form>
         </section>

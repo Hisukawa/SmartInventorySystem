@@ -513,7 +513,26 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
     }, [units, search]);
 
     const totalPages = Math.ceil(filteredUnits.length / itemsPerPage) || 1;
-    const paginatedUnits = filteredUnits.slice(
+
+    // Sort by room number ASC
+    const sortedUnits = [...filteredUnits].sort((a, b) => {
+        // Room number numeric compare
+        const roomA = parseInt(a.room?.room_number || 0);
+        const roomB = parseInt(b.room?.room_number || 0);
+
+        if (roomA !== roomB) {
+            return roomA - roomB; // ASC by room
+        }
+
+        // If room is the same → compare unit code ASC
+        const codeA = a.unit_code?.toString().toLowerCase() || "";
+        const codeB = b.unit_code?.toString().toLowerCase() || "";
+
+        return codeA.localeCompare(codeB);
+    });
+
+    // Then paginate
+    const paginatedUnits = sortedUnits.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );

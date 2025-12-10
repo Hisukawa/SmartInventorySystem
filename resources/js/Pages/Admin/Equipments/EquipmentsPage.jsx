@@ -328,6 +328,36 @@ export default function EquipmentsPage({
 
         return matchesSearch && matchesType && matchesCondition && matchesRoom;
     });
+    // Sort equipments by Room Number → Equipment Name (or Equipment Code)
+    const sortedData = [...filteredData].sort((a, b) => {
+        // Room number numeric compare
+        const roomA = parseInt(a.room?.room_number || 0);
+        const roomB = parseInt(b.room?.room_number || 0);
+
+        if (roomA !== roomB) {
+            return roomA - roomB; // ASC by room
+        }
+
+        // Equipment name compare (human-readable)
+        const nameA = a.equipment_name?.toLowerCase() || "";
+        const nameB = b.equipment_name?.toLowerCase() || "";
+
+        if (nameA !== nameB) {
+            return nameA.localeCompare(nameB, undefined, { numeric: true });
+        }
+
+        // Optional fallback: Equipment Code
+        const codeA = a.equipment_code?.toLowerCase() || "";
+        const codeB = b.equipment_code?.toLowerCase() || "";
+
+        return codeA.localeCompare(codeB, undefined, { numeric: true });
+    });
+
+    // Paginate after sorting
+    // const paginatedData = sortedData.slice(
+    //     (currentPage - 1) * itemsPerPage,
+    //     currentPage * itemsPerPage
+    // );
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
     const paginatedData = filteredData.slice(
@@ -544,6 +574,7 @@ export default function EquipmentsPage({
                                                 {eq.equipment_name}
                                             </TableCell>
                                             <TableCell className="px-5 py-2 align-middle">
+                                                ROOM{" "}
                                                 {eq.room?.room_number ?? "N/A"}
                                             </TableCell>
                                             <TableCell className="px-5 py-2 align-middle">

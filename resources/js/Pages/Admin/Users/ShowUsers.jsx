@@ -121,7 +121,7 @@ export default function ShowUser({ user }) {
                                     onClick={() => setOpen(true)}
                                     variant="secondary"
                                 >
-                                    Change Profile
+                                    Change Photo
                                 </Button>
 
                                 <Button asChild>

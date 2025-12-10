@@ -149,9 +149,9 @@ export default function RoomHistory() {
                                             <th className="px-5 py-2">
                                                 Date & Time
                                             </th>
-                                            <th className="px-5 py-2">
+                                            {/* <th className="px-5 py-2">
                                                 Manage
-                                            </th>
+                                            </th> */}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -186,7 +186,7 @@ export default function RoomHistory() {
                                                         history.created_at
                                                     ).toLocaleString()}
                                                 </td>
-                                                <td className="px-5 py-2 align-middle">
+                                                {/* <td className="px-5 py-2 align-middle">
                                                     <button
                                                         className="px-2 py-1 text-red-600 text-sm hover:underline"
                                                         onClick={() =>
@@ -197,7 +197,7 @@ export default function RoomHistory() {
                                                     >
                                                         Delete
                                                     </button>
-                                                </td>
+                                                </td> */}
                                             </tr>
                                         ))}
                                     </tbody>

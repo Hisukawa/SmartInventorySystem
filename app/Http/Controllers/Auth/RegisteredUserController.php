@@ -43,8 +43,8 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
-             'face_descriptor' => $request->face_descriptor 
-        ? json_encode($request->face_descriptor) 
+            'face_descriptor' => $request->face_descriptor
+        ? json_encode($request->face_descriptor)
         : null,
         ]);
 

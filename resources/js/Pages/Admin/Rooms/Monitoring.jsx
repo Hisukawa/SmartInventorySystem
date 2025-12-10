@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
 import { X, Filter, Tally1Icon } from "lucide-react";
 import axios from "axios";
 
@@ -38,38 +37,34 @@ export default function AdminDashboard({ children }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [currentLogPage, setCurrentLogPage] = useState(1);
+    const [totalLogPages, setTotalLogPages] = useState(1);
+    const [totalLogs, setTotalLogs] = useState(0);
     const perPage = 10;
-    const [search, setSearch] = useState("");
 
-    const [activeFilters, setActiveFilters] = useState([]);
-    const [showFilters, setShowFilters] = useState(false);
-    const [logDate, setLogDate] = useState("");
+    const [search, setSearch] = useState("");
     const [facultyOptions, setFacultyOptions] = useState([]);
     const [roomOptions, setRoomOptions] = useState([]);
     const [facultyId, setFacultyId] = useState("");
     const [roomId, setRoomId] = useState("");
-    const [dateFrom, setDateFrom] = useState("");
-    const [dateTo, setDateTo] = useState("");
+    const [logDate, setLogDate] = useState("");
+    const [showFilters, setShowFilters] = useState(false);
 
-    const [faculties, setFaculties] = useState([]);
-    const [totalLogs, setTotalLogs] = useState(0);
-    const [totalRoomPages, setTotalRoomPages] = useState(1);
-    const [totalLogPages, setTotalLogPages] = useState(1);
-    // Fetch rooms from API
-    // ✅ Fetch Rooms (auto-refresh)
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    // Fetch rooms
     const fetchRooms = async () => {
         try {
             const res = await axios.get(
                 `/api/admin/rooms-status?page=${currentPage}&per_page=${perPage}`
             );
             setRooms(res.data.data);
-            setTotalRoomPages(res.data.meta.total_pages);
+            setTotalPages(res.data.meta.total_pages);
         } catch (err) {
             console.error("Failed to fetch rooms:", err);
         }
     };
 
-    // ✅ Fetch Logs (manual refresh or pagination change)
+    // Fetch logs
     const fetchLogs = async () => {
         try {
             const res = await axios.get(`/admin/faculty-logs`, {
@@ -81,11 +76,9 @@ export default function AdminDashboard({ children }) {
                     log_date: logDate,
                 },
             });
-
             setLogs(res.data.logs.data || []);
             setTotalLogPages(res.data.logs.last_page || 1);
             setTotalLogs(res.data.logs.total || 0);
-
             if (res.data.facultyOptions)
                 setFacultyOptions(res.data.facultyOptions);
             if (res.data.roomOptions) setRoomOptions(res.data.roomOptions);
@@ -94,31 +87,30 @@ export default function AdminDashboard({ children }) {
         }
     };
 
-    // 🔹 Auto-refresh rooms every 5 seconds
+    // Auto-refresh rooms and logs every 5 seconds
     useEffect(() => {
         fetchRooms();
-        const interval = setInterval(fetchRooms, 5000);
-        return () => clearInterval(interval);
+        const roomInterval = setInterval(fetchRooms, 5000);
+        return () => clearInterval(roomInterval);
     }, [currentPage]);
 
-    // 🔹 Fetch logs only on interaction (no auto refresh)
     useEffect(() => {
         fetchLogs();
+        const logInterval = setInterval(fetchLogs, 5000);
+        return () => clearInterval(logInterval);
     }, [currentLogPage, search, facultyId, roomId, logDate]);
-    const [currentTime, setCurrentTime] = useState(new Date());
 
+    // Current time update
     useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000); // update every second
-
-        return () => clearInterval(timer); // cleanup on unmount
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
     }, []);
 
     const hours = currentTime.getHours() % 12 || 12;
-    const minutes = String(currentTime.getMinutes()).padStart(2, "0"); // always 2 digits
-    const seconds = String(currentTime.getSeconds()).padStart(2, "0"); // always 2 digits
+    const minutes = String(currentTime.getMinutes()).padStart(2, "0");
+    const seconds = String(currentTime.getSeconds()).padStart(2, "0");
     const ampm = currentTime.getHours() >= 12 ? "PM" : "AM";
+
     return (
         <SidebarProvider>
             <Head>
@@ -126,7 +118,7 @@ export default function AdminDashboard({ children }) {
             </Head>
             <AppSidebar />
             <SidebarInset>
-                {/* Fixed content header inside the main area */}
+                {/* Header */}
                 <header className="sticky top-0 z-20 bg-white border-b px-6 py-3">
                     <div className="flex items-center gap-2">
                         <SidebarTrigger />
@@ -152,14 +144,14 @@ export default function AdminDashboard({ children }) {
                     </div>
                 </header>
 
-                {/* Content */}
+                {/* Main content */}
                 <main className="w-full px-6 py-4">
                     <div className="p-6">
                         <h1 className="text-2xl font-bold mb-4">
                             Room Monitoring
                         </h1>
 
-                        {/* Current Date and Time */}
+                        {/* Current Date & Time */}
                         <div className="mb-6">
                             <span className="text-gray-800 text-3xl md:text-4xl font-bold">
                                 {currentTime.toLocaleDateString("en-PH", {
@@ -179,7 +171,6 @@ export default function AdminDashboard({ children }) {
                                     No rooms found.
                                 </p>
                             )}
-
                             {rooms.map((room) => (
                                 <Card
                                     key={room.id}
@@ -187,11 +178,10 @@ export default function AdminDashboard({ children }) {
                                                 hover:scale-[1.02] hover:shadow-lg
                                                 ${
                                                     room.is_active
-                                                        ? "bg-[#59AC77]  border border-green-700 text-white"
-                                                        : "bg-[#59AC77]  border border-gray-300 text-gray-900"
+                                                        ? "bg-[#59AC77] border border-green-700 text-white"
+                                                        : "bg-[#59AC77] border border-gray-300 text-gray-900"
                                                 }`}
                                 >
-                                    {/* Header: Room Name + Status */}
                                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                                         <CardTitle
                                             className={`text-lg md:text-xl font-semibold ${
@@ -214,11 +204,8 @@ export default function AdminDashboard({ children }) {
                                                 : "Inactive"}
                                         </Badge>
                                     </CardHeader>
-
-                                    {/* Content: Faculty Info */}
                                     <CardContent>
                                         <div className="flex items-center space-x-4">
-                                            {/* Faculty Photo */}
                                             {room.is_active &&
                                             room.last_scanned_user?.photo ? (
                                                 <img
@@ -237,8 +224,6 @@ export default function AdminDashboard({ children }) {
                                                     No Photo
                                                 </div>
                                             )}
-
-                                            {/* Faculty Info */}
                                             <div className="flex flex-col">
                                                 <span
                                                     className={`font-medium ${
@@ -265,16 +250,7 @@ export default function AdminDashboard({ children }) {
                                                               room.last_scanned_at
                                                           ).toLocaleString(
                                                               "en-PH",
-                                                              {
-                                                                  timeZone:
-                                                                      "Asia/Manila",
-                                                                  year: "numeric",
-                                                                  month: "numeric",
-                                                                  day: "numeric",
-                                                                  hour: "numeric",
-                                                                  minute: "2-digit",
-                                                                  hour12: true,
-                                                              }
+                                                              { hour12: true }
                                                           )
                                                         : "Not yet scanned"}
                                                 </span>
@@ -285,12 +261,9 @@ export default function AdminDashboard({ children }) {
                             ))}
                         </div>
 
-                        {/* 🔍 Search + Filters */}
+                        {/* Search + Filters */}
                         <div className="space-y-4">
-                            {/* 🔍 Search + Filter Toggle */}
-                            {/* 🔍 Search + Filter Row */}
                             <div className="flex items-center justify-between w-full mb-4">
-                                {/* 🌿 Filter Button (left) */}
                                 <Button
                                     className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
                                     onClick={() => setShowFilters(!showFilters)}
@@ -300,8 +273,6 @@ export default function AdminDashboard({ children }) {
                                         ? "Hide Filters"
                                         : "Show Filters"}
                                 </Button>
-
-                                {/* 🔍 Search Bar + Button (right) */}
                                 <div className="flex items-center gap-2">
                                     <Input
                                         type="text"
@@ -321,10 +292,9 @@ export default function AdminDashboard({ children }) {
                                 </div>
                             </div>
 
-                            {/* 🎛️ Filter Options */}
+                            {/* Filter Options */}
                             {showFilters && (
                                 <div className="flex flex-wrap gap-5 items-end">
-                                    {/* Faculty Filter */}
                                     <div className="flex flex-col">
                                         <label className="text-sm text-gray-600 mb-1">
                                             Users
@@ -345,7 +315,6 @@ export default function AdminDashboard({ children }) {
                                         </select>
                                     </div>
 
-                                    {/* Room Filter */}
                                     <div className="flex flex-col">
                                         <label className="text-sm text-gray-600 mb-1">
                                             Room
@@ -366,8 +335,6 @@ export default function AdminDashboard({ children }) {
                                         </select>
                                     </div>
 
-                                    {/* Date Filter */}
-                                    {/* Date Filter */}
                                     <div className="flex flex-col">
                                         <label className="text-sm text-gray-600 mb-1">
                                             Login Date
@@ -398,8 +365,7 @@ export default function AdminDashboard({ children }) {
                                 </div>
                             )}
 
-                            {/* 📋 Faculty Logs Table */}
-
+                            {/* Users Logs Table */}
                             <Card className="shadow-md rounded-2xl">
                                 <CardHeader>
                                     <CardTitle>Users Logs History</CardTitle>
@@ -434,7 +400,6 @@ export default function AdminDashboard({ children }) {
                                                     </TableCell>
                                                 </TableRow>
                                             )}
-
                                             {logs.map((log, idx) => {
                                                 const loginDate = log.created_at
                                                     ? new Date(
@@ -454,7 +419,6 @@ export default function AdminDashboard({ children }) {
                                                           }
                                                       )
                                                     : "—";
-
                                                 const logoutDate =
                                                     log.logged_out_at
                                                         ? new Date(
@@ -474,7 +438,6 @@ export default function AdminDashboard({ children }) {
                                                               }
                                                           )
                                                         : "";
-
                                                 return (
                                                     <TableRow key={log.id}>
                                                         <TableCell>
@@ -487,13 +450,11 @@ export default function AdminDashboard({ children }) {
                                                         <TableCell>
                                                             {log.faculty
                                                                 ?.name ?? "N/A"}
-                                                        </TableCell>{" "}
-                                                        {/* updated */}
+                                                        </TableCell>
                                                         <TableCell>
                                                             {log.faculty
                                                                 ?.role ?? "N/A"}
-                                                        </TableCell>{" "}
-                                                        {/* updated */}
+                                                        </TableCell>
                                                         <TableCell>
                                                             {loginDate}
                                                         </TableCell>
@@ -511,8 +472,8 @@ export default function AdminDashboard({ children }) {
                                         </TableBody>
                                     </Table>
 
+                                    {/* Pagination */}
                                     <div className="flex justify-between items-center mt-4">
-                                        {/* Page Info */}
                                         <span className="text-sm text-muted-foreground">
                                             Showing{" "}
                                             {logs.length === 0
@@ -528,9 +489,7 @@ export default function AdminDashboard({ children }) {
                                             of {totalLogs} Logs
                                         </span>
 
-                                        {/* Pagination Buttons */}
                                         <div className="flex gap-2 items-center">
-                                            {/* Previous */}
                                             <Button
                                                 size="sm"
                                                 variant="outline"
@@ -544,16 +503,14 @@ export default function AdminDashboard({ children }) {
                                                 Previous
                                             </Button>
 
-                                            {/* Page Numbers */}
                                             {Array.from(
                                                 { length: totalLogPages },
                                                 (_, idx) => idx + 1
                                             )
-
                                                 .filter((page) => {
                                                     if (
                                                         page === 1 ||
-                                                        page === totalPages
+                                                        page === totalLogPages
                                                     )
                                                         return true;
                                                     return (
@@ -593,13 +550,12 @@ export default function AdminDashboard({ children }) {
                                                     </React.Fragment>
                                                 ))}
 
-                                            {/* Next */}
                                             <Button
                                                 size="sm"
                                                 variant="outline"
                                                 disabled={
                                                     currentLogPage ===
-                                                    totalPages
+                                                    totalLogPages
                                                 }
                                                 onClick={() =>
                                                     setCurrentLogPage(

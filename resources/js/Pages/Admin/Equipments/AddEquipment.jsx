@@ -33,7 +33,7 @@ const TYPE_OPTIONS = ["Furniture", "Appliances", "Networking", "Safety"];
 // ✅ Condition Lists per Type
 const CONDITION_OPTIONS = {
     Furniture: [
-        "Functional",
+        "Working",
         "Minor Damage",
         "Needs Repair",
         "Needs Cleaning",
@@ -43,8 +43,8 @@ const CONDITION_OPTIONS = {
         "To Be Diagnosed",
     ],
     Appliances: [
-        "Functional",
-        "Defective",
+        "Working",
+        "Not Working",
         "Intermittent Issue",
         "Overheating",
         "Loose Wiring",
@@ -54,21 +54,21 @@ const CONDITION_OPTIONS = {
         "To Be Diagnosed",
     ],
     Networking: [
-        "Functional",
+        "Working",
         "Intermittent Connectivity",
         "No Signal",
         "Needs Configuration",
-        "Defective Port",
+        "Port Not Working",
         "For Replacement",
         "For Disposal",
         "Condemned",
         "To Be Diagnosed",
     ],
     Safety: [
-        "Functional",
+        "Working",
         "Expired",
         "Needs Refill",
-        "Defective",
+        "Not Working",
         "Rusting",
         "For Replacement",
         "For Disposal",
@@ -79,8 +79,8 @@ const CONDITION_OPTIONS = {
 
 // ✅ Condition Colors
 const CONDITION_COLORS = {
-    Functional: "bg-green-200 text-green-800",
-    Defective: "bg-red-200 text-red-800",
+    Working: "bg-green-200 text-green-800",
+    "Not Working": "bg-red-200 text-red-800",
     "Intermittent Issue": "bg-yellow-200 text-yellow-800",
     "Needs Cleaning": "bg-blue-200 text-blue-800",
     "For Replacement": "bg-orange-200 text-orange-800",

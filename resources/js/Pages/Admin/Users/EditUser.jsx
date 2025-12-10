@@ -21,6 +21,8 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+import { Checkbox } from "@/components/ui/checkbox";
+
 export default function EditUser({ user }) {
     const { data, setData, put, processing, errors } = useForm({
         name: user.name || "",
@@ -30,212 +32,231 @@ export default function EditUser({ user }) {
         role: user.role || "guest",
     });
 
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const submit = (e) => {
         e.preventDefault();
         put(route("admin.users.update", user.id));
     };
 
     return (
-        <>
-            <SidebarProvider>
-                <Head>
-                    <title>User Management</title>
-                </Head>
-                <AppSidebar />
-                <SidebarInset>
-                    {/* Header */}
-                    <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
-                        <SidebarTrigger />
-                        <Separator
-                            orientation="vertical"
-                            className="h-6 mx-3"
-                        />
-                        <Breadcrumb>
-                            <BreadcrumbList>
-                                <BreadcrumbItem>
-                                    <BreadcrumbLink href="/admin/users">
-                                        User Lists
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
+        <SidebarProvider>
+            <Head>
+                <title>User Management</title>
+            </Head>
+            <AppSidebar />
+            <SidebarInset>
+                {/* Header */}
+                <header className="flex h-16 items-center gap-2 px-4 border-b bg-white">
+                    <SidebarTrigger />
+                    <Separator orientation="vertical" className="h-6 mx-3" />
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/admin/users">
+                                    User Lists
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbLink
+                                    href={route("admin.users.show", user.id)}
+                                >
+                                    User Profile
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbLink
+                                    href={route("admin.users.edit", user.id)}
+                                    className="font-semibold text-foreground"
+                                >
+                                    Edit Profile
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </header>
 
-                                <BreadcrumbSeparator />
+                <main>
+                    <Head title="Edit User" />
+                    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+                        <div className="w-full max-w-lg bg-white shadow-lg rounded-lg p-8">
+                            <CardHeader className="p-0 mb-6">
+                                <CardTitle className="text-2xl font-bold">
+                                    Edit Profile
+                                </CardTitle>
+                                <CardDescription>
+                                    Update user details below
+                                </CardDescription>
+                            </CardHeader>
 
-                                <BreadcrumbItem>
-                                    <BreadcrumbLink
-                                        href={route(
-                                            "admin.users.show",
-                                            user.id
-                                        )}
-                                    >
-                                        User Profile
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
+                            <form onSubmit={submit} className="space-y-4">
+                                {/* Name */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="name">Full Name</Label>
+                                    <Input
+                                        id="name"
+                                        type="text"
+                                        name="name"
+                                        value={data.name}
+                                        onChange={(e) =>
+                                            setData("name", e.target.value)
+                                        }
+                                        required
+                                    />
+                                    {errors.name && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.name}
+                                        </p>
+                                    )}
+                                </div>
 
-                                <BreadcrumbSeparator />
+                                {/* Email */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        name="email"
+                                        value={data.email}
+                                        onChange={(e) =>
+                                            setData("email", e.target.value)
+                                        }
+                                        required
+                                    />
+                                    {errors.email && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.email}
+                                        </p>
+                                    )}
+                                </div>
 
-                                <BreadcrumbItem>
-                                    <BreadcrumbLink
-                                        href={route(
-                                            "admin.users.edit",
-                                            user.id
-                                        )}
-                                        className="font-semibold text-foreground"
-                                    >
-                                        Edit Profile
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
-                            </BreadcrumbList>
-                        </Breadcrumb>
-                    </header>
-
-                    <main>
-                        <Head title="Edit User" />
-                        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-                            <div className="w-full max-w-lg bg-white shadow-lg rounded-lg p-8">
-                                <CardHeader className="p-0 mb-6">
-                                    <CardTitle className="text-2xl font-bold">
-                                        Edit Profile
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Update user details below
-                                    </CardDescription>
-                                </CardHeader>
-
-                                <form onSubmit={submit} className="space-y-4">
-                                    {/* Name */}
-                                    <div className="space-y-1">
-                                        <Label htmlFor="name">Full Name</Label>
-                                        <Input
-                                            id="name"
-                                            type="text"
-                                            name="name"
-                                            value={data.name}
-                                            onChange={(e) =>
-                                                setData("name", e.target.value)
-                                            }
-                                            required
-                                        />
-                                        {errors.name && (
-                                            <p className="text-sm text-red-500">
-                                                {errors.name}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Email */}
-                                    <div className="space-y-1">
-                                        <Label htmlFor="email">Email</Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            name="email"
-                                            value={data.email}
-                                            onChange={(e) =>
-                                                setData("email", e.target.value)
-                                            }
-                                            required
-                                        />
-                                        {errors.email && (
-                                            <p className="text-sm text-red-500">
-                                                {errors.email}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Password */}
-                                    <div className="space-y-1">
-                                        <Label htmlFor="password">
-                                            Password
-                                        </Label>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            name="password"
-                                            value={data.password}
-                                            onChange={(e) =>
-                                                setData(
-                                                    "password",
-                                                    e.target.value
-                                                )
-                                            }
-                                            placeholder="Enter new password (leave empty to keep current)"
-                                        />
-                                        {errors.password && (
-                                            <p className="text-sm text-red-500">
-                                                {errors.password}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Confirm Password */}
-                                    <div className="space-y-1">
-                                        <Label htmlFor="password_confirmation">
-                                            Confirm Password
-                                        </Label>
-                                        <Input
-                                            id="password_confirmation"
-                                            type="password"
-                                            name="password_confirmation"
-                                            value={data.password_confirmation}
-                                            placeholder="Re-enter new password to confirm"
-                                            onChange={(e) =>
-                                                setData(
-                                                    "password_confirmation",
-                                                    e.target.value
+                                {/* Password */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="password">Password</Label>
+                                    <Input
+                                        id="password"
+                                        type={
+                                            showPassword ? "text" : "password"
+                                        }
+                                        name="password"
+                                        value={data.password}
+                                        onChange={(e) =>
+                                            setData("password", e.target.value)
+                                        }
+                                        placeholder="Enter new password (leave empty to keep current)"
+                                    />
+                                    {errors.password && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.password}
+                                        </p>
+                                    )}
+                                    <div className="flex items-center space-x-2 mt-1">
+                                        <Checkbox
+                                            id="showPassword"
+                                            checked={showPassword}
+                                            onCheckedChange={(checked) =>
+                                                setShowPassword(
+                                                    Boolean(checked)
                                                 )
                                             }
                                         />
-                                        {errors.password_confirmation && (
-                                            <p className="text-sm text-red-500">
-                                                {errors.password_confirmation}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Role */}
-                                    <div className="space-y-1">
-                                        <Label htmlFor="role">
-                                            Select Role
-                                        </Label>
-                                        <select
-                                            id="role"
-                                            name="role"
-                                            value={data.role}
-                                            onChange={(e) =>
-                                                setData("role", e.target.value)
-                                            }
-                                            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                                            required
+                                        <label
+                                            htmlFor="showPassword"
+                                            className="text-sm text-muted-foreground"
                                         >
-                                            <option value="admin">Admin</option>
-                                            <option value="faculty">
-                                                Faculty
-                                            </option>
-                                            <option value="technician">
-                                                Technician
-                                            </option>
-                                            <option value="guest">Guest</option>
-                                        </select>
-                                        {errors.role && (
-                                            <p className="text-sm text-red-500">
-                                                {errors.role}
-                                            </p>
-                                        )}
+                                            Show Password
+                                        </label>
                                     </div>
+                                </div>
 
-                                    <Button
-                                        type="submit"
-                                        className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white"
-                                        disabled={processing}
+                                {/* Confirm Password */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="password_confirmation">
+                                        Confirm Password
+                                    </Label>
+                                    <Input
+                                        id="password_confirmation"
+                                        type={
+                                            showConfirmPassword
+                                                ? "text"
+                                                : "password"
+                                        }
+                                        name="password_confirmation"
+                                        value={data.password_confirmation}
+                                        placeholder="Re-enter new password to confirm"
+                                        onChange={(e) =>
+                                            setData(
+                                                "password_confirmation",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                    {errors.password_confirmation && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.password_confirmation}
+                                        </p>
+                                    )}
+                                    <div className="flex items-center space-x-2 mt-1">
+                                        <Checkbox
+                                            id="showConfirmPassword"
+                                            checked={showConfirmPassword}
+                                            onCheckedChange={(checked) =>
+                                                setShowConfirmPassword(
+                                                    Boolean(checked)
+                                                )
+                                            }
+                                        />
+                                        <label
+                                            htmlFor="showConfirmPassword"
+                                            className="text-sm text-muted-foreground"
+                                        >
+                                            Show Confirm Password
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Role */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="role">Select Role</Label>
+                                    <select
+                                        id="role"
+                                        name="role"
+                                        value={data.role}
+                                        onChange={(e) =>
+                                            setData("role", e.target.value)
+                                        }
+                                        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                        required
                                     >
-                                        Update User
-                                    </Button>
-                                </form>
-                            </div>
+                                        <option value="admin">Admin</option>
+                                        <option value="faculty">Faculty</option>
+                                        <option value="technician">
+                                            Technician
+                                        </option>
+                                        <option value="guest">Guest</option>
+                                    </select>
+                                    {errors.role && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.role}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white"
+                                    disabled={processing}
+                                >
+                                    Update User
+                                </Button>
+                            </form>
                         </div>
-                    </main>
-                </SidebarInset>
-            </SidebarProvider>
-        </>
+                    </div>
+                </main>
+            </SidebarInset>
+        </SidebarProvider>
     );
 }

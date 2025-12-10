@@ -35,12 +35,21 @@ export default function AuditReportsIndex({ auditReports }) {
     const [open, setOpen] = useState(false);
     const [selectedAudit, setSelectedAudit] = useState(null);
 
+    // Pagination states
+    const itemsPerPage = 10;
+    const [currentPage, setCurrentPage] = useState(1);
+    const totalPages = Math.ceil(auditReports.length / itemsPerPage);
+
+    const paginatedData = auditReports.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     const handleViewDetails = (audit) => {
         setSelectedAudit(audit);
         setOpen(true);
     };
 
-    // Condition badge color mapping
     const getConditionBadge = (condition) => {
         const normalized = condition?.toLowerCase() || "";
         switch (normalized) {
@@ -68,8 +77,6 @@ export default function AuditReportsIndex({ auditReports }) {
             case "rusting":
             case "needs maintenance":
                 return "bg-yellow-100 text-yellow-800";
-            // case "replaced":
-            //     return "bg-black/60 text-yellow-800";
             default:
                 return "bg-gray-100 text-gray-800";
         }
@@ -113,6 +120,7 @@ export default function AuditReportsIndex({ auditReports }) {
                 <main className="p-6">
                     <h1 className="text-2xl font-bold mb-5">Audit Reports</h1>
 
+                    {/* Reports Table */}
                     <Card>
                         <CardContent className="p-0">
                             <Table>
@@ -127,8 +135,8 @@ export default function AuditReportsIndex({ auditReports }) {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {auditReports.length > 0 ? (
-                                        auditReports.map((audit, index) => (
+                                    {paginatedData.length > 0 ? (
+                                        paginatedData.map((audit, index) => (
                                             <TableRow
                                                 key={audit.id}
                                                 className="cursor-pointer hover:bg-gray-50 transition-colors duration-200"
@@ -137,7 +145,10 @@ export default function AuditReportsIndex({ auditReports }) {
                                                 }
                                             >
                                                 <TableCell>
-                                                    {index + 1}
+                                                    {(currentPage - 1) *
+                                                        itemsPerPage +
+                                                        index +
+                                                        1}
                                                 </TableCell>
                                                 <TableCell>
                                                     {audit.resolver?.name ||
@@ -183,6 +194,64 @@ export default function AuditReportsIndex({ auditReports }) {
                                     )}
                                 </TableBody>
                             </Table>
+
+                            {/* Pagination */}
+                            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 p-2 gap-2">
+                                <span className="text-sm text-muted-foreground">
+                                    Showing{" "}
+                                    {auditReports.length === 0
+                                        ? 0
+                                        : (currentPage - 1) * itemsPerPage +
+                                          1}{" "}
+                                    –{" "}
+                                    {Math.min(
+                                        currentPage * itemsPerPage,
+                                        auditReports.length
+                                    )}{" "}
+                                    of {auditReports.length} reports
+                                </span>
+
+                                <div className="flex space-x-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={currentPage === 1}
+                                        onClick={() =>
+                                            setCurrentPage(currentPage - 1)
+                                        }
+                                    >
+                                        Previous
+                                    </Button>
+
+                                    {[...Array(totalPages)].map((_, idx) => (
+                                        <Button
+                                            key={idx}
+                                            variant={
+                                                currentPage === idx + 1
+                                                    ? "default"
+                                                    : "outline"
+                                            }
+                                            size="sm"
+                                            onClick={() =>
+                                                setCurrentPage(idx + 1)
+                                            }
+                                        >
+                                            {idx + 1}
+                                        </Button>
+                                    ))}
+
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() =>
+                                            setCurrentPage(currentPage + 1)
+                                        }
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -191,12 +260,10 @@ export default function AuditReportsIndex({ auditReports }) {
                         <DialogContent className="max-w-lg w-full">
                             {selectedAudit && (
                                 <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-                                    {/* Header with color bar */}
                                     <div className="bg-[hsl(142,34%,25%)] p-4">
                                         <DialogTitle className="text-white text-lg font-bold">
                                             Audit Report Details
                                         </DialogTitle>
-                                        {/* No DialogClose or X button here */}
                                     </div>
                                     <div className="p-6 space-y-4">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

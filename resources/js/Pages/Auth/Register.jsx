@@ -10,6 +10,7 @@ import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {
     Breadcrumb,
@@ -27,13 +28,34 @@ export default function Register() {
         password_confirmation: "",
         role: "faculty",
         photo: null,
+        admin_password: "",
     });
 
     const [successMessage, setSuccessMessage] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [requireAdminPassword, setRequireAdminPassword] = useState(false);
 
-    // Submit registration form
+    // Handle role change
+    const handleRoleChange = (e) => {
+        const role = e.target.value;
+        setData("role", role);
+
+        if (role === "admin" || role === "technician") {
+            setRequireAdminPassword(true);
+        } else {
+            setRequireAdminPassword(false);
+            setData("admin_password", "");
+        }
+    };
+
     const submit = (e) => {
         e.preventDefault();
+
+        if (requireAdminPassword && !data.admin_password) {
+            alert("You must enter your password to assign this role.");
+            return;
+        }
 
         const formData = new FormData();
         formData.append("name", data.name);
@@ -42,6 +64,9 @@ export default function Register() {
         formData.append("password_confirmation", data.password_confirmation);
         formData.append("role", data.role);
         formData.append("photo", data.photo);
+        if (requireAdminPassword) {
+            formData.append("admin_password", data.admin_password);
+        }
 
         post(route("admin.users.store"), {
             data: formData,
@@ -49,6 +74,7 @@ export default function Register() {
             onSuccess: () => {
                 setSuccessMessage("User successfully registered!");
                 reset();
+                setRequireAdminPassword(false);
             },
             onError: (err) => console.log("Registration error:", err),
         });
@@ -72,7 +98,7 @@ export default function Register() {
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbLink
-                                    href={`/admin/register`}
+                                    href="/admin/register"
                                     aria-current="page"
                                     className="font-semibold text-foreground"
                                 >
@@ -82,6 +108,7 @@ export default function Register() {
                         </BreadcrumbList>
                     </Breadcrumb>
                 </header>
+
                 <main>
                     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
                         <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 bg-white shadow-lg rounded-lg overflow-hidden">
@@ -95,7 +122,7 @@ export default function Register() {
                                             className="w-full h-full object-contain"
                                         />
                                     </div>
-                                    <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white bg-white shadow-md">
+                                    <div className="w-28 h-28 rounded-full border-4 border-white bg-white shadow-md">
                                         <img
                                             src="ict.png"
                                             alt="Logo 2"
@@ -176,7 +203,11 @@ export default function Register() {
                                         </Label>
                                         <Input
                                             id="password"
-                                            type="password"
+                                            type={
+                                                showPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
                                             value={data.password}
                                             onChange={(e) =>
                                                 setData(
@@ -191,6 +222,21 @@ export default function Register() {
                                                 {errors.password}
                                             </p>
                                         )}
+                                        <div className="flex items-center space-x-2 mt-1">
+                                            <Checkbox
+                                                id="showPassword"
+                                                checked={showPassword}
+                                                onCheckedChange={
+                                                    setShowPassword
+                                                }
+                                            />
+                                            <label
+                                                htmlFor="showPassword"
+                                                className="text-sm text-muted-foreground"
+                                            >
+                                                Show Password
+                                            </label>
+                                        </div>
                                     </div>
 
                                     {/* Confirm Password */}
@@ -200,7 +246,11 @@ export default function Register() {
                                         </Label>
                                         <Input
                                             id="password_confirmation"
-                                            type="password"
+                                            type={
+                                                showConfirmPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
                                             value={data.password_confirmation}
                                             onChange={(e) =>
                                                 setData(
@@ -215,6 +265,21 @@ export default function Register() {
                                                 {errors.password_confirmation}
                                             </p>
                                         )}
+                                        <div className="flex items-center space-x-2 mt-1">
+                                            <Checkbox
+                                                id="showConfirmPassword"
+                                                checked={showConfirmPassword}
+                                                onCheckedChange={
+                                                    setShowConfirmPassword
+                                                }
+                                            />
+                                            <label
+                                                htmlFor="showConfirmPassword"
+                                                className="text-sm text-muted-foreground"
+                                            >
+                                                Show Confirm Password
+                                            </label>
+                                        </div>
                                     </div>
 
                                     {/* Role */}
@@ -225,9 +290,7 @@ export default function Register() {
                                         <select
                                             id="role"
                                             value={data.role}
-                                            onChange={(e) =>
-                                                setData("role", e.target.value)
-                                            }
+                                            onChange={handleRoleChange}
                                             className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                                             required
                                         >
@@ -246,6 +309,33 @@ export default function Register() {
                                             </p>
                                         )}
                                     </div>
+
+                                    {/* Admin password verification */}
+                                    {requireAdminPassword && (
+                                        <div className="space-y-1">
+                                            <Label htmlFor="admin_password">
+                                                Your Password (required to set
+                                                admin/technician role)
+                                            </Label>
+                                            <Input
+                                                id="admin_password"
+                                                type="password"
+                                                value={data.admin_password}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        "admin_password",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                required
+                                            />
+                                            {errors.admin_password && (
+                                                <p className="text-sm text-red-500">
+                                                    {errors.admin_password}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Photo Upload */}
                                     <div className="space-y-1">

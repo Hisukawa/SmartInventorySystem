@@ -116,9 +116,9 @@ export default function EditEquipmentModalPage({ equipment, rooms }) {
             onSuccess: () => {
                 toast.success("Equipment updated successfully!");
                 setOpen(false);
-                router.get(
-                    route("admin.equipments.show", equipment.equipment_code)
-                );
+                // router.get(
+                //     route("admin.equipments.show", equipment.equipment_code)
+                // );
             },
             onError: (errors) => {
                 toast.error(Object.values(errors)[0] || "Update failed");

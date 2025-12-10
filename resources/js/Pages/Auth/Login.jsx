@@ -11,7 +11,6 @@ export default function Login({ status }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
-        remember: false,
     });
 
     const videoRef = useRef(null);
@@ -19,6 +18,7 @@ export default function Login({ status }) {
     const [isCameraOn, setIsCameraOn] = useState(false);
     const [faceStatus, setFaceStatus] = useState("");
     const [isVerifying, setIsVerifying] = useState(false);
+    const [showPassword, setShowPassword] = useState(false); // checkbox toggle
 
     // Load face-api models
     useEffect(() => {
@@ -28,16 +28,13 @@ export default function Login({ status }) {
                 await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
                 await faceapi.nets.faceLandmark68TinyNet.loadFromUri("/models");
                 setModelsLoaded(true);
-                // setFaceStatus("✅ Face models loaded successfully.");
             } catch (err) {
                 console.error(err);
-                // setFaceStatus("❌ Failed to load face models.");
             }
         };
         loadModels();
     }, []);
 
-    // Start camera
     const startCamera = async () => {
         if (!modelsLoaded) {
             setFaceStatus("⏳ Models are still loading...");
@@ -58,14 +55,12 @@ export default function Login({ status }) {
         }
     };
 
-    // Stop camera
     const stopCamera = () => {
         const stream = videoRef.current?.srcObject;
         if (stream) stream.getTracks().forEach((t) => t.stop());
         setIsCameraOn(false);
     };
 
-    // Capture and verify face
     const handleFaceVerify = async () => {
         if (!isCameraOn) {
             setFaceStatus("⚠️ Please start the camera first.");
@@ -91,7 +86,7 @@ export default function Login({ status }) {
             }
 
             const descriptor = Array.from(detection.descriptor);
-            const currentUrl = window.location.href; // redirect to current page
+            const currentUrl = window.location.href;
 
             await verifyFace(descriptor, currentUrl);
         } catch (error) {
@@ -102,7 +97,6 @@ export default function Login({ status }) {
         }
     };
 
-    // Verify face via backend and redirect
     const verifyFace = async (descriptor, targetUrl) => {
         try {
             const response = await fetch("/verify-face", {
@@ -115,7 +109,7 @@ export default function Login({ status }) {
                             .querySelector('meta[name="csrf-token"]')
                             ?.getAttribute("content") || "",
                 },
-                body: JSON.stringify({ descriptor }), // no need for redirect_url
+                body: JSON.stringify({ descriptor }),
             });
 
             const text = await response.text();
@@ -133,7 +127,6 @@ export default function Login({ status }) {
 
             if (data.success) {
                 setFaceStatus("✅ Face verified successfully!");
-                // Use server-provided redirect URL
                 window.location.href = data.redirect_url;
             } else {
                 setFaceStatus("❌ Face not recognized. Please try again.");
@@ -144,7 +137,6 @@ export default function Login({ status }) {
         }
     };
 
-    // Normal login
     const submit = (e) => {
         e.preventDefault();
         post(route("login"), { onFinish: () => reset("password") });
@@ -201,6 +193,7 @@ export default function Login({ status }) {
 
                         {/* Email/Password Login */}
                         <form onSubmit={submit} className="space-y-4">
+                            {/* Email */}
                             <div className="space-y-1">
                                 <Label htmlFor="email">Email Address</Label>
                                 <Input
@@ -220,11 +213,12 @@ export default function Login({ status }) {
                                 )}
                             </div>
 
+                            {/* Password */}
                             <div className="space-y-1">
                                 <Label htmlFor="password">Password</Label>
                                 <Input
                                     id="password"
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     name="password"
                                     value={data.password}
                                     autoComplete="current-password"
@@ -239,19 +233,20 @@ export default function Login({ status }) {
                                 )}
                             </div>
 
+                            {/* Show Password Checkbox */}
                             <div className="flex items-center space-x-2">
                                 <Checkbox
-                                    id="remember"
-                                    checked={data.remember}
+                                    id="showPassword"
+                                    checked={showPassword}
                                     onCheckedChange={(checked) =>
-                                        setData("remember", Boolean(checked))
+                                        setShowPassword(Boolean(checked))
                                     }
                                 />
                                 <label
-                                    htmlFor="remember"
+                                    htmlFor="showPassword"
                                     className="text-sm text-muted-foreground"
                                 >
-                                    Remember me
+                                    Show Password
                                 </label>
                             </div>
 
@@ -270,7 +265,6 @@ export default function Login({ status }) {
                         <div className="space-y-4">
                             <Label>Login with Face</Label>
 
-                            {/* Video container */}
                             <div
                                 className={`relative mx-auto transition-all duration-300 ${
                                     isCameraOn

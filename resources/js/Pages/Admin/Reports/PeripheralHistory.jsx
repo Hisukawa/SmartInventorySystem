@@ -151,9 +151,9 @@ export default function PeripheralHistory() {
                                             <th className="px-5 py-1">
                                                 Date & Time
                                             </th>
-                                            <th className="px-5 py-1">
+                                            {/* <th className="px-5 py-1">
                                                 Manage
-                                            </th>
+                                            </th> */}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -197,7 +197,7 @@ export default function PeripheralHistory() {
                                                         h.created_at
                                                     ).toLocaleString()}
                                                 </td>
-                                                <td className="px-5 py-2">
+                                                {/* <td className="px-5 py-2">
                                                     <button
                                                         className="px-2 py-1 text-red-600 text-sm hover:underline"
                                                         onClick={() =>
@@ -206,7 +206,7 @@ export default function PeripheralHistory() {
                                                     >
                                                         Delete
                                                     </button>
-                                                </td>
+                                                </td> */}
                                             </tr>
                                         ))}
                                     </tbody>

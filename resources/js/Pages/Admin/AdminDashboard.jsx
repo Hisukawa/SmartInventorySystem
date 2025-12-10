@@ -7,6 +7,8 @@ import Notification from "@/Components/AdminComponents/Notification";
 import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import { Button } from "@/components/ui/button";
 
+import { Label } from "@/components/ui/label";
+
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -368,28 +370,33 @@ export default function AdminDashboard() {
                                         Across Room
                                     </CardTitle>
                                 </CardHeader>
+
                                 <CardContent>
-                                    {/* Room Filter */}
-                                    <div className="flex justify-end mb-4">
+                                    {/* Room Filter — FIXED ALIGNMENT */}
+                                    <div className="mb-4 w-full sm:max-w-xs">
+                                        <Label className="font-medium">
+                                            Filter by Room
+                                        </Label>
+
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button
                                                     variant="outline"
-                                                    className="flex items-center gap-2 text-gray-700 font-medium"
+                                                    className="flex items-center gap-2 text-gray-700 font-medium justify-between"
                                                 >
                                                     {selectedRoom
                                                         ? rooms.find(
                                                               (room) =>
                                                                   room.id ===
                                                                   selectedRoom
-                                                          )?.name
+                                                          )?.room_number
                                                         : "All Rooms"}
                                                     <SlidersHorizontal className="h-4 w-4 opacity-70" />
                                                 </Button>
                                             </DropdownMenuTrigger>
 
                                             <DropdownMenuContent
-                                                align="end"
+                                                align="start"
                                                 className="max-h-60 overflow-y-auto bg-white shadow-lg border rounded-lg"
                                             >
                                                 <DropdownMenuItem
@@ -434,7 +441,20 @@ export default function AdminDashboard() {
                                         </DropdownMenu>
                                     </div>
 
-                                    {/* Tabs for PCs / Peripherals / Equipment */}
+                                    {/* Selected Room Heading */}
+                                    {/* <div className="mb-4 text-lg font-semibold text-gray-700">
+                                        {selectedRoom
+                                            ? `Room: ${
+                                                  rooms.find(
+                                                      (room) =>
+                                                          room.id ===
+                                                          selectedRoom
+                                                  )?.room_number
+                                              }`
+                                            : "All Rooms"}
+                                    </div> */}
+
+                                    {/* Tabs */}
                                     <Tabs
                                         defaultValue="system_units"
                                         className="w-full"
@@ -570,36 +590,37 @@ export default function AdminDashboard() {
                                         Across All Rooms
                                     </CardTitle>
                                 </CardHeader>
+
                                 <CardContent>
-                                    {/* Room Filter (optional for totals) */}
+                                    {/* Room Filter (Right Side) */}
                                     <div className="flex justify-end mb-4">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button
                                                     variant="outline"
-                                                    className="flex items-center gap-2 text-gray-700 font-medium"
+                                                    className="flex items-center gap-2 text-gray-700 font-medium justify-between max-w-[200px]"
                                                 >
                                                     {selectedRoomRight
                                                         ? rooms.find(
                                                               (room) =>
                                                                   room.id ===
                                                                   selectedRoomRight
-                                                          )?.name
+                                                          )?.room_number
                                                         : "All Rooms"}
                                                     <SlidersHorizontal className="h-4 w-4 opacity-70" />
                                                 </Button>
                                             </DropdownMenuTrigger>
 
                                             <DropdownMenuContent
-                                                align="end"
-                                                className="max-h-60 overflow-y-auto bg-white shadow-lg border rounded-lg"
+                                                align="start"
+                                                className="w-[180px] max-h-60 overflow-y-auto bg-white shadow-lg border rounded-lg"
                                             >
                                                 {/* All Rooms Option */}
                                                 <DropdownMenuItem
-                                                    className={`cursor-pointer text-black dark:text-white ${
+                                                    className={`cursor-pointer ${
                                                         selectedRoomRight === ""
-                                                            ? "bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 font-semibold"
-                                                            : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                            ? "bg-green-100 text-green-700 font-semibold"
+                                                            : "hover:bg-gray-100"
                                                     }`}
                                                     onClick={() =>
                                                         setSelectedRoomRight("")
@@ -608,15 +629,15 @@ export default function AdminDashboard() {
                                                     All Rooms
                                                     {selectedRoomRight ===
                                                         "" && (
-                                                        <Check className="ml-auto h-4 w-4 text-green-600 dark:text-green-400" />
+                                                        <Check className="ml-auto h-4 w-4 text-green-600" />
                                                     )}
                                                 </DropdownMenuItem>
 
-                                                {/* Dynamic Room Options */}
+                                                {/* Dynamic Rooms */}
                                                 {rooms.map((room) => (
                                                     <DropdownMenuItem
                                                         key={room.id}
-                                                        className={`cursor-pointer text-gray-800 ${
+                                                        className={`cursor-pointer ${
                                                             selectedRoomRight ===
                                                             room.id
                                                                 ? "bg-green-100 text-green-700 font-semibold"
@@ -638,6 +659,8 @@ export default function AdminDashboard() {
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
+
+                                    {/* Chart */}
                                     <ResponsiveContainer
                                         width="100%"
                                         height={340}
@@ -662,22 +685,18 @@ export default function AdminDashboard() {
                                             />
                                             <Tooltip />
 
-                                            <Bar
-                                                dataKey="value"
-                                                barSize={50}
-                                                radius={[0, 0, 0, 0]}
-                                            >
+                                            <Bar dataKey="value" barSize={50}>
                                                 {totalsData.map(
                                                     (entry, index) => (
                                                         <Cell
                                                             key={`cell-${index}`}
                                                             fill={
                                                                 [
-                                                                    "#3b82f6",
-                                                                    "#16a34a",
-                                                                    "#f59e0b",
-                                                                    "#ef4444",
-                                                                    "#8b5cf6",
+                                                                    "#3b82f6", // blue
+                                                                    "#16a34a", // green
+                                                                    "#f59e0b", // yellow
+                                                                    "#ef4444", // red
+                                                                    "#8b5cf6", // purple
                                                                 ][index % 5]
                                                             }
                                                         />
@@ -692,9 +711,9 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* 🔹 Bottom Row */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Recent Activity (2/3) */}
-                        <div className="lg:col-span-2">
+                    {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6"> */}
+                    {/* Recent Activity (2/3) */}
+                    {/* <div className="lg:col-span-2">
                             <Card className="rounded-2xl shadow-md bg-white h-full">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
@@ -729,105 +748,105 @@ export default function AdminDashboard() {
                                     </ul>
                                 </CardContent>
                             </Card>
-                        </div>
+                        </div> */}
 
-                        {/* Active Room Occupancy (1/3) */}
-                        <div className="lg:col-span-1">
-                            <Card className="rounded-2xl shadow-md bg-white h-full">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-[#2F4F2F]">
-                                        <Users className="w-5 h-5 text-[#59AC77]" />
-                                        Active Room Occupancy
-                                    </CardTitle>
-                                </CardHeader>
-                                <div className="space-y-6 p-4">
-                                    {activeRooms.length === 0 ? (
-                                        <p className="text-[#3B5C47] text-sm text-center">
-                                            No active rooms right now
-                                        </p>
-                                    ) : (
-                                        roomsToShow.map((activeRoom) => (
-                                            <div
-                                                key={activeRoom.id}
-                                                className="flex items-center gap-6 border-b pb-6 last:border-b-0"
-                                            >
-                                                {activeRoom.faculty_photo ? (
-                                                    <img
-                                                        src={
-                                                            activeRoom.faculty_photo
-                                                        }
-                                                        alt={
-                                                            activeRoom.last_scanned_by ||
-                                                            "Faculty"
-                                                        }
-                                                        className="w-28 h-28 rounded-full object-cover border-4 border-[#59AC77] shadow-lg"
-                                                        onError={(e) => {
-                                                            e.target.onerror =
-                                                                null;
-                                                            e.target.src =
-                                                                "/default-avatar.png";
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <img
-                                                        src="/default-avatar.png"
-                                                        alt="No Faculty"
-                                                        className="w-28 h-28 rounded-full object-cover border-4 border-gray-300 shadow-lg"
-                                                    />
-                                                )}
+                    {/* Active Room Occupancy (1/3) */}
+                    <div className="lg:col-span-1 flex justify-center">
+                        <Card className="rounded-2xl shadow-md bg-white h-full max-w-xl w-full">
+                            <CardHeader className="flex flex-col items-center">
+                                <CardTitle className="flex items-center gap-2 text-[#2F4F2F] justify-center">
+                                    <Users className="w-5 h-5 text-[#59AC77]" />
+                                    Active Room Occupancy
+                                </CardTitle>
+                            </CardHeader>
 
-                                                <div>
-                                                    <p className="text-base font-semibold text-[#2F4F2F]">
-                                                        Room{" "}
-                                                        {activeRoom.room_number}
-                                                    </p>
-
-                                                    <p className="text-sm text-[#3B5C47]">
-                                                        Scanned by{" "}
-                                                        <span className="font-medium text-[#2F4F2F]">
-                                                            {activeRoom.last_scanned_by ??
-                                                                "Unknown"}
-                                                        </span>
-                                                        {activeRoom.faculty_role && (
-                                                            <span className="text-xs text-gray-600 ml-2">
-                                                                (
-                                                                {
-                                                                    activeRoom.faculty_role
-                                                                }
-                                                                )
-                                                            </span>
-                                                        )}
-                                                    </p>
-
-                                                    <p className="text-xs text-gray-500">
-                                                        {activeRoom.last_scanned_at
-                                                            ? new Date(
-                                                                  activeRoom.last_scanned_at
-                                                              ).toLocaleString()
-                                                            : "No scan time"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-
-                                {activeRooms.length > 2 && (
-                                    <CardFooter className="flex justify-center">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowAll(!showAll)}
+                            <div className="space-y-6 p-4">
+                                {activeRooms.length === 0 ? (
+                                    <p className="text-[#3B5C47] text-sm text-center">
+                                        No active rooms right now
+                                    </p>
+                                ) : (
+                                    roomsToShow.map((activeRoom) => (
+                                        <div
+                                            key={activeRoom.id}
+                                            className="flex items-center gap-6 border-b pb-6 last:border-b-0"
                                         >
-                                            {showAll
-                                                ? "Show Less"
-                                                : "View All Active Rooms"}
-                                        </Button>
-                                    </CardFooter>
+                                            {activeRoom.faculty_photo ? (
+                                                <img
+                                                    src={
+                                                        activeRoom.faculty_photo
+                                                    }
+                                                    alt={
+                                                        activeRoom.last_scanned_by ||
+                                                        "Faculty"
+                                                    }
+                                                    className="w-28 h-28 rounded-full object-cover border-4 border-[#59AC77] shadow-lg"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src =
+                                                            "/default-avatar.png";
+                                                    }}
+                                                />
+                                            ) : (
+                                                <img
+                                                    src="/default-avatar.png"
+                                                    alt="No Faculty"
+                                                    className="w-28 h-28 rounded-full object-cover border-4 border-gray-300 shadow-lg"
+                                                />
+                                            )}
+
+                                            <div>
+                                                <p className="text-base font-semibold text-[#2F4F2F]">
+                                                    Room{" "}
+                                                    {activeRoom.room_number}
+                                                </p>
+
+                                                <p className="text-sm text-[#3B5C47]">
+                                                    Scanned by{" "}
+                                                    <span className="font-medium text-[#2F4F2F]">
+                                                        {activeRoom.last_scanned_by ??
+                                                            "Unknown"}
+                                                    </span>
+                                                    {activeRoom.faculty_role && (
+                                                        <span className="text-xs text-gray-600 ml-2">
+                                                            (
+                                                            {
+                                                                activeRoom.faculty_role
+                                                            }
+                                                            )
+                                                        </span>
+                                                    )}
+                                                </p>
+
+                                                <p className="text-xs text-gray-500">
+                                                    {activeRoom.last_scanned_at
+                                                        ? new Date(
+                                                              activeRoom.last_scanned_at
+                                                          ).toLocaleString()
+                                                        : "No scan time"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
                                 )}
-                            </Card>
-                        </div>
+                            </div>
+
+                            {activeRooms.length > 2 && (
+                                <CardFooter className="flex justify-center">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setShowAll(!showAll)}
+                                    >
+                                        {showAll
+                                            ? "Show Less"
+                                            : "View All Active Rooms"}
+                                    </Button>
+                                </CardFooter>
+                            )}
+                        </Card>
                     </div>
+                    {/* </div> */}
                 </main>
             </SidebarInset>
         </SidebarProvider>

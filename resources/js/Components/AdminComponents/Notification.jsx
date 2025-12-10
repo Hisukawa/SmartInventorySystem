@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Bell } from "lucide-react";
 
 export default function Notification() {
     const [notifications, setNotifications] = useState([]);
     const [open, setOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
-    // 🔹 Fetch notifications
+    // Fetch notifications
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
@@ -17,13 +18,26 @@ export default function Notification() {
             }
         };
 
-        fetchNotifications(); // initial load
-
-        const interval = setInterval(fetchNotifications, 5000); // auto refresh every 5s
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 5000);
         return () => clearInterval(interval);
     }, []);
 
-    // 🔹 Mark single as read
+    // Click outside to close dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     const markAsRead = async (id) => {
         try {
             await axios.patch(`/notifications/${id}/read`);
@@ -33,19 +47,28 @@ export default function Notification() {
         }
     };
 
-    // 🔹 Mark all as read
     const markAllAsRead = async () => {
         try {
             await axios.patch(`/notifications/mark-all-read`);
-            setNotifications([]); // clear locally
+            setNotifications([]);
         } catch (error) {
             console.error("Failed to mark all notifications as read", error);
         }
     };
 
+    const goToReport = (event, notif) => {
+        event.stopPropagation(); // 🔹 prevent click outside from firing
+        markAsRead(notif.id);
+        if (notif.data.report_id) {
+            window.location.href = `/admin/faculty/reports/${notif.data.report_id}`;
+        } else {
+            window.location.href = "/admin/faculty/reports";
+        }
+    };
+
     return (
         <div className="relative">
-            {/* 🔔 Bell button */}
+            {/* Bell button */}
             <button
                 onClick={() => setOpen(!open)}
                 className="relative p-2 rounded-full hover:bg-gray-100"
@@ -58,9 +81,12 @@ export default function Notification() {
                 )}
             </button>
 
-            {/* 🔹 Dropdown */}
+            {/* Dropdown */}
             {open && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[95vw] sm:max-w-sm bg-white shadow-lg rounded-lg overflow-hidden z-50">
+                <div
+                    ref={dropdownRef}
+                    className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[95vw] sm:max-w-sm bg-white shadow-lg rounded-lg overflow-hidden z-50"
+                >
                     {/* Header */}
                     <div className="p-3 border-b font-semibold flex justify-between items-center">
                         <span>Notifications</span>
@@ -80,7 +106,7 @@ export default function Notification() {
                             notifications.map((notif) => (
                                 <li
                                     key={notif.id}
-                                    onClick={() => markAsRead(notif.id)}
+                                    onClick={(e) => goToReport(e, notif)}
                                     className="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b"
                                 >
                                     <p className="text-sm font-bold">
@@ -90,7 +116,6 @@ export default function Notification() {
                                         Condition: {notif.data.condition}
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                        {/* Room ID: {notif.data.room_id} */}
                                         Room Number: {notif.data.room_number}
                                     </p>
                                     <p className="text-xs">

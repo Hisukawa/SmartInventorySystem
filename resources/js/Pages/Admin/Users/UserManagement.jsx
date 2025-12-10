@@ -201,86 +201,89 @@ export default function UserManagement({ users }) {
                                                                 View
                                                             </a>
                                                         </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            className="px-3"
-                                                            onClick={() => {
-                                                                Swal.fire({
-                                                                    title: `Delete ${user.name}?`,
-                                                                    text: "Please verify your password to continue.",
-                                                                    icon: "warning",
-                                                                    input: "password",
-                                                                    inputPlaceholder:
-                                                                        "Enter your password",
-                                                                    inputAttributes:
-                                                                        {
-                                                                            autocapitalize:
-                                                                                "off",
-                                                                            autocorrect:
-                                                                                "off",
-                                                                        },
-                                                                    showCancelButton: true,
-                                                                    confirmButtonColor:
-                                                                        "#d33",
-                                                                    cancelButtonColor:
-                                                                        "#3085d6",
-                                                                    confirmButtonText:
-                                                                        "Confirm Delete",
-                                                                    preConfirm:
+                                                        {user.role !==
+                                                            "admin" && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                className="px-3"
+                                                                onClick={() => {
+                                                                    Swal.fire({
+                                                                        title: `Delete ${user.name}?`,
+                                                                        text: "Please verify your password to continue.",
+                                                                        icon: "warning",
+                                                                        input: "password",
+                                                                        inputPlaceholder:
+                                                                            "Enter your password",
+                                                                        inputAttributes:
+                                                                            {
+                                                                                autocapitalize:
+                                                                                    "off",
+                                                                                autocorrect:
+                                                                                    "off",
+                                                                            },
+                                                                        showCancelButton: true,
+                                                                        confirmButtonColor:
+                                                                            "#d33",
+                                                                        cancelButtonColor:
+                                                                            "#3085d6",
+                                                                        confirmButtonText:
+                                                                            "Confirm Delete",
+                                                                        preConfirm:
+                                                                            (
+                                                                                password
+                                                                            ) => {
+                                                                                if (
+                                                                                    !password
+                                                                                ) {
+                                                                                    Swal.showValidationMessage(
+                                                                                        "Password is required"
+                                                                                    );
+                                                                                    return false;
+                                                                                }
+                                                                                return router.post(
+                                                                                    route(
+                                                                                        "admin.users.verifyAndDelete"
+                                                                                    ),
+                                                                                    {
+                                                                                        user_id:
+                                                                                            user.id,
+                                                                                        password,
+                                                                                    },
+                                                                                    {
+                                                                                        preserveScroll: true,
+                                                                                        onError:
+                                                                                            (
+                                                                                                errors
+                                                                                            ) => {
+                                                                                                Swal.showValidationMessage(
+                                                                                                    errors.password ||
+                                                                                                        "Password verification failed."
+                                                                                                );
+                                                                                            },
+                                                                                    }
+                                                                                );
+                                                                            },
+                                                                    }).then(
                                                                         (
-                                                                            password
+                                                                            result
                                                                         ) => {
                                                                             if (
-                                                                                !password
+                                                                                result.isConfirmed
                                                                             ) {
-                                                                                Swal.showValidationMessage(
-                                                                                    "Password is required"
+                                                                                Swal.fire(
+                                                                                    "Deleted!",
+                                                                                    `${user.name} has been successfully deleted.`,
+                                                                                    "success"
                                                                                 );
-                                                                                return false;
                                                                             }
-                                                                            return router.post(
-                                                                                route(
-                                                                                    "admin.users.verifyAndDelete"
-                                                                                ),
-                                                                                {
-                                                                                    user_id:
-                                                                                        user.id,
-                                                                                    password,
-                                                                                },
-                                                                                {
-                                                                                    preserveScroll: true,
-                                                                                    onError:
-                                                                                        (
-                                                                                            errors
-                                                                                        ) => {
-                                                                                            Swal.showValidationMessage(
-                                                                                                errors.password ||
-                                                                                                    "Password verification failed."
-                                                                                            );
-                                                                                        },
-                                                                                }
-                                                                            );
-                                                                        },
-                                                                }).then(
-                                                                    (
-                                                                        result
-                                                                    ) => {
-                                                                        if (
-                                                                            result.isConfirmed
-                                                                        ) {
-                                                                            Swal.fire(
-                                                                                "Deleted!",
-                                                                                `${user.name} has been successfully deleted.`,
-                                                                                "success"
-                                                                            );
                                                                         }
-                                                                    }
-                                                                );
-                                                            }}
-                                                        >
-                                                            Delete
-                                                        </Button>
+                                                                    );
+                                                                }}
+                                                            >
+                                                                Delete
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 )}
                                             </TableCell>
