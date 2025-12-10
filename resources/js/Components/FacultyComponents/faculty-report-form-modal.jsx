@@ -18,6 +18,7 @@ export default function ReportFormModal({
         remarks: "",
         photo: null,
     });
+    const [loading, setLoading] = useState(false);
 
     // Disable background scroll
     useEffect(() => {
@@ -27,6 +28,7 @@ export default function ReportFormModal({
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
 
         const typeMap = {
             "system-units": "system_unit",
@@ -42,7 +44,6 @@ export default function ReportFormModal({
         data.append("remarks", form.remarks);
 
         if (form.photo) {
-            // Optional: compress image for faster upload (~2MB max)
             const compressedPhoto = await compressImage(form.photo, 2048, 0.8);
             data.append("photo", compressedPhoto);
         }
@@ -52,12 +53,13 @@ export default function ReportFormModal({
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            // ✅ Only after successful upload
-            onOpenChange(false); // close modal
-            if (onSuccess) onSuccess(); // call parent success handler (toast is in main page)
+            onOpenChange(false);
+            if (onSuccess) onSuccess();
         } catch (error) {
-            console.error("Upload error:", error.response?.data || error);
-            toast.error("Report upload failed. Please try again."); // optional error toast
+            console.error("Upload error:", error);
+            toast.error("Report upload failed. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -244,9 +246,13 @@ export default function ReportFormModal({
                                 <div className="flex justify-end">
                                     <Button
                                         type="submit"
-                                        className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)]"
+                                        disabled={loading}
+                                        className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)] flex items-center gap-2"
                                     >
-                                        Save
+                                        {loading && (
+                                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                        )}
+                                        {loading ? "Saving..." : "Save"}
                                     </Button>
                                 </div>
                             </form>
