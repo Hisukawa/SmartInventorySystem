@@ -21,6 +21,7 @@ class UserSeeder extends Seeder
             'email' => 'administrator@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@administrator'),
             'role' => 'admin',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -30,6 +31,7 @@ class UserSeeder extends Seeder
             'email' => 'orfel.l.bejarin@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@orfel'),
             'role' => 'admin',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -40,6 +42,7 @@ class UserSeeder extends Seeder
             'email' => 'zachchamberlaine.m.corpuz@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@zachchamberlaine'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -49,6 +52,7 @@ class UserSeeder extends Seeder
             'email' => 'romanalex.f.lustro@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@romanalex'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -58,6 +62,7 @@ class UserSeeder extends Seeder
             'email' => 'maribel.s.abalos@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@maribel'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -67,6 +72,7 @@ class UserSeeder extends Seeder
             'email' => 'markgerald.o.deleon@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@markgerald'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -76,6 +82,7 @@ class UserSeeder extends Seeder
             'email' => 'angelo.r.gamara@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@angelo'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -85,6 +92,7 @@ class UserSeeder extends Seeder
             'email' => 'vonryan.p.marcelo@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@vonryan'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -94,6 +102,7 @@ class UserSeeder extends Seeder
             'email' => 'fitzgerald.d.lim@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@fitzgerald'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -103,6 +112,7 @@ class UserSeeder extends Seeder
             'email' => 'jaydwin.t.labiano@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@jaydwin'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -112,6 +122,7 @@ class UserSeeder extends Seeder
             'email' => 'markgil.t.gangan@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@markgil'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -121,6 +132,7 @@ class UserSeeder extends Seeder
             'email' => 'joey.g.natividad@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@joey'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -130,6 +142,7 @@ class UserSeeder extends Seeder
             'email' => 'jhoan.v.paguirigan@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@jhoan'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -139,6 +152,7 @@ class UserSeeder extends Seeder
             'email' => 'eddison.b.tuliao@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@eddison'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -148,6 +162,7 @@ class UserSeeder extends Seeder
             'email' => 'mariatheresa.p.nuez@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@mariatheresa'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);
@@ -157,6 +172,7 @@ class UserSeeder extends Seeder
             'email' => 'rachel.a.cabajar@isu.edu.ph',
             'password' => Hash::make('isu.edu.ph@rachel'),
             'role' => 'faculty',
+            'photo' => 'photos/default-icon.png',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ]);

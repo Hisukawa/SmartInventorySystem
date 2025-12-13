@@ -1,9 +1,7 @@
-// resources/js/Pages/Peripherals/PeripheralHistory.jsx
-
-import React, { useState } from "react";
+import React from "react";
 import { Head, usePage } from "@inertiajs/react";
-import Swal from "sweetalert2";
-import axios from "axios";
+
+import { Inertia } from "@inertiajs/inertia"; // ✅ correct
 
 import { Separator } from "@/components/ui/separator";
 import Notification from "@/Components/AdminComponents/Notification";
@@ -22,57 +20,15 @@ import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import TopNavBar from "@/Components/AdminComponents/TopNavBar";
 
 export default function PeripheralHistory() {
-    const { histories: initialHistories } = usePage().props;
-
-    const [histories, setHistories] = useState(initialHistories.data || []);
-    const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 10;
-
-    const indexOfLast = currentPage * ITEMS_PER_PAGE;
-    const indexOfFirst = indexOfLast - ITEMS_PER_PAGE;
-    const currentData = histories.slice(indexOfFirst, indexOfLast);
-
-    const totalPages = Math.ceil(histories.length / ITEMS_PER_PAGE);
-
-    const handleDelete = async (id) => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This action cannot be undone!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!",
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await axios.delete(`/peripherals-history/${id}`);
-                    const updated = histories.filter((h) => h.id !== id);
-                    setHistories(updated);
-
-                    if (updated.length <= indexOfFirst && currentPage > 1) {
-                        setCurrentPage(currentPage - 1);
-                    }
-
-                    Swal.fire({
-                        title: "Deleted!",
-                        text: "History has been deleted.",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: false,
-                    });
-                } catch (error) {
-                    console.error("Error deleting history:", error);
-                    Swal.fire("Error!", "Failed to delete history.", "error");
-                }
-            }
-        });
-    };
+    const { histories } = usePage().props; // server-side paginated
+    const data = histories.data;
 
     const goToPage = (page) => {
-        if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
-        }
+        Inertia.get(
+            "/admin/peripherals-history",
+            { page },
+            { preserveState: true }
+        );
     };
 
     return (
@@ -86,7 +42,6 @@ export default function PeripheralHistory() {
                             orientation="vertical"
                             className="h-6 mx-3"
                         />
-
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem>
@@ -100,14 +55,12 @@ export default function PeripheralHistory() {
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
-
                         <div className="flex-1" />
                         <Notification />
                     </div>
                 </header>
 
                 <div className="p-4 md:p-6 max-w-7xl mx-auto w-full">
-                    {/* Sticky TopNavBar */}
                     <div className="sticky top-[64px] z-20 bg-white shadow-sm">
                         <TopNavBar />
                     </div>
@@ -117,7 +70,7 @@ export default function PeripheralHistory() {
                         Peripherals Activity History
                     </h1>
 
-                    {histories.length === 0 ? (
+                    {data.length === 0 ? (
                         <p className="text-center mt-10">
                             No peripherals history found.
                         </p>
@@ -151,22 +104,16 @@ export default function PeripheralHistory() {
                                             <th className="px-5 py-1">
                                                 Date & Time
                                             </th>
-                                            {/* <th className="px-5 py-1">
-                                                Manage
-                                            </th> */}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {currentData.map((h, index) => (
+                                        {data.map((h, index) => (
                                             <tr
                                                 key={h.id}
                                                 className="hover:shadow-sm"
                                             >
                                                 <td className="px-5 py-2">
-                                                    {(currentPage - 1) *
-                                                        ITEMS_PER_PAGE +
-                                                        index +
-                                                        1}
+                                                    {histories.from + index}
                                                 </td>
                                                 <td className="px-5 py-2">
                                                     {h.user?.name ?? "-"}
@@ -197,71 +144,83 @@ export default function PeripheralHistory() {
                                                         h.created_at
                                                     ).toLocaleString()}
                                                 </td>
-                                                {/* <td className="px-5 py-2">
-                                                    <button
-                                                        className="px-2 py-1 text-red-600 text-sm hover:underline"
-                                                        onClick={() =>
-                                                            handleDelete(h.id)
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </td> */}
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
 
-                            {/* ✅ Pagination OUTSIDE the table */}
+                            {/* Pagination */}
                             <div className="flex flex-col md:flex-row justify-between items-center mt-4">
                                 <span className="text-sm text-muted-foreground mb-2 md:mb-0">
-                                    Showing{" "}
-                                    {histories.length === 0
-                                        ? 0
-                                        : (currentPage - 1) * ITEMS_PER_PAGE +
-                                          1}{" "}
-                                    –{" "}
-                                    {Math.min(
-                                        currentPage * ITEMS_PER_PAGE,
-                                        histories.length
-                                    )}{" "}
-                                    of {histories.length} histories
+                                    Showing {histories.from} – {histories.to} of{" "}
+                                    {histories.total} histories
                                 </span>
 
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
+                                    {/* Previous Button */}
                                     <button
                                         className="px-3 py-1 border rounded text-sm disabled:opacity-50"
-                                        disabled={currentPage === 1}
+                                        disabled={!histories.prev_page_url}
                                         onClick={() =>
-                                            setCurrentPage(currentPage - 1)
+                                            goToPage(histories.current_page - 1)
                                         }
                                     >
-                                        Previous
+                                        Prev
                                     </button>
 
+                                    {/* Page Numbers */}
                                     {Array.from(
-                                        { length: totalPages },
+                                        { length: histories.last_page },
                                         (_, i) => i + 1
-                                    ).map((page) => (
-                                        <button
-                                            key={page}
-                                            className={`px-3 py-1 border rounded text-sm ${
-                                                currentPage === page
-                                                    ? "bg-black text-white"
-                                                    : "hover:bg-gray-200"
-                                            }`}
-                                            onClick={() => setCurrentPage(page)}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
+                                    ).map((page) => {
+                                        if (
+                                            page === 1 ||
+                                            page === histories.last_page ||
+                                            (page >=
+                                                histories.current_page - 2 &&
+                                                page <=
+                                                    histories.current_page + 2)
+                                        ) {
+                                            return (
+                                                <button
+                                                    key={page}
+                                                    className={`px-3 py-1 border rounded text-sm ${
+                                                        histories.current_page ===
+                                                        page
+                                                            ? "bg-black text-white"
+                                                            : "hover:bg-gray-200"
+                                                    }`}
+                                                    onClick={() =>
+                                                        goToPage(page)
+                                                    }
+                                                >
+                                                    {page}
+                                                </button>
+                                            );
+                                        } else if (
+                                            page ===
+                                                histories.current_page - 3 ||
+                                            page === histories.current_page + 3
+                                        ) {
+                                            return (
+                                                <span
+                                                    key={page}
+                                                    className="px-3 py-1 border rounded text-sm"
+                                                >
+                                                    ...
+                                                </span>
+                                            );
+                                        }
+                                        return null;
+                                    })}
 
+                                    {/* Next Button */}
                                     <button
                                         className="px-3 py-1 border rounded text-sm disabled:opacity-50"
-                                        disabled={currentPage === totalPages}
+                                        disabled={!histories.next_page_url}
                                         onClick={() =>
-                                            setCurrentPage(currentPage + 1)
+                                            goToPage(histories.current_page + 1)
                                         }
                                     >
                                         Next

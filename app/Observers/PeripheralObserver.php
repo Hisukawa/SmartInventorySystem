@@ -14,46 +14,21 @@ class PeripheralObserver
     public function created(Peripheral $peripheral)
     {
         PeripheralHistory::create([
-            'user_id' => Auth::id(),
-            'peripheral_id' => $peripheral->id,
-            'peripheral_code' => $peripheral->peripheral_code,
-            'unit_id' => $peripheral->unit_id,
-            'room_id' => $peripheral->room_id,
-            'action' => 'Created',
-            'component' => $peripheral->type,
-            'old_value' => null,
-            // 'new_value' => $peripheral->type . ' ' . $peripheral->peripheral_code,
-            'new_value' => $peripheral->type,
+            'user_id'        => Auth::id() ?? 1, // fallback default admin
+            'peripheral_id'  => $peripheral->id,
+            'peripheral_code'=> $peripheral->peripheral_code,
+            'unit_id'        => $peripheral->unit_id,
+            'room_id'        => $peripheral->room_id,
+            'action'         => 'Created',
+            'component'      => $peripheral->type,
+            'old_value'      => null,
+            'new_value'      => $peripheral->type,
         ]);
     }
 
     /**
      * Handle the Peripheral "updated" event.
      */
-    // public function updated(Peripheral $peripheral)
-    // {
-    //     $changes = $peripheral->getChanges();
-    //     $original = $peripheral->getOriginal();
-
-    //     $fields = ['type', 'serial_number', 'condition', 'room_id', 'unit_id', 'brand', 'model'];
-
-    //     foreach ($fields as $field) {
-    //         if (isset($changes[$field])) {
-    //             PeripheralHistory::create([
-    //                 'user_id' => Auth::id(),
-    //                 'peripheral_id' => $peripheral->id,
-    //                 'peripheral_code' => $peripheral->peripheral_code,
-    //                 'unit_id' => $peripheral->unit_id,
-    //                 'room_id' => $peripheral->room_id,
-    //                 'action' => 'Updated',
-    //                 'component' => ucfirst(str_replace('_', ' ', $field)),
-    //                 'old_value' => $original[$field] ?? '-',
-    //                 'new_value' => $changes[$field],
-    //             ]);
-    //         }
-    //     }
-    // }
-
     public function updated(Peripheral $peripheral)
     {
         foreach ($peripheral->getChanges() as $field => $newValue) {
@@ -62,14 +37,13 @@ class PeripheralObserver
             // Skip unchanged or null values
             if ($oldValue == $newValue) continue;
 
-            $component = ucfirst(str_replace('_', ' ', $field)); // default
+            $component = ucfirst(str_replace('_', ' ', $field));
 
-            // 🔹 Translate foreign keys into readable names
+            // Translate foreign keys
             if ($field === 'room_id') {
                 $component = 'Room Number';
                 $oldRoom = \App\Models\Room::find($oldValue);
                 $newRoom = \App\Models\Room::find($newValue);
-
                 $oldValue = $oldRoom ? 'Room ' . $oldRoom->room_number : $oldValue;
                 $newValue = $newRoom ? 'Room ' . $newRoom->room_number : $newValue;
             }
@@ -81,19 +55,18 @@ class PeripheralObserver
             }
 
             PeripheralHistory::create([
-                'user_id'        => Auth::id(),
+                'user_id'        => Auth::id() ?? 1, // fallback default admin
                 'peripheral_id'  => $peripheral->id,
                 'peripheral_code'=> $peripheral->peripheral_code,
                 'unit_id'        => $peripheral->unit_id,
                 'room_id'        => $peripheral->room_id,
                 'action'         => 'Updated',
-                'component'      => $component,   // ✅ "Room Number" or "Unit Code"
-                'old_value'      => $oldValue,    // ✅ "Room 102" instead of 2
-                'new_value'      => $newValue,    // ✅ "Room 105" instead of 5
+                'component'      => $component,
+                'old_value'      => $oldValue,
+                'new_value'      => $newValue,
             ]);
         }
     }
-
 
     /**
      * Handle the Peripheral "deleted" event.
@@ -101,31 +74,18 @@ class PeripheralObserver
     public function deleting(Peripheral $peripheral)
     {
         PeripheralHistory::create([
-            'user_id' => Auth::id(),
-            'peripheral_id' => null, // gets nulled on delete
-            'peripheral_code' => $peripheral->peripheral_code, // ✅ keeps the code forever
-            'unit_id' => $peripheral->unit_id,
-            'room_id' => $peripheral->room_id,
-            'action' => 'Deleted',
-            'component' => 'Peripheral',
-            'old_value' => $peripheral->type,
-            'new_value' => null,
+            'user_id'        => Auth::id() ?? 1, // fallback default admin
+            'peripheral_id'  => null,
+            'peripheral_code'=> $peripheral->peripheral_code,
+            'unit_id'        => $peripheral->unit_id,
+            'room_id'        => $peripheral->room_id,
+            'action'         => 'Deleted',
+            'component'      => 'Peripheral',
+            'old_value'      => $peripheral->type,
+            'new_value'      => null,
         ]);
     }
 
-    /**
-     * Handle the Peripheral "restored" event.
-     */
-    public function restored(Peripheral $peripheral): void
-    {
-        //
-    }
-
-    /**
-     * Handle the Peripheral "force deleted" event.
-     */
-    public function forceDeleted(Peripheral $peripheral): void
-    {
-        //
-    }
+    public function restored(Peripheral $peripheral): void {}
+    public function forceDeleted(Peripheral $peripheral): void {}
 }

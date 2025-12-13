@@ -1,0 +1,219 @@
+id,equipment_code,equipment_name,type,brand,condition,created_at,updated_at,room_id,qr_code
+1,EQP-01,Long PC Table,Furniture,N/A,Working,11/22/2025 16:38,11/22/2025 16:38,6,isu-ilagan/ict-department/room-204/eqp-01
+2,EQP-02,Long PC Table,Furniture,N/A,Working,11/22/2025 16:38,11/22/2025 16:38,6,isu-ilagan/ict-department/room-204/eqp-02
+3,EQP-03,Long PC Table,Furniture,N/A,Working,11/22/2025 16:38,11/22/2025 16:38,6,isu-ilagan/ict-department/room-204/eqp-03
+4,EQP-04,Long PC Table,Furniture,N/A,Working,11/22/2025 16:39,11/22/2025 16:39,6,isu-ilagan/ict-department/room-204/eqp-04
+5,EQP-05,Long PC Table,Furniture,N/A,Working,11/22/2025 16:39,11/22/2025 16:39,6,isu-ilagan/ict-department/room-204/eqp-05
+6,EQP-06,Long PC Table,Furniture,N/A,Working,11/22/2025 16:39,11/22/2025 16:39,6,isu-ilagan/ict-department/room-204/eqp-06
+7,EQP-07,Long PC Table,Furniture,N/A,Working,11/22/2025 16:39,11/22/2025 16:39,6,isu-ilagan/ict-department/room-204/eqp-07
+8,EQP-08,Long PC Table,Furniture,N/A,Working,11/22/2025 16:39,11/22/2025 16:39,6,isu-ilagan/ict-department/room-204/eqp-08
+9,EQP-09,Long PC Table,Furniture,N/A,Working,11/22/2025 16:40,11/22/2025 16:40,6,isu-ilagan/ict-department/room-204/eqp-09
+10,EQP-10,Long PC Table,Furniture,N/A,Working,11/22/2025 16:40,11/22/2025 16:40,6,isu-ilagan/ict-department/room-204/eqp-10
+11,EQP-11,Long PC Table,Furniture,N/A,Working,11/22/2025 16:40,11/22/2025 16:40,6,isu-ilagan/ict-department/room-204/eqp-11
+12,EQP-12,Long PC Table,Furniture,N/A,Working,11/22/2025 16:41,11/22/2025 16:41,6,isu-ilagan/ict-department/room-204/eqp-12
+13,EQP-13,Long PC Table,Furniture,N/A,Working,11/22/2025 16:41,11/22/2025 16:41,6,isu-ilagan/ict-department/room-204/eqp-13
+14,EQP-14,Long PC Table,Furniture,N/A,Working,11/22/2025 16:41,11/22/2025 16:41,6,isu-ilagan/ict-department/room-204/eqp-14
+15,EQP-15,Long PC Table,Furniture,N/A,Working,11/22/2025 16:41,11/22/2025 16:41,6,isu-ilagan/ict-department/room-204/eqp-15
+16,EQP-16,TV,Appliances,HKC,Working,11/22/2025 16:43,11/22/2025 16:43,6,isu-ilagan/ict-department/room-204/eqp-16
+17,EQP-17,Wall Fan,Appliances,Eurika,Working,11/22/2025 16:44,11/22/2025 16:44,6,isu-ilagan/ict-department/room-204/eqp-17
+18,EQP-18,Air Conditioner,Appliances,Fujidenzo,Working,11/22/2025 16:44,11/22/2025 16:44,6,isu-ilagan/ict-department/room-204/eqp-18
+19,EQP-19,First Aid Kit,Safety,N/A,Working,11/22/2025 16:48,11/22/2025 16:48,6,isu-ilagan/ict-department/room-204/eqp-19
+20,EQP-20,Air Conditioner,Appliances,Carrier,Working,11/22/2025 16:50,11/22/2025 16:50,6,isu-ilagan/ict-department/room-204/eqp-20
+21,EQP-21,CCTV,Appliances,ALHUA,Working,11/22/2025 16:51,11/22/2025 16:51,6,isu-ilagan/ict-department/room-204/eqp-21
+22,EQP-22,Server Box,Networking,N/A,Working,11/22/2025 16:52,11/22/2025 16:52,6,isu-ilagan/ict-department/room-204/eqp-22
+23,EQP-23,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-23
+24,EQP-24,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-24
+25,EQP-25,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-25
+26,EQP-26,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-26
+27,EQP-27,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-27
+28,EQP-28,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-28
+29,EQP-29,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-29
+30,EQP-30,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-30
+31,EQP-31,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-31
+32,EQP-32,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-32
+33,EQP-33,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-33
+34,EQP-34,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-34
+35,EQP-35,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-35
+36,EQP-36,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-36
+37,EQP-37,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-37
+38,EQP-38,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-38
+39,EQP-39,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-39
+40,EQP-40,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-40
+41,EQP-41,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-41
+42,EQP-42,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-42
+43,EQP-43,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-43
+44,EQP-44,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-44
+45,EQP-45,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-45
+46,EQP-46,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-46
+47,EQP-47,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-47
+48,EQP-48,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-48
+49,EQP-49,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-49
+50,EQP-50,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-50
+51,EQP-51,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-51
+52,EQP-52,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-52
+53,EQP-53,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-53
+54,EQP-54,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-54
+55,EQP-55,Chair,Furniture,Uratex,Working,11/25/2025 15:51,11/25/2025 15:51,3,isu-ilagan/ict-department/room-201/eqp-55
+56,EQP-56,Air Conditioner,Appliances,Fujidenzo,Working,11/28/2025 16:23,11/28/2025 16:23,4,isu-ilagan/ict-department/room-202/eqp-56
+57,EQP-57,Air Conditioner,Appliances,Sharp,Working,11/28/2025 16:23,11/28/2025 16:23,4,isu-ilagan/ict-department/room-202/eqp-57
+58,EQP-58,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-58
+59,EQP-59,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-59
+60,EQP-60,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-60
+61,EQP-61,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-61
+62,EQP-62,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-62
+63,EQP-63,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-63
+64,EQP-64,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-64
+65,EQP-65,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-65
+66,EQP-66,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-66
+67,EQP-67,Chair,Furniture,Uratex,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-67
+68,EQP-68,Cabinet,Furniture,N/A,Working,11/28/2025 16:25,11/28/2025 16:25,4,isu-ilagan/ict-department/room-202/eqp-68
+69,EQP-69,Cabinet,Furniture,N/A,Working,11/28/2025 16:25,11/28/2025 16:25,4,isu-ilagan/ict-department/room-202/eqp-69
+70,EQP-70,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-70
+71,EQP-71,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-71
+72,EQP-72,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-72
+73,EQP-73,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-73
+74,EQP-74,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-74
+75,EQP-75,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-75
+76,EQP-76,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-76
+77,EQP-77,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-77
+78,EQP-78,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-78
+79,EQP-79,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-79
+80,EQP-80,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-80
+81,EQP-81,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-81
+82,EQP-82,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-82
+83,EQP-83,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-83
+84,EQP-84,Long PC Table,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-84
+85,EQP-85, PC Table With Glass,Furniture,N/A,Working,11/28/2025 16:26,11/28/2025 16:26,4,isu-ilagan/ict-department/room-202/eqp-85
+86,EQP-86,Office Chair,Furniture,N/A,Minor Damage,11/28/2025 16:28,11/28/2025 16:28,4,isu-ilagan/ict-department/room-202/eqp-86
+87,EQP-87,Office Chair,Furniture,N/A,Minor Damage,11/28/2025 16:28,11/28/2025 16:28,4,isu-ilagan/ict-department/room-202/eqp-87
+88,EQP-88,Stand Fan,Appliances,PROMAC,Working,11/28/2025 16:28,11/28/2025 16:28,4,isu-ilagan/ict-department/room-202/eqp-88
+89,EQP-89,Server Box,Networking,N/A,Working,11/28/2025 16:28,11/28/2025 16:28,4,isu-ilagan/ict-department/room-202/eqp-89
+90,EQP-90,First Aid Box,Safety,N/A,Working,11/28/2025 16:29,11/28/2025 16:29,4,isu-ilagan/ict-department/room-202/eqp-90
+91,EQP-91,CCTV,Appliances,ALHUA,Working,11/28/2025 16:29,11/28/2025 16:29,4,isu-ilagan/ict-department/room-202/eqp-91
+92,EQP-92,TV,Appliances,SAMSUNG,Working,11/28/2025 16:30,11/28/2025 16:30,4,isu-ilagan/ict-department/room-202/eqp-92
+93,EQP-93,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-93
+94,EQP-94,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-94
+95,EQP-95,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-95
+96,EQP-96,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-96
+97,EQP-97,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-97
+98,EQP-98,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-98
+99,EQP-99,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-99
+100,EQP-100,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-100
+101,EQP-101,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-101
+102,EQP-102,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-102
+103,EQP-103,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-103
+104,EQP-104,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-104
+105,EQP-105,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-105
+106,EQP-106,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-106
+107,EQP-107,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-107
+108,EQP-108,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-108
+109,EQP-109,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-109
+110,EQP-110,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-110
+111,EQP-111,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-111
+112,EQP-112,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-112
+113,EQP-113,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-113
+114,EQP-114,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-114
+115,EQP-115,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-115
+116,EQP-116,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-116
+117,EQP-117,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-117
+118,EQP-118,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-118
+119,EQP-119,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-119
+120,EQP-120,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-120
+121,EQP-121,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-121
+122,EQP-122,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-122
+123,EQP-123,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-123
+124,EQP-124,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-124
+125,EQP-125,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-125
+126,EQP-126,Study Chair,Furniture,Jopaz Study Chair,Working,11/28/2025 16:24,11/28/2025 16:24,4,isu-ilagan/ict-department/room-202/eqp-126
+127,EQP-127,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-127
+128,EQP-128,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-128
+129,EQP-129,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-129
+130,EQP-130,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-130
+131,EQP-131,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-131
+132,EQP-132,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-132
+133,EQP-133,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-133
+134,EQP-134,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-134
+135,EQP-135,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-135
+136,EQP-136,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-136
+137,EQP-137,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-137
+138,EQP-138,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-138
+139,EQP-139,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-139
+140,EQP-140,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-140
+141,EQP-141,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-141
+142,EQP-142,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-142
+143,EQP-143,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-143
+144,EQP-144,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-144
+145,EQP-145,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-145
+146,EQP-146,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-146
+147,EQP-147,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-147
+148,EQP-148,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-148
+149,EQP-149,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-149
+150,EQP-150,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-150
+151,EQP-151,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-151
+152,EQP-152,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-152
+153,EQP-153,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-153
+154,EQP-154,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-154
+155,EQP-155,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-155
+156,EQP-156,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-156
+157,EQP-157,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-157
+158,EQP-158,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-158
+159,EQP-159,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-159
+160,EQP-160,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-160
+161,EQP-161,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-161
+162,EQP-162,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-162
+163,EQP-163,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-163
+164,EQP-164,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-164
+165,EQP-165,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-165
+166,EQP-166,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-166
+167,EQP-167,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-167
+168,EQP-168,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-168
+169,EQP-169,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-169
+170,EQP-170,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-170
+171,EQP-171,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-171
+172,EQP-172,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-172
+173,EQP-173,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-173
+174,EQP-174,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-174
+175,EQP-175,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-175
+176,EQP-176,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-176
+177,EQP-177,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-177
+178,EQP-178,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-178
+179,EQP-179,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-179
+180,EQP-180,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-180
+181,EQP-181,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-181
+182,EQP-182,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-182
+183,EQP-183,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-183
+184,EQP-184,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-184
+185,EQP-185,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-185
+186,EQP-186,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-186
+187,EQP-187,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-187
+188,EQP-188,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-188
+189,EQP-189,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-189
+190,EQP-190,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-190
+191,EQP-191,Chair,Furniture,Uratex,Working,12/1/2025 21:00,12/1/2025 21:00,1,isu-ilagan/ict-department/room-102/eqp-191
+192,EQP-192,Stand Fan,Appliances,Eqrika,Working,12/1/2025 21:01,12/1/2025 21:01,1,isu-ilagan/ict-department/room-102/eqp-192
+193,EQP-193,Stand Fan,Appliances,Eqrika,Working,12/1/2025 21:01,12/1/2025 21:01,1,isu-ilagan/ict-department/room-102/eqp-193
+194,EQP-194,TV,Appliances,Sharp,Working,12/1/2025 21:01,12/1/2025 21:01,1,isu-ilagan/ict-department/room-102/eqp-194
+195,EQP-195,Air Conditioner,Appliances,Fujidenzo,Working,12/1/2025 21:01,12/1/2025 21:01,1,isu-ilagan/ict-department/room-102/eqp-195
+196,EQP-196,Air Conditioner,Appliances,Fujidenzo,Working,12/1/2025 21:01,12/1/2025 21:01,1,isu-ilagan/ict-department/room-102/eqp-196
+197,EQP-197,CCTV,Appliances,ALHUA,Working,12/1/2025 21:02,12/1/2025 21:02,1,isu-ilagan/ict-department/room-102/eqp-197
+198,EQP-198,Server Box,Networking,N/A,Working,12/1/2025 21:02,12/1/2025 21:02,1,isu-ilagan/ict-department/room-102/eqp-198
+199,EQP-199,Cabinet,Furniture,N/A,Working,12/4/2025 19:32,12/5/2025 19:32,2,isu-ilagan/ict-department/room-103/eqp-199
+200,EQP-200,Cabinet,Furniture,N/A,Working,12/4/2025 19:33,12/5/2025 19:33,2,isu-ilagan/ict-department/room-103/eqp-200
+201,EQP-201,Cabinet,Furniture,N/A,Working,12/4/2025 19:35,12/5/2025 19:35,2,isu-ilagan/ict-department/room-103/eqp-201
+202,EQP-202,Long PC Table,Furniture,N/A,Working,12/4/2025 19:37,12/5/2025 19:37,2,isu-ilagan/ict-department/room-103/eqp-202
+203,EQP-203,Long PC Table,Furniture,N/A,Working,12/4/2025 19:39,12/5/2025 19:39,2,isu-ilagan/ict-department/room-103/eqp-203
+204,EQP-204,Long PC Table,Furniture,N/A,Working,12/4/2025 19:41,12/5/2025 19:41,2,isu-ilagan/ict-department/room-103/eqp-204
+205,EQP-205,Long PC Table,Furniture,N/A,Working,12/4/2025 19:43,12/5/2025 19:43,2,isu-ilagan/ict-department/room-103/eqp-205
+206,EQP-206,Long PC Table,Furniture,N/A,Working,12/4/2025 19:45,12/5/2025 19:45,2,isu-ilagan/ict-department/room-103/eqp-206
+207,EQP-207,Long PC Table,Furniture,N/A,Working,12/4/2025 19:47,12/5/2025 19:47,2,isu-ilagan/ict-department/room-103/eqp-207
+208,EQP-208,Long PC Table,Furniture,N/A,Working,12/4/2025 19:49,12/5/2025 19:49,2,isu-ilagan/ict-department/room-103/eqp-208
+209,EQP-209,Long PC Table,Furniture,N/A,Working,12/4/2025 19:51,12/5/2025 19:51,2,isu-ilagan/ict-department/room-103/eqp-209
+210,EQP-210,Long PC Table,Furniture,N/A,Working,12/4/2025 19:53,12/5/2025 19:53,2,isu-ilagan/ict-department/room-103/eqp-210
+211,EQP-211,Long PC Table,Furniture,N/A,Working,12/4/2025 19:55,12/5/2025 19:55,2,isu-ilagan/ict-department/room-103/eqp-211
+212,EQP-212,Long PC Table,Furniture,N/A,Working,12/4/2025 19:57,12/5/2025 19:57,2,isu-ilagan/ict-department/room-103/eqp-212
+213,EQP-213,Long PC Table,Furniture,N/A,Working,12/4/2025 19:59,12/5/2025 19:59,2,isu-ilagan/ict-department/room-103/eqp-213
+214,EQP-214,Long PC Table,Furniture,N/A,Working,12/4/2025 20:01,12/5/2025 20:01,2,isu-ilagan/ict-department/room-103/eqp-214
+215,EQP-215,Long PC Table,Furniture,N/A,Working,12/4/2025 20:03,12/5/2025 20:03,2,isu-ilagan/ict-department/room-103/eqp-215
+216,EQP-216,Medium Table,Furniture,N/A,Working,12/4/2025 20:05,12/5/2025 20:05,2,isu-ilagan/ict-department/room-103/eqp-216
+217,EQP-217,Wood Chair,Furniture,N/A,Working,12/4/2025 20:07,12/5/2025 20:07,2,isu-ilagan/ict-department/room-103/eqp-217
+218,EQP-218,Circle Chair,Furniture,N/A,Working,12/4/2025 20:09,12/5/2025 20:09,2,isu-ilagan/ict-department/room-103/eqp-218

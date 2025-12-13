@@ -1,7 +1,8 @@
 // resources/js/Pages/SystemUnits/SystemUnitHistories.jsx
 
-import React, { useState } from "react";
+import React from "react";
 import { Head, usePage } from "@inertiajs/react";
+import { Inertia } from "@inertiajs/inertia";
 import Swal from "sweetalert2";
 import axios from "axios";
 
@@ -22,17 +23,11 @@ import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import TopNavBar from "@/Components/AdminComponents/TopNavBar";
 
 export default function SystemUnitHistories() {
-    const { histories: initialHistories } = usePage().props;
+    const { histories } = usePage().props; // histories is now a paginator object
 
-    const [histories, setHistories] = useState(initialHistories.data || []);
-    const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 10;
-
-    const indexOfLast = currentPage * ITEMS_PER_PAGE;
-    const indexOfFirst = indexOfLast - ITEMS_PER_PAGE;
-    const currentData = histories.slice(indexOfFirst, indexOfLast);
-
-    const totalPages = Math.ceil(histories.length / ITEMS_PER_PAGE);
+    const currentData = histories.data; // only current page data
+    const currentPage = histories.current_page;
+    const totalPages = histories.last_page;
 
     const handleDelete = async (id) => {
         Swal.fire({
@@ -47,12 +42,11 @@ export default function SystemUnitHistories() {
             if (result.isConfirmed) {
                 try {
                     await axios.delete(`/system-unit-history/${id}`);
-                    const updated = histories.filter((h) => h.id !== id);
-                    setHistories(updated);
-
-                    if (updated.length <= indexOfFirst && currentPage > 1) {
-                        setCurrentPage(currentPage - 1);
-                    }
+                    Inertia.get(
+                        "/admin/system-unit-histories",
+                        {},
+                        { preserveState: true }
+                    );
 
                     Swal.fire({
                         title: "Deleted!",
@@ -71,7 +65,11 @@ export default function SystemUnitHistories() {
 
     const goToPage = (page) => {
         if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
+            Inertia.get(
+                "/admin/system-unit-histories",
+                { page },
+                { preserveState: true }
+            );
         }
     };
 
@@ -118,7 +116,7 @@ export default function SystemUnitHistories() {
                         System Unit Activity History
                     </h1>
 
-                    {histories.length === 0 ? (
+                    {currentData.length === 0 ? (
                         <p className="text-center mt-10">
                             No system unit history found.
                         </p>
@@ -150,9 +148,7 @@ export default function SystemUnitHistories() {
                                             <th className="px-5 py-1">
                                                 Date & Time
                                             </th>
-                                            {/* <th className="px-5 py-1">
-                                                Manage
-                                            </th> */}
+                                            {/* <th className="px-5 py-1">Manage</th> */}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -163,7 +159,7 @@ export default function SystemUnitHistories() {
                                             >
                                                 <td className="px-5 py-2 align-middle">
                                                     {(currentPage - 1) *
-                                                        ITEMS_PER_PAGE +
+                                                        histories.per_page +
                                                         index +
                                                         1}
                                                 </td>
@@ -194,9 +190,7 @@ export default function SystemUnitHistories() {
                                                 {/* <td className="px-5 py-2 align-middle">
                                                     <button
                                                         className="px-2 py-1 text-red-600 text-sm hover:underline"
-                                                        onClick={() =>
-                                                            handleDelete(h.id)
-                                                        }
+                                                        onClick={() => handleDelete(h.id)}
                                                     >
                                                         Delete
                                                     </button>
@@ -207,20 +201,19 @@ export default function SystemUnitHistories() {
                                 </table>
                             </div>
 
-                            {/* Pagination moved OUTSIDE the table */}
+                            {/* Pagination */}
                             <div className="flex justify-between items-center p-4 mt-2">
                                 <span className="text-sm text-muted-foreground">
                                     Showing{" "}
-                                    {histories.length === 0
+                                    {currentData.length === 0
                                         ? 0
-                                        : (currentPage - 1) * ITEMS_PER_PAGE +
+                                        : (currentPage - 1) *
+                                              histories.per_page +
                                           1}{" "}
                                     –{" "}
-                                    {Math.min(
-                                        currentPage * ITEMS_PER_PAGE,
-                                        histories.length
-                                    )}{" "}
-                                    of {histories.length} histories
+                                    {(currentPage - 1) * histories.per_page +
+                                        currentData.length}{" "}
+                                    of {histories.total} histories
                                 </span>
 
                                 <div className="flex gap-2">

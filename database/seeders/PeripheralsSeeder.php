@@ -3,63 +3,65 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\Peripheral;
+use App\Models\PeripheralHistory;
+use App\Models\User;
 
 class PeripheralsSeeder extends Seeder
 {
     public function run(): void
     {
-        $units = DB::table('system_units')->get();
+        $path = database_path('data/peripherals.csv');
 
-        if ($units->isEmpty()) {
-            $this->command->error('No system units found! Please seed system_units first.');
+        if (!file_exists($path)) {
+            $this->command->error('CSV file not found!');
             return;
         }
 
-        $peripheralTypes = [
-            ['type' => 'Mouse',     'brand' => 'Keytech',  'model' => 'KM-001'],
-            ['type' => 'Keyboard',  'brand' => 'A4Tech',   'model' => 'KB-001'],
-            ['type' => 'Monitor',   'brand' => 'Dell',     'model' => 'DE-001'],
-            ['type' => 'Headset',   'brand' => 'Logitech', 'model' => 'LH-100'],
-        ];
+        $file = fopen($path, 'r');
+        $header = fgetcsv($file);
 
-        $conditions = [
-            'Functional',
-            'Defective',
-            'Intermittent Issue',
-            'Needs Cleaning',
-            'For Replacement',
-            'For Disposal',
-        ];
+        // Use a default user for history (first admin or fallback 1)
+        $defaultUserId = User::where('role', 'admin')->first()->id ?? 1;
 
+        while (($row = fgetcsv($file)) !== false) {
+            $data = array_combine($header, $row);
 
-        $peripherals = [];
-        $counter = 1;
+            $peripheral = Peripheral::firstOrCreate(
+                ['qr_code_path' => $data['qr_code_path']],
+                [
+                    'peripheral_code'   => $data['peripheral_code'],
+                    'type'              => $data['type'],
+                    'brand'             => $data['brand'],
+                    'model'             => $data['model'],
+                    'serial_number'     => $data['serial_number'],
+                    'condition'         => $data['condition'],
+                    'condition_details' => $data['condition_details'],
+                    'room_id'           => $data['room_id'],
+                    'unit_id'           => $data['unit_id'],
+                    'created_at'        => $data['created_at'] ?? now(),
+                    'updated_at'        => $data['updated_at'] ?? now(),
+                ]
+            );
 
-        foreach ($units as $unit) {
-            foreach ($peripheralTypes as $peripheral) {
-                $peripheralCode = 'PRF-' . str_pad($counter, 3, '0', STR_PAD_LEFT);
-
-                $peripherals[] = [
-                    'peripheral_code' => $peripheralCode,
-                    'type'            => $peripheral['type'],
-                    'brand'           => $peripheral['brand'],
-                    'model'           => $peripheral['model'],
-                    'serial_number'   => strtoupper(substr($peripheral['type'], 0, 1)) . '-' . str_pad($counter, 4, '0', STR_PAD_LEFT),
-                    'condition'       => $conditions[array_rand($conditions)],
-                    'room_id'         => $unit->room_id,
-                    'unit_id'         => $unit->id,
-                    'qr_code_path'    => $unit->unit_path . '/' . strtolower($peripheralCode),
-                    'created_at'      => now(),
-                    'updated_at'      => now(),
-                ];
-
-                $counter++;
-            }
+            // Create history for seeding
+            PeripheralHistory::create([
+                'user_id'        => $defaultUserId,
+                'peripheral_id'  => $peripheral->id,
+                'peripheral_code'=> $peripheral->peripheral_code,
+                'unit_id'        => $peripheral->unit_id,
+                'room_id'        => $peripheral->room_id,
+                'action'         => 'Created',
+                'component'      => $peripheral->type,
+                'old_value'      => null,
+                'new_value'      => $peripheral->type,
+                'created_at'     => $peripheral->created_at,
+                'updated_at'     => $peripheral->updated_at,
+            ]);
         }
 
-        DB::table('peripherals')->insert($peripherals);
+        fclose($file);
 
-        $this->command->info(count($peripherals) . ' peripherals seeded successfully!');
+        $this->command->info('Peripherals and their histories seeded successfully!');
     }
 }

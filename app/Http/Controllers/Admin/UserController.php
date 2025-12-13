@@ -29,13 +29,15 @@ class UserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|string',
             'photo' => 'nullable|image|max:2048',
-            'face_descriptor' => 'nullable|string', // base64 string from frontend
+            'face_descriptor' => 'nullable|string',
         ]);
 
         $photoPath = null;
 
         if ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('photos', 'public');
+        } else {
+            $photoPath = 'photos/default-icon.png';
         }
 
         $user = User::create([

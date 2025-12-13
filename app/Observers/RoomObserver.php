@@ -4,19 +4,45 @@ namespace App\Observers;
 
 use App\Models\Room;
 use App\Models\RoomHistory;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class RoomObserver
 {
+    /**
+     * Get current user info or fallback to Seeder
+     */
+    private function getCurrentUser(): array
+    {
+        // Force all actions to be by Administrator (user ID 1)
+        $admin = User::find(1);
+
+        if ($admin) {
+            return [
+                'id' => $admin->id,
+                'name' => $admin->name,
+                'role' => $admin->role,
+            ];
+        }
+
+        // Fallback just in case user ID 1 does not exist
+        return [
+            'id' => null,
+            'name' => 'Seeder',
+            'role' => 'system',
+        ];
+    }
+
     /**
      * Handle the Room "created" event.
      */
     public function created(Room $room)
     {
+        $currentUser = $this->getCurrentUser();
+
         RoomHistory::create([
-            'user_id'   => Auth::id(),
-            'user_name' => Auth::user()->name,
-            'role'      => Auth::user()->role,
+            'user_id'   => $currentUser['id'],
+            'user_name' => $currentUser['name'],
+            'role'      => $currentUser['role'],
             'action'    => 'Create',
             'old_value' => null,
             'new_value' => "Room {$room->room_number} created",
@@ -28,14 +54,14 @@ class RoomObserver
      */
     public function updated(Room $room)
     {
-        $changes = $room->getChanges(); // get updated attributes
+        $currentUser = $this->getCurrentUser();
         $oldValue = $room->getOriginal('room_number');
         $newValue = $room->room_number;
 
         RoomHistory::create([
-            'user_id'   => Auth::id(),
-            'user_name' => Auth::user()->name,
-            'role'      => Auth::user()->role,
+            'user_id'   => $currentUser['id'],
+            'user_name' => $currentUser['name'],
+            'role'      => $currentUser['role'],
             'action'    => 'Update',
             'old_value' => "Room {$oldValue}",
             'new_value' => "Room {$newValue}",
@@ -45,12 +71,14 @@ class RoomObserver
     /**
      * Handle the Room "deleted" event.
      */
-    public function deleted(Room $room)
+    public function deleting(Room $room)
     {
+        $currentUser = $this->getCurrentUser();
+
         RoomHistory::create([
-            'user_id'   => Auth::id(),
-            'user_name' => Auth::user()->name,
-            'role'      => Auth::user()->role,
+            'user_id'   => $currentUser['id'],
+            'user_name' => $currentUser['name'],
+            'role'      => $currentUser['role'],
             'action'    => 'Delete',
             'old_value' => "Room {$room->room_number}",
             'new_value' => null,
@@ -62,7 +90,16 @@ class RoomObserver
      */
     public function restored(Room $room): void
     {
-        //
+        $currentUser = $this->getCurrentUser();
+
+        RoomHistory::create([
+            'user_id'   => $currentUser['id'],
+            'user_name' => $currentUser['name'],
+            'role'      => $currentUser['role'],
+            'action'    => 'Restore',
+            'old_value' => null,
+            'new_value' => "Room {$room->room_number} restored",
+        ]);
     }
 
     /**
@@ -70,6 +107,15 @@ class RoomObserver
      */
     public function forceDeleted(Room $room): void
     {
-        //
+        $currentUser = $this->getCurrentUser();
+
+        RoomHistory::create([
+            'user_id'   => $currentUser['id'],
+            'user_name' => $currentUser['name'],
+            'role'      => $currentUser['role'],
+            'action'    => 'Force Delete',
+            'old_value' => "Room {$room->room_number}",
+            'new_value' => null,
+        ]);
     }
 }

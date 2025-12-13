@@ -1,8 +1,8 @@
 // resources/js/Pages/Rooms/RoomHistory.jsx
 
-import React, { useState } from "react";
+import React from "react";
 import { Head, usePage } from "@inertiajs/react";
-import axios from "axios";
+import { Inertia } from "@inertiajs/inertia";
 import Swal from "sweetalert2";
 
 import { Separator } from "@/components/ui/separator";
@@ -22,25 +22,7 @@ import { AppSidebar } from "@/Components/AdminComponents/app-sidebar";
 import TopNavBar from "@/Components/AdminComponents/TopNavBar";
 
 export default function RoomHistory() {
-    const { histories: initialHistories } = usePage().props;
-
-    const [histories, setHistories] = useState(initialHistories?.data || []);
-
-    // Pagination
-    const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 10;
-
-    const indexOfLast = currentPage * ITEMS_PER_PAGE;
-    const indexOfFirst = indexOfLast - ITEMS_PER_PAGE;
-    const currentData = histories.slice(indexOfFirst, indexOfLast);
-
-    const totalPages = Math.ceil(histories.length / ITEMS_PER_PAGE);
-
-    const goToPage = (page) => {
-        if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
-        }
-    };
+    const { histories } = usePage().props;
 
     const handleDelete = async (id) => {
         Swal.fire({
@@ -54,21 +36,16 @@ export default function RoomHistory() {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`/room-history/${id}`);
-
-                    const updated = histories.filter((h) => h.id !== id);
-                    setHistories(updated);
-
-                    if (updated.length <= indexOfFirst && currentPage > 1) {
-                        setCurrentPage(currentPage - 1);
-                    }
-
-                    Swal.fire({
-                        title: "Deleted!",
-                        text: "History has been deleted.",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: false,
+                    await Inertia.delete(`/room-history/${id}`, {
+                        onSuccess: () => {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: "History has been deleted.",
+                                icon: "success",
+                                timer: 1000,
+                                showConfirmButton: false,
+                            });
+                        },
                     });
                 } catch (error) {
                     console.error("Error deleting history:", error);
@@ -78,11 +55,18 @@ export default function RoomHistory() {
         });
     };
 
+    const goToPage = (page) => {
+        Inertia.get(
+            `/admin/room-histories?page=${page}`,
+            {},
+            { preserveState: true }
+        );
+    };
+
     return (
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                {/* Header */}
                 <header className="sticky top-0 z-20 bg-white border-b px-4 md:px-6 py-3">
                     <div className="flex items-center gap-2">
                         <SidebarTrigger />
@@ -111,7 +95,6 @@ export default function RoomHistory() {
                 </header>
 
                 <div className="p-4 md:p-6 max-w-7xl mx-auto w-full">
-                    {/* Sticky TopNavBar */}
                     <div className="sticky top-[64px] z-20 bg-white shadow-sm">
                         <TopNavBar />
                     </div>
@@ -121,13 +104,12 @@ export default function RoomHistory() {
                         Room Activity History
                     </h1>
 
-                    {histories.length === 0 ? (
+                    {histories.data.length === 0 ? (
                         <p className="text-center mt-10">
                             No room activity found.
                         </p>
                     ) : (
                         <>
-                            {/* Table */}
                             <div className="overflow-x-auto bg-white shadow rounded-lg">
                                 <table className="min-w-full table-auto text-center">
                                     <thead>
@@ -149,97 +131,94 @@ export default function RoomHistory() {
                                             <th className="px-5 py-2">
                                                 Date & Time
                                             </th>
-                                            {/* <th className="px-5 py-2">
-                                                Manage
-                                            </th> */}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {currentData.map((history, index) => (
-                                            <tr
-                                                key={history.id}
-                                                className="hover:shadow-sm"
-                                            >
-                                                <td className="px-5 py-2 align-middle">
-                                                    {(currentPage - 1) *
-                                                        ITEMS_PER_PAGE +
-                                                        index +
-                                                        1}
-                                                </td>
-                                                <td className="px-5 py-2 align-middle">
-                                                    {history.user_name}
-                                                </td>
-                                                <td className="px-5 py-2 align-middle">
-                                                    {history.role}
-                                                </td>
-                                                <td className="px-5 py-2 align-middle">
-                                                    {history.action}
-                                                </td>
-                                                <td className="px-5 py-2 align-middle">
-                                                    {history.old_value ?? "-"}
-                                                </td>
-                                                <td className="px-5 py-2 align-middle">
-                                                    {history.new_value ?? "-"}
-                                                </td>
-                                                <td className="px-5 py-2 align-middle">
-                                                    {new Date(
-                                                        history.created_at
-                                                    ).toLocaleString()}
-                                                </td>
-                                                {/* <td className="px-5 py-2 align-middle">
-                                                    <button
-                                                        className="px-2 py-1 text-red-600 text-sm hover:underline"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                history.id
-                                                            )
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </td> */}
-                                            </tr>
-                                        ))}
+                                        {histories.data.map(
+                                            (history, index) => (
+                                                <tr
+                                                    key={history.id}
+                                                    className="hover:shadow-sm"
+                                                >
+                                                    <td className="px-5 py-2 align-middle">
+                                                        {(histories.current_page -
+                                                            1) *
+                                                            histories.per_page +
+                                                            index +
+                                                            1}
+                                                    </td>
+                                                    <td className="px-5 py-2 align-middle">
+                                                        {history.user_name}
+                                                    </td>
+                                                    <td className="px-5 py-2 align-middle">
+                                                        {history.role}
+                                                    </td>
+                                                    <td className="px-5 py-2 align-middle">
+                                                        {history.action}
+                                                    </td>
+                                                    <td className="px-5 py-2 align-middle">
+                                                        {history.old_value ??
+                                                            "-"}
+                                                    </td>
+                                                    <td className="px-5 py-2 align-middle">
+                                                        {history.new_value ??
+                                                            "-"}
+                                                    </td>
+                                                    <td className="px-5 py-2 align-middle">
+                                                        {new Date(
+                                                            history.created_at
+                                                        ).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
 
-                            {/* Pagination (outside table, styled like SystemUnits / PeripheralHistory) */}
+                            {/* Pagination */}
                             <div className="flex justify-between items-center p-4 mt-3 bg-white rounded-lg shadow-sm">
                                 <span className="text-sm text-muted-foreground">
                                     Showing{" "}
-                                    {(currentPage - 1) * ITEMS_PER_PAGE + 1} –{" "}
+                                    {(histories.current_page - 1) *
+                                        histories.per_page +
+                                        1}{" "}
+                                    –{" "}
                                     {Math.min(
-                                        currentPage * ITEMS_PER_PAGE,
-                                        histories.length
+                                        histories.current_page *
+                                            histories.per_page,
+                                        histories.total
                                     )}{" "}
-                                    of {histories.length} histories
+                                    of {histories.total} histories
                                 </span>
 
                                 <div className="flex gap-2">
                                     <button
                                         className="px-3 py-1 border rounded text-sm disabled:opacity-50"
-                                        disabled={currentPage === 1}
+                                        disabled={histories.current_page === 1}
                                         onClick={() =>
-                                            goToPage(currentPage - 1)
+                                            goToPage(histories.current_page - 1)
                                         }
                                     >
                                         Prev
                                     </button>
 
                                     {Array.from(
-                                        { length: totalPages },
+                                        { length: histories.last_page },
                                         (_, i) => i + 1
                                     )
                                         .filter((page) => {
                                             if (
                                                 page === 1 ||
-                                                page === totalPages
+                                                page === histories.last_page
                                             )
                                                 return true;
                                             return (
-                                                page >= currentPage - 2 &&
-                                                page <= currentPage + 2
+                                                page >=
+                                                    histories.current_page -
+                                                        2 &&
+                                                page <=
+                                                    histories.current_page + 2
                                             );
                                         })
                                         .map((page, idx, arr) => (
@@ -253,7 +232,8 @@ export default function RoomHistory() {
                                                     )}
                                                 <button
                                                     className={`px-3 py-1 border rounded text-sm ${
-                                                        currentPage === page
+                                                        histories.current_page ===
+                                                        page
                                                             ? "bg-black text-white"
                                                             : "hover:bg-gray-200"
                                                     }`}
@@ -268,9 +248,12 @@ export default function RoomHistory() {
 
                                     <button
                                         className="px-3 py-1 border rounded text-sm disabled:opacity-50"
-                                        disabled={currentPage === totalPages}
+                                        disabled={
+                                            histories.current_page ===
+                                            histories.last_page
+                                        }
                                         onClick={() =>
-                                            goToPage(currentPage + 1)
+                                            goToPage(histories.current_page + 1)
                                         }
                                     >
                                         Next

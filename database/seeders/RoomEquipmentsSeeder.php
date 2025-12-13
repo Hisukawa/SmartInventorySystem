@@ -4,85 +4,66 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use App\Models\Equipment;
+use App\Models\EquipmentHistory;
+use App\Models\User;
 
 class RoomEquipmentsSeeder extends Seeder
 {
     public function run(): void
     {
-        $rooms = DB::table('rooms')
-                ->whereIn('room_number', ['102', '201', '202', '203', '204'])
-                ->get();
+        $path = database_path('data/equipments.csv');
 
-
-        if ($rooms->isEmpty()) {
-            $this->command->error('No rooms found! Please seed rooms first.');
+        if (!file_exists($path)) {
+            $this->command->error('CSV file not found!');
             return;
         }
 
-        $equipmentsList = [
-            // Furniture
-            ['name' => 'Chair',        'type' => 'Furniture',  'brand' => 'Uratex'],
-            ['name' => 'Wooden Table', 'type' => 'Furniture',  'brand' => 'Local'],
-            ['name' => 'Whiteboard',   'type' => 'Furniture',  'brand' => 'Universal'],
+        $file = fopen($path, 'r');
+        $header = fgetcsv($file);
 
-            // Appliances
-            ['name' => 'Aircon',       'type' => 'Appliance',  'brand' => 'Carrier'],
-            ['name' => 'Projector',    'type' => 'Appliance',  'brand' => 'Epson'],
-            ['name' => 'Ceiling Fan',  'type' => 'Appliance',  'brand' => 'Panasonic'],
-            ['name' => 'Electric Fan', 'type' => 'Appliance',  'brand' => 'Asahi'],
-            ['name' => 'Smart TV',     'type' => 'Appliance',  'brand' => 'Samsung'],
-            ['name' => 'Speaker System','type' => 'Appliance', 'brand' => 'Sony'],
-
-            // Networking
-            ['name' => 'Router',       'type' => 'Networking', 'brand' => 'TP-Link'],
-            ['name' => 'Switch Hub',   'type' => 'Networking', 'brand' => 'Cisco'],
-            ['name' => 'Access Point', 'type' => 'Networking', 'brand' => 'Ubiquiti'],
-
-            // Safety
-            ['name' => 'Fire Extinguisher','type' => 'Safety', 'brand' => 'SafeGuard'],
-            ['name' => 'Emergency Light',  'type' => 'Safety', 'brand' => 'Omni'],
-            ['name' => 'First Aid Kit',    'type' => 'Safety', 'brand' => 'Red Cross'],
-        ];
-
-        $conditions = [
-            'Functional',
-            'Defective',
-            'Intermittent Issue',
-            'Needs Cleaning',
-            'For Replacement',
-            'For Disposal',
-            'For Condemn',
-        ];
-
-        $equipments = [];
-        $counter = 1;
-
-        foreach ($rooms as $room) {
-            foreach ($equipmentsList as $equipment) {
-                $quantity = rand(1, 30); // 1–30 items per equipment type
-
-                for ($i = 0; $i < $quantity; $i++) {
-                    $equipmentCode = 'EQP-' . str_pad($counter, 3, '0', STR_PAD_LEFT);
-
-                    $equipments[] = [
-                        'equipment_code' => $equipmentCode,
-                        'equipment_name' => $equipment['name'],
-                        'type'           => $equipment['type'],
-                        'brand'          => $equipment['brand'],
-                        'condition'      => $conditions[array_rand($conditions)],
-                        'created_at'     => now(),
-                        'updated_at'     => now(),
-                        'room_id'        => $room->id,
-                        'qr_code'        => 'isu-ilagan/ict-department/room-' . $room->room_number . '/' . strtolower($equipmentCode),
-                    ];
-
-                    $counter++;
-                }
-            }
+        if (!$header) {
+            $this->command->error('CSV file is empty or invalid!');
+            return;
         }
 
-        DB::table('equipments')->insert($equipments);
+        // Default admin user for history
+        $defaultUserId = User::where('role', 'admin')->first()->id ?? 1;
 
-        $this->command->info(count($equipments) . ' room equipments seeded successfully!');
+        while (($row = fgetcsv($file)) !== false) {
+            $data = array_combine($header, $row);
+
+            // Create or get equipment
+            $equipment = Equipment::firstOrCreate(
+                ['equipment_code' => $data['equipment_code']],
+                [
+                    'equipment_name' => $data['equipment_name'],
+                    'type'           => $data['type'],
+                    'brand'          => $data['brand'],
+                    'condition'      => $data['condition'],
+                    'room_id'        => $data['room_id'],
+                    'qr_code'        => $data['qr_code'],
+                    'created_at'     => $data['created_at'] ?? now(),
+                    'updated_at'     => $data['updated_at'] ?? now(),
+                ]
+            );
+
+            // Create initial history entry
+            EquipmentHistory::create([
+                'user_id'        => $defaultUserId,
+                'equipment_name' => $equipment['equipment_name'],
+                'component'      => $equipment['type'], // maps type -> component
+                'action'         => 'Created',
+                'old_value'      => null,
+                'new_value'      => $equipment['equipment_name'],
+                'room_id'        => $equipment['room_id'],
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+        }
+
+        fclose($file);
+
+        $this->command->info('Equipments and their histories seeded successfully!');
     }
 }
