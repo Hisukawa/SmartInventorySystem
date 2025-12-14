@@ -52,8 +52,8 @@ const CONDITION_COLORS = {
     "No Signal": "bg-red-200 text-red-800",
     "Needs Configuration": "bg-blue-200 text-blue-800",
     "Under Maintenance": "bg-blue-200 text-blue-900",
+    "To Be Diagnosed": "bg-blue-100 text-blue-800",
 };
-
 export default function ViewUnit({ unit }) {
     const [selectedQR, setSelectedQR] = useState(null);
     const [open, setOpen] = useState(false);
@@ -232,18 +232,6 @@ export default function ViewUnit({ unit }) {
                                     Operating System:
                                 </span>
                                 <span>{unit?.operating_system || "N/A"}</span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Info className="w-5 h-5 text-green-600" />
-                                <span className="font-medium">Brand:</span>
-                                <span>{brand}</span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Info className="w-5 h-5 text-green-600" />
-                                <span className="font-medium">Model:</span>
-                                <span>{model}</span>
                             </div>
 
                             {/* Condition with color coding */}

@@ -73,7 +73,7 @@ export default function EditUnitModal({ unit, rooms, onClose, onSuccess }) {
                 <form onSubmit={handleSubmit} className="grid gap-5 py-2">
                     {/* ROW 1 */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
+                        {/* <div>
                             <Label className="mb-1 block">Unit Code</Label>
                             <Input
                                 value={data.unit_code}
@@ -81,6 +81,19 @@ export default function EditUnitModal({ unit, rooms, onClose, onSuccess }) {
                                     setData("unit_code", e.target.value)
                                 }
                                 className="rounded-lg"
+                            />
+                            {errors.unit_code && (
+                                <p className="text-sm text-red-500">
+                                    {errors.unit_code}
+                                </p>
+                            )}
+                        </div> */}
+                        <div>
+                            <Label className="mb-1 block">Unit Code</Label>
+                            <Input
+                                value={data.unit_code}
+                                readOnly
+                                className="rounded-lg bg-gray-100 cursor-not-allowed"
                             />
                             {errors.unit_code && (
                                 <p className="text-sm text-red-500">

@@ -766,76 +766,85 @@ export default function UnitsPage({ units, rooms, filters = {} }) {
                     </h1>
 
                     {/* Search + Filter + Add */}
-                    <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between mb-4">
-                        <div className="flex gap-2 items-center flex-1">
-                            <Input
-                                placeholder="Search Unit Code or Room"
-                                value={search}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setSearch(value);
-                                    setCurrentPage(1);
-                                }}
-                                onKeyDown={handleSearchKey}
-                                className="flex-1 min-w-0 sm:max-w-xs w-full border-[hsl(142,34%,51%)]"
-                            />
+                    <div className="flex flex-col gap-3 mb-4">
+                        {/* Top Row: Search + Filters + Actions */}
+                        <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+                            {/* Left Section */}
+                            <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch sm:items-center flex-1">
+                                <Input
+                                    placeholder="Search Unit Code or Room"
+                                    value={search}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setSearch(value);
+                                        setCurrentPage(1);
+                                    }}
+                                    onKeyDown={handleSearchKey}
+                                    className="w-full sm:max-w-xs border-[hsl(142,34%,51%)]"
+                                />
 
-                            <UnitsFilter
-                                filters={filters}
-                                filterOptions={filterOptions}
-                                onApplyFilters={onApplyFilters}
-                                onReset={resetFilters}
-                            />
+                                <UnitsFilter
+                                    filters={filters}
+                                    filterOptions={filterOptions}
+                                    onApplyFilters={onApplyFilters}
+                                    onReset={resetFilters}
+                                />
 
-                            <Button
-                                className="flex items-center gap-2 bg-[hsl(183,40%,45%)] text-white border-none hover:bg-[hsl(183,40%,38%)]"
-                                onClick={handlePrint}
-                            >
-                                <Printer className="h-4 w-4" />
-                                Print
-                            </Button>
+                                <Button
+                                    className="flex items-center gap-2 bg-[hsl(183,40%,45%)] text-white border-none hover:bg-[hsl(183,40%,38%)] w-full sm:w-auto"
+                                    onClick={handlePrint}
+                                >
+                                    <Printer className="h-4 w-4" />
+                                    Print
+                                </Button>
 
-                            <Button
-                                className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)]"
-                                onClick={() => setDownloadPanelOpen(true)}
-                            >
-                                Download QR Codes
-                            </Button>
+                                <Button
+                                    className="bg-[hsl(142,34%,51%)] text-white hover:bg-[hsl(142,34%,45%)] w-full sm:w-auto"
+                                    onClick={() => setDownloadPanelOpen(true)}
+                                >
+                                    Download QR Codes
+                                </Button>
+                            </div>
+
+                            {/* Right Section: Add Button */}
+                            <div className="flex justify-stretch sm:justify-end">
+                                <Button
+                                    className="w-full sm:w-auto bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                    onClick={() =>
+                                        router.visit(
+                                            route("admin.system-units.create")
+                                        )
+                                    }
+                                >
+                                    Add New Unit
+                                </Button>
+                            </div>
                         </div>
 
                         {/* Import Button */}
                         {/* <label className="flex items-center gap-2 cursor-pointer bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)] px-4 py-2 rounded-md">
-                                <input
-                                    type="file"
-                                    accept=".csv"
-                                    onChange={handleImport}
-                                    className="hidden"
-                                />
-                                <Upload className="h-4 w-4" />
-                                Import
-                            </label> */}
+            <input
+                type="file"
+                accept=".csv"
+                onChange={handleImport}
+                className="hidden"
+            />
+            <Upload className="h-4 w-4" />
+            Import
+        </label> */}
 
                         {/* Export Data */}
                         {/* <Button
-                                className="flex items-center gap-2 bg-[hsl(142,34%,45%)] text-white border-none hover:bg-[hsl(142,34%,38%)]"
-                                onClick={() =>
-                                    (window.location.href = route(
-                                        "system-units.export"
-                                    ))
-                                }
-                            >
-                                <Download className="h-4 w-4" />
-                                Export
-                            </Button> */}
-
-                        <Button
-                            className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                            onClick={() =>
-                                router.visit(route("admin.system-units.create"))
-                            }
-                        >
-                            Add New Unit
-                        </Button>
+            className="flex items-center gap-2 bg-[hsl(142,34%,45%)] text-white border-none hover:bg-[hsl(142,34%,38%)]"
+            onClick={() =>
+                (window.location.href = route(
+                    "system-units.export"
+                ))
+            }
+        >
+            <Download className="h-4 w-4" />
+            Export
+        </Button> */}
                     </div>
 
                     {/* Table */}
