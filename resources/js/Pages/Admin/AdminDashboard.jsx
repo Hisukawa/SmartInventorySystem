@@ -246,13 +246,13 @@ export default function AdminDashboard() {
                     : dashboardStats.totalEquipments
             ),
             icon: Monitor,
-            link: "/admin/equipments",
+            link: "/equipments",
         },
         {
             title: "Pending Requests",
             value: animatedValue(dashboardStats.pendingRequests),
             icon: ClipboardList,
-            link: "/admin/maintenance-requests",
+            link: "/admin/faculty/reports",
         },
         {
             title: "Total Users",
