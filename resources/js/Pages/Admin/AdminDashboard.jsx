@@ -343,7 +343,7 @@ export default function AdminDashboard() {
 
                     {/* KPI Cards */}
                     {/* 🔹 Top Row: KPI Cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-6">
                         {cardData.map((card, idx) => (
                             <Link key={idx} href={card.link} className="block">
                                 <Card className="rounded-xl shadow-sm bg-white hover:shadow-md transition-all duration-300 cursor-pointer p-3">
