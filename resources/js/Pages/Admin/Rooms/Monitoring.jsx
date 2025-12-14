@@ -110,6 +110,107 @@ export default function AdminDashboard({ children }) {
     const minutes = String(currentTime.getMinutes()).padStart(2, "0");
     const seconds = String(currentTime.getSeconds()).padStart(2, "0");
     const ampm = currentTime.getHours() >= 12 ? "PM" : "AM";
+    const handleGenerateReport = () => {
+        if (logs.length === 0) {
+            alert("No logs available to generate report.");
+            return;
+        }
+
+        const printWindow = window.open("", "", "width=1000,height=800");
+
+        const tableRows = logs
+            .map((log, idx) => {
+                const loginDate = log.created_at
+                    ? new Date(log.created_at.replace(" ", "T")).toLocaleString(
+                          "en-PH",
+                          {
+                              year: "numeric",
+                              month: "numeric",
+                              day: "numeric",
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hour12: true,
+                          }
+                      )
+                    : "—";
+
+                const logoutDate = log.logged_out_at
+                    ? new Date(
+                          log.logged_out_at.replace(" ", "T")
+                      ).toLocaleString("en-PH", {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                      })
+                    : "—";
+
+                return `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${log.faculty?.name ?? "N/A"}</td>
+                    <td>${log.faculty?.role ?? "N/A"}</td>
+                    <td>${loginDate}</td>
+                    <td>${logoutDate}</td>
+                    <td>${log.room?.room_number ?? "N/A"}</td>
+                </tr>
+            `;
+            })
+            .join("");
+
+        printWindow.document.write(`
+        <html>
+            <head>
+                <title>Faculty Logs Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .logo { width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; }
+                    h1 { font-size: 24px; margin: 0; color: #2e7d32; }
+                    p { text-align: center; font-size: 14px; margin: 5px 0; color: #555; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 13px; }
+                    th { background-color: #2e7d32; color: white; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    .summary { margin-top: 20px; font-size: 14px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <img src="/logo.png" class="logo" alt="School Logo" />
+                    <h1>Smart Inventory Management System</h1>
+                    <p>Faculty Logs Report</p>
+                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Login Date</th>
+                            <th>Logout Date</th>
+                            <th>Room</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+
+                <div class="summary">
+                    <strong>Total Logs:</strong> ${logs.length}
+                </div>
+            </body>
+        </html>
+    `);
+
+        printWindow.document.close();
+        printWindow.print();
+    };
 
     return (
         <SidebarProvider>
@@ -264,15 +365,27 @@ export default function AdminDashboard({ children }) {
                         {/* Search + Filters */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between w-full mb-4">
-                                <Button
-                                    className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
-                                    onClick={() => setShowFilters(!showFilters)}
-                                >
-                                    <Filter className="w-4 h-4" />
-                                    {showFilters
-                                        ? "Hide Filters"
-                                        : "Show Filters"}
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        className="flex items-center gap-2 bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                        onClick={() =>
+                                            setShowFilters(!showFilters)
+                                        }
+                                    >
+                                        <Filter className="w-4 h-4" />
+                                        {showFilters
+                                            ? "Hide Filters"
+                                            : "Show Filters"}
+                                    </Button>
+
+                                    <Button
+                                        className="bg-[hsl(142,34%,51%)] text-white border-none hover:bg-[hsl(142,34%,45%)]"
+                                        onClick={handleGenerateReport}
+                                    >
+                                        Generate Report
+                                    </Button>
+                                </div>
+
                                 <div className="flex items-center gap-2">
                                     <Input
                                         type="text"

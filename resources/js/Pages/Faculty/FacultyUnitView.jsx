@@ -14,6 +14,7 @@ import {
     ArrowLeft,
     User,
     Info,
+    Hash,
 } from "lucide-react";
 
 import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view-sidebar";
@@ -124,6 +125,11 @@ export default function FacultyUnitView({ room, unit, user }) {
                                     icon={HardDrive}
                                     label="Motherboard"
                                     value={unit.motherboard}
+                                />
+                                <DetailItem
+                                    icon={Hash}
+                                    label="Serial Number"
+                                    value={unit.serial_number}
                                 />
                                 <DetailItem
                                     icon={SquareCheckBig}

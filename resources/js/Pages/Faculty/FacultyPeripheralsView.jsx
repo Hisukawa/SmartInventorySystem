@@ -9,10 +9,10 @@ import {
     Barcode,
     Layers,
     Tag,
-    Hash,
     ArrowLeft,
     SquareCheckBig,
     Info,
+    Hash,
 } from "lucide-react";
 
 import FacultyRoomSidebar from "@/Components/FacultyComponents/faculty-room-view-sidebar";
@@ -118,7 +118,7 @@ export default function FacultyPeripheralsView({ room, peripheral, user }) {
                                     value={peripheral.model}
                                 />
                                 <DetailItem
-                                    icon={Barcode}
+                                    icon={Hash}
                                     label="Serial Number"
                                     value={peripheral.serial_number}
                                 />

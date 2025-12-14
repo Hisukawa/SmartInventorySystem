@@ -358,103 +358,192 @@ export default function FacultyReportsIndex({
     }
 
     // Handle printing reports table
+    // Handle Generate Report (Print / PDF)
+
     const handlePrint = () => {
         if (!reportsData || reportsData.length === 0) {
-            alert("No reports available to print.");
+            alert("No reports available to generate.");
             return;
         }
 
-        const printWindow = window.open("", "", "width=900,height=700");
+        const printWindow = window.open("", "", "width=1000,height=700");
 
-        // Generate table rows
+        // Generate table rows (NO PHOTO COLUMN)
         const tableRows = reportsData
-            .map(
-                (r) => `
-        <tr>
-            <td>${r.id}</td>
-            <td>${r.room?.room_number ?? "N/A"}</td>
-            <td>${r.user?.name ?? "N/A"}</td>
-            <td>${r.reportable_type ?? "N/A"}</td>
-            <td>${r.condition ?? "N/A"}</td>
-            <td>${r.remarks ?? "N/A"}</td>
-            <td>${
-                r.created_at ? new Date(r.created_at).toLocaleString() : "N/A"
-            }</td>
-            <td>${r.resolved ? "Resolved" : "Pending"}</td>
-        </tr>
-    `
-            )
+            .map((r) => {
+                const type =
+                    r.reportable_type === "peripheral"
+                        ? r.reportable?.type ?? "Peripheral"
+                        : r.reportable_type === "system_unit"
+                        ? "System Unit"
+                        : r.reportable_type === "equipment"
+                        ? r.reportable?.type ||
+                          r.reportable?.equipment_type ||
+                          "Equipment"
+                        : "N/A";
+
+                const code =
+                    r.reportable_type === "peripheral"
+                        ? r.reportable?.peripheral_code ?? "N/A"
+                        : r.reportable_type === "system_unit"
+                        ? r.reportable?.unit_code ?? "N/A"
+                        : r.reportable_type === "equipment"
+                        ? r.reportable?.equipment_code ?? "N/A"
+                        : "N/A";
+
+                // ✅ SERIAL NUMBER LOGIC
+                const serialNumber =
+                    r.reportable_type === "system_unit" ||
+                    r.reportable_type === "peripheral"
+                        ? r.reportable?.serial_number ?? "N/A"
+                        : "—";
+
+                return `
+            <tr>
+                <td>${r.user?.name ?? "N/A"}</td>
+                <td>ROOM ${r.room?.room_number ?? "N/A"}</td>
+                <td>${type}</td>
+                <td>${code}</td>
+                <td>${serialNumber}</td>
+                <td>${r.condition ?? "N/A"}</td>
+                <td>${r.remarks ?? "—"}</td>
+                <td>${
+                    r.created_at
+                        ? new Date(r.created_at).toLocaleDateString()
+                        : "N/A"
+                }</td>
+            </tr>
+        `;
+            })
             .join("");
 
-        // Print layout
         printWindow.document.write(`
-        <html>
-            <head>
-                <title>Faculty Reports</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        padding: 20px;
-                    }
-                    h2 {
-                        text-align: center;
-                        margin-bottom: 20px;
-                        color: #2e7d32;
-                    }
-                    p {
-                        text-align: right;
-                        font-size: 12px;
-                        color: #666;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-top: 10px;
-                    }
-                    th, td {
-                        border: 1px solid #ccc;
-                        padding: 8px;
-                        text-align: left;
-                        font-size: 13px;
-                    }
-                    th {
-                        background-color: #2e7d32;
-                        color: white;
-                    }
-                    tr:nth-child(even) {
-                        background-color: #f9f9f9;
-                    }
-                    @media print {
-                        body { -webkit-print-color-adjust: exact; }
-                    }
-                </style>
-            </head>
-            <body>
-                <h2>Faculty Reports</h2>
-                <p>Generated on: ${new Date().toLocaleString()}</p>
+<html>
+<head>
+    <title>Faculty Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 25px;
+        }
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Room</th>
-                            <th>Faculty</th>
-                            <th>Report Type</th>
-                            <th>Condition</th>
-                            <th>Details</th>
-                            <th>Date Created</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows}
-                    </tbody>
-                </table>
-            </body>
-        </html>
-    `);
+        /* HEADER */
+        .header {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #2e7d32;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .logo {
+            width: 70px;
+            height: 70px;
+        }
+        .header-text {
+            flex: 1;
+            text-align: center;
+        }
+        .header-text h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .header-text p {
+            margin: 2px 0;
+            font-size: 13px;
+        }
+
+        h4 {
+            text-align: center;
+            margin: 15px 0 5px;
+        }
+
+        .date {
+            text-align: right;
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 6px;
+            font-size: 12px;
+        }
+
+        th {
+            background-color: #2e7d32;
+            color: #fff;
+            text-align: center;
+        }
+
+        td {
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SCHOOL HEADER -->
+    <div class="header">
+        
+        <img src="/logo.png" class="logo" alt="School Logo" />
+        <div class="header-text">
+        <p>Republic Of The Philippines</p>
+            <h3>Isabela State University</h3>
+            <p>City of Ilagan, Isabela</p>
+        </div>
+    </div>
+
+    <h4>FACULTY EQUIPMENT & INVENTORY REPORT</h4>
+
+    <div class="date">
+        Generated on: ${new Date().toLocaleString()}
+    </div>
+
+    <!-- REPORT TABLE -->
+            <table>
+            <thead>
+            <tr>
+                <th>Faculty</th>
+                <th>Room</th>
+                <th>Type</th>
+                <th>Code</th>
+                <th>Serial Number</th>
+                <th>Condition</th>
+                <th>Remarks</th>
+                <th>Date Reported</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            ${tableRows}
+        </tbody>
+    </table>
+
+</body>
+</html>
+`);
 
         printWindow.document.close();
+
+        // Auto open print dialog (Save as PDF)
         printWindow.print();
     };
 
@@ -587,8 +676,6 @@ export default function FacultyReportsIndex({
                                             <TableHead>Faculty</TableHead>
                                             <TableHead>Room</TableHead>
 
-                                            <TableHead>Reports Type</TableHead>
-                                            <TableHead>Reports ID</TableHead>
                                             <TableHead>Type</TableHead>
                                             <TableHead>Code</TableHead>
                                             <TableHead>Condition</TableHead>
@@ -618,12 +705,7 @@ export default function FacultyReportsIndex({
                                                             ? r.room.room_number
                                                             : "N/A"}
                                                     </TableCell>
-                                                    <TableCell>
-                                                        {r.reportable_type}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {r.reportable_id}
-                                                    </TableCell>
+
                                                     <TableCell>
                                                         {r.reportable_type ===
                                                         "peripheral"
